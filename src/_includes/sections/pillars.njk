@@ -1,0 +1,49 @@
+<section class="pillars-section section" id="why">
+  <div class="shell">
+    <div class="section-heading split-heading">
+      <div>
+        <span class="section-kicker purple">{{ home.pillars.kicker }}</span>
+        <h2>{{ home.pillars.title[0] }}<br>{{ home.pillars.title[1] }}</h2>
+      </div>
+      <p>{{ home.pillars.intro }}</p>
+    </div>
+
+    <div class="pillar-grid">
+      {% for pillar in home.pillars.items %}
+        <article class="pillar-card {{ pillar.id }}-pillar reveal {% if loop.index % 2 == 0 %}reveal-delay-1{% endif %}">
+          <div class="pillar-top">
+            <span class="pillar-number">{{ pillar.number }}</span>
+            <span class="status-label {{ pillar.statusClass }}"><span></span>{{ pillar.status }}</span>
+          </div>
+
+          {% if pillar.id == "footprint" %}
+            <div class="pi-illustration" aria-hidden="true">
+              <div class="pi-board"><i></i><i></i><i></i><i></i><span class="pi-chip">dkpn</span><span class="pi-pins"></span></div>
+              <span class="pi-orbit"></span>
+            </div>
+          {% elif pillar.id == "capability" %}
+            <div class="capability-stack" aria-hidden="true">
+              <span><i>read</i> github.pull-request.read <b>low</b></span>
+              <span><i>write</i> github.pull-request.comment <b>high</b></span>
+              <span class="capability-lock">explicit only</span>
+            </div>
+          {% elif pillar.id == "custom" %}
+            <div class="custom-blocks" aria-hidden="true">
+              <span>Agent</span><i>+</i><span>Capability</span><i>+</i><span>Provider</span>
+            </div>
+          {% elif pillar.id == "observe" %}
+            <div class="trace-illustration" aria-hidden="true">
+              <span class="trace-line"></span>
+              <i><b>proposal</b><small>trace_8Q2F</small></i>
+              <i><b>decision</b><small>policy_rev_7</small></i>
+              <i><b>outcome</b><small>evidence_3A</small></i>
+            </div>
+          {% endif %}
+
+          <h3>{{ pillar.title }}</h3>
+          <p>{{ pillar.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

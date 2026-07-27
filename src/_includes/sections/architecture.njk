@@ -1,0 +1,43 @@
+<section class="architecture-section section" id="architecture">
+  <div class="architecture-ribbon" aria-hidden="true"></div>
+  <div class="shell">
+    <div class="section-heading split-heading architecture-heading">
+      <div>
+        <span class="section-kicker mint">{{ home.architecture.kicker }}</span>
+        <h2>{{ home.architecture.title }}</h2>
+      </div>
+      <p>{{ home.architecture.intro }}</p>
+    </div>
+
+    <div class="architecture-board">
+      <div class="architecture-grid-lines" aria-hidden="true"></div>
+      <div class="arch-row arch-row-cli">
+        <div class="arch-meta"><span class="status-label current"><span></span>{{ home.architecture.current.status }}</span><small>{{ home.architecture.current.meta }}</small></div>
+        <article class="arch-card cli-card">
+          <div class="arch-icon"><span>_</span></div>
+          <div><code>{{ home.architecture.current.code }}</code><h3>{{ home.architecture.current.title }}</h3><p>{{ home.architecture.current.body }}</p></div>
+          <span class="arch-side-label">{{ home.architecture.current.sideLabel }}</span>
+        </article>
+      </div>
+
+      <div class="arch-divider"><span>{{ home.architecture.boundary }}</span></div>
+
+      <div class="arch-row committed-row">
+        <div class="arch-meta"><span class="status-label direction"><span></span>{{ home.architecture.committed.status }}</span><small>{{ home.architecture.committed.meta }}</small></div>
+        <div class="committed-cards">
+          {% for component in home.architecture.committed.components %}
+            <article class="arch-card {{ component.id }}-card">
+              <div class="arch-icon"><span>{% if component.id == "daemon" %}◇{% elif component.id == "broker" %}◆{% else %}W{% endif %}</span></div>
+              <div><code>{{ component.code }}</code><h3>{{ component.title }}</h3><p>{{ component.body }}</p></div>
+            </article>
+            {% if not loop.last %}<div class="arch-arrow"><span>{% if loop.index == 1 %}proposal{% else %}constrained{% endif %}</span><i aria-hidden="true">→</i></div>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="limits-strip">
+      {% for limit in home.architecture.limits %}<span>{{ limit }}</span>{% endfor %}
+    </div>
+  </div>
+</section>

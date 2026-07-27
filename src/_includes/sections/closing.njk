@@ -1,0 +1,14 @@
+{% from "components/logo.njk" import largeLogo %}
+<section class="closing-section">
+  <div class="closing-mesh" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="shell closing-content">
+    {{ largeLogo() }}
+    <span class="section-kicker">{{ home.closing.kicker }}</span>
+    <h2>{{ home.closing.title }}<br><span>{{ home.closing.titleAccent }}</span></h2>
+    <p>{{ home.closing.body }}</p>
+    <div class="closing-buttons">
+      <a class="button button-white" href="{{ home.closing.primaryCta.href }}">{{ home.closing.primaryCta.label }} <span aria-hidden="true">↗</span></a>
+      <a class="button button-ghost" href="{{ home.closing.secondaryCta.href }}">{{ home.closing.secondaryCta.label }} <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>

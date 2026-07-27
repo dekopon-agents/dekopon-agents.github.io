@@ -1,0 +1,232 @@
+{
+  "hero": {
+    "eyebrow": "Open source · self-hosted · early",
+    "title": "Big taste for a",
+    "titleAccent": "small footprint.",
+    "lede": "A capability-oriented control plane for self-hosted AI agents—designed from the start for Raspberry Pi, your own hardware, and authority you can understand.",
+    "primaryCta": { "label": "See what it’s designed for", "href": "#why" },
+    "secondaryCta": { "label": "View on GitHub", "href": "https://github.com/dekopon-agents/dekopon" },
+    "installCommand": "git clone https://github.com/dekopon-agents/dekopon.git && cd dekopon && cargo install --locked --path crates/dekopon",
+    "caveatLabel": "Current:",
+    "caveat": "v0.1.0 is a local catalog CLI. It makes no model calls and executes no external effects.",
+    "visual": {
+      "title": "edge control plane",
+      "badge": "Pi-sized target",
+      "stage": "ProposedInvocation",
+      "trust": "untrusted",
+      "capability": "github.pull-request.comment",
+      "actor": "trusted envelope only",
+      "effect": "external-write",
+      "boundary": "broker boundary",
+      "deniedLabel": "policy result",
+      "denied": "Denied",
+      "authorizedLabel": "bounded receipt",
+      "authorized": "Authorized",
+      "outcomeLabel": "linked outcome",
+      "outcome": "evidence + audit",
+      "trace": "trace_8Q2F",
+      "chips": ["small by design", "custom providers", "traceable effects"]
+    }
+  },
+  "principles": [
+    "Small by design",
+    "Capabilities first",
+    "Composable by default",
+    "Observable end to end"
+  ],
+  "pillars": {
+    "kicker": "Designed from the edge inward",
+    "title": ["Everything it needs.", "Nothing it doesn’t."],
+    "intro": "Dekopon starts with the constraints of hardware you can hold in one hand. Its architecture stays legible, modular, and economical as your agents grow.",
+    "items": [
+      {
+        "id": "footprint",
+        "number": "01",
+        "status": "Current foundation",
+        "statusClass": "current",
+        "title": "Designed for a small footprint.",
+        "body": "A synchronous Rust CLI today. No required cloud control plane, no idle runtime stack, and no heavyweight dependency without tested behavior that earns it."
+      },
+      {
+        "id": "capability",
+        "number": "02",
+        "status": "Current model",
+        "statusClass": "current",
+        "title": "Designed for capabilities.",
+        "body": "Agents receive a vocabulary of narrow operations—not a bag of credentials. Proposing a capability never grants the process authority to execute it."
+      },
+      {
+        "id": "custom",
+        "number": "03",
+        "status": "Current + direction",
+        "statusClass": "mixed",
+        "title": "Designed for customizability.",
+        "body": "Compose typed resources now; add narrow provider components as the runtime matures. Transport-independent boundaries keep your configuration portable."
+      },
+      {
+        "id": "observe",
+        "number": "04",
+        "status": "Committed direction",
+        "statusClass": "direction",
+        "title": "Designed for observability.",
+        "body": "Proposal, trusted identity, policy decision, bounded execution, result, and evidence are designed to remain linked under one trace."
+      }
+    ]
+  },
+  "status": {
+    "kicker": "Honest by design",
+    "title": "Start with what is real.",
+    "intro": "Dekopon draws a bright line between code you can run today and constraints accepted for the system ahead. A roadmap is not an implementation claim.",
+    "current": {
+      "label": "Current · v0.1.0",
+      "title": "A small, deterministic local control path.",
+      "body": "One operator-selected catalog goes through strict decoding, typed validation, resource reads, and predictable rendering.",
+      "points": [
+        "Strict YAML and JSON resources",
+        "Typed agents, capabilities, and providers",
+        "Cross-reference and duplicate validation",
+        "Table, JSON, YAML, wide, and name output",
+        "Proposal / authorization typestate"
+      ],
+      "path": ["parse", "resolve", "validate", "render"]
+    },
+    "direction": {
+      "label": "Committed direction",
+      "title": "Brokered execution with narrow authority.",
+      "body": "The target architecture separates unprivileged orchestration from the only process allowed to turn proposals into constrained effects.",
+      "items": [
+        { "name": "dekopond", "description": "model interaction + orchestration" },
+        { "name": "dekopon-brokerd", "description": "identity + policy + credentials" },
+        { "name": "Wasm providers", "description": "one bounded integration operation" },
+        { "name": "Evidence", "description": "correlatable decisions + outcomes" }
+      ],
+      "note": "These components are design constraints, not shipped features."
+    }
+  },
+  "authority": {
+    "kicker": "The foundational invariant",
+    "title": "A model may propose.",
+    "titleAccent": "Only the broker may authorize.",
+    "intro": "Success does not mean making a model trustworthy. It means containing an untrusted model in a system where every unit of authority is narrow, attributable, reviewable, and revocable.",
+    "diagramStatus": "Committed architecture · not yet implemented",
+    "nodes": [
+      {
+        "id": "proposal",
+        "number": "01",
+        "trust": "untrusted",
+        "trustClass": "untrusted",
+        "title": "Proposal",
+        "body": "Intent and arguments from a model, repository, or tool payload."
+      },
+      {
+        "id": "broker",
+        "number": "02",
+        "trust": "authority owner",
+        "trustClass": "privileged",
+        "title": "Broker",
+        "body": "Authenticates identity, evaluates policy, and binds constraints to a receipt.",
+        "signals": ["identity", "policy", "limits"]
+      },
+      {
+        "id": "provider",
+        "number": "03",
+        "trust": "bounded",
+        "trustClass": "bounded",
+        "title": "Provider",
+        "body": "Executes one narrow operation with broker-held credentials and enforced limits."
+      },
+      {
+        "id": "evidence",
+        "number": "04",
+        "trust": "correlatable",
+        "trustClass": "recorded",
+        "title": "Evidence",
+        "body": "Links identity, proposal, decision, policy revision, effect, and result."
+      }
+    ],
+    "invariants": [
+      {
+        "number": "I",
+        "class": "gradient-one",
+        "title": "Explicit and narrow",
+        "body": "A read capability never implies write authority. Every external write gets its own name."
+      },
+      {
+        "number": "II",
+        "class": "gradient-two",
+        "title": "Identity from trust",
+        "body": "Actor identity comes from authenticated infrastructure, never model text or repository content."
+      },
+      {
+        "number": "III",
+        "class": "gradient-three",
+        "title": "Credentials contained",
+        "body": "Secrets stay behind the broker boundary—out of prompts, authored resources, evidence, and logs."
+      },
+      {
+        "number": "IV",
+        "class": "gradient-four",
+        "title": "Authorization bound",
+        "body": "The proposal, decision, execution limits, and receipt travel as one constrained grant."
+      }
+    ]
+  },
+  "resources": {
+    "kicker": "Readable authority",
+    "title": "Declare capabilities in the open.",
+    "intro": "Compact, Kubernetes-inspired resources make an agent’s proposed authority inspectable. Unknown fields fail early. Names and references are validated before they enter the catalog.",
+    "points": [
+      { "label": "api", "title": "Versioned on the wire", "body": "with explicit kinds and strict alpha schemas." },
+      { "label": "key", "title": "Symbolic credential references", "body": "keep real secrets out of authored resources." },
+      { "label": "sort", "title": "Deterministic ordering", "body": "keeps output stable for people and automation." }
+    ],
+    "link": { "label": "Read the resource design", "href": "https://github.com/dekopon-agents/dekopon/blob/da68935/docs/design.md" },
+    "yaml": "apiVersion: dekopon.dev/v1alpha1\nkind: Agent\nmetadata:\n  name: reviewer\nspec:\n  description: Reviews pull requests\n  capabilities:\n    - github.pull-request.read\n    - github.pull-request.comment\nstatus: Ready",
+    "terminal": "$ dekopon get agents -o wide\n\nNAME       ENABLED   CAPABILITIES   STATUS\nreviewer   true      2              Ready\nsnooper    false     1              Disabled\n\n$ dekopon validate\n✓ configuration is valid"
+  },
+  "architecture": {
+    "kicker": "Separation over symmetry",
+    "title": "Coordination is not authority.",
+    "intro": "The operator, orchestrator, broker, and provider each have one legible job. A process never gains effect authority merely because it coordinates a task.",
+    "current": {
+      "status": "Current",
+      "meta": "operator surface",
+      "code": "dekopon",
+      "title": "Human control CLI",
+      "body": "Parse commands, read typed resources, render results.",
+      "sideLabel": "local only"
+    },
+    "boundary": "future authenticated boundary",
+    "committed": {
+      "status": "Committed",
+      "meta": "separate deployment units",
+      "components": [
+        { "id": "daemon", "code": "dekopond", "title": "Unprivileged orchestrator", "body": "Model interaction, context, memory, and task coordination." },
+        { "id": "broker", "code": "dekopon-brokerd", "title": "Authority broker", "body": "Authentication, policy, credentials, execution, and evidence." },
+        { "id": "wasm", "code": "Wasm component", "title": "Narrow provider", "body": "A fresh, bounded store for one integration operation." }
+      ]
+    },
+    "limits": ["time", "memory", "output", "network", "host calls", "idempotency"]
+  },
+  "roadmap": {
+    "kicker": "Deliberate sequence",
+    "title": "Earn authority one boundary at a time.",
+    "intro": "Each milestone proves the shape of the next. Heavy machinery arrives only with meaningful, tested behavior—not as an empty promise in the dependency graph.",
+    "link": { "label": "Read the full roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" },
+    "items": [
+      { "complete": true, "meta": "0.1 · implemented", "title": "Local control CLI", "body": "Typed catalog, strict validation, deterministic reads, and explicit invocation states." },
+      { "meta": "next", "title": "Authenticated daemon protocol", "body": "An unprivileged task service with no external-write authority." },
+      { "meta": "then", "title": "Separate broker prototype", "body": "Policy decisions, constrained receipts, evidence, and append-only audit records." },
+      { "meta": "prove the path", "title": "One read-only provider", "body": "A meaningful end-to-end integration before any external write is introduced." },
+      { "meta": "bound execution", "title": "Policy + Wasm isolation", "body": "Cedar after inputs stabilize; Wasmtime with a fresh constrained store per invocation." }
+    ]
+  },
+  "closing": {
+    "kicker": "Open source · Apache-2.0 / MIT",
+    "title": "Build agents that can act.",
+    "titleAccent": "Keep authority where it belongs.",
+    "body": "Dekopon is early, intentionally small, and open to careful contributors.",
+    "primaryCta": { "label": "Explore the repository", "href": "https://github.com/dekopon-agents/dekopon" },
+    "secondaryCta": { "label": "Contribute", "href": "https://github.com/dekopon-agents/dekopon/blob/main/CONTRIBUTING.md" }
+  }
+}

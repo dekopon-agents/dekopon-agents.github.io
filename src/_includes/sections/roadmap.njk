@@ -1,0 +1,20 @@
+<section class="roadmap-section section" id="roadmap">
+  <div class="roadmap-gradient" aria-hidden="true"></div>
+  <div class="shell roadmap-layout">
+    <div class="roadmap-intro">
+      <span class="section-kicker yellow">{{ home.roadmap.kicker }}</span>
+      <h2>{{ home.roadmap.title }}</h2>
+      <p>{{ home.roadmap.intro }}</p>
+      <a class="button button-light" href="{{ home.roadmap.link.href }}">{{ home.roadmap.link.label }} <span aria-hidden="true">→</span></a>
+    </div>
+
+    <ol class="roadmap-list">
+      {% for item in home.roadmap.items %}
+        <li class="roadmap-item {% if item.complete %}complete{% endif %}">
+          <span class="roadmap-marker">{% if item.complete %}<i aria-hidden="true">✓</i><span class="sr-only">Complete</span>{% else %}{{ loop.index }}{% endif %}</span>
+          <div><small>{{ item.meta }}</small><h3>{{ item.title }}</h3><p>{{ item.body }}</p></div>
+        </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>

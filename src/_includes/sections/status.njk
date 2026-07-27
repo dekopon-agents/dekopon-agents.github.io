@@ -1,0 +1,42 @@
+<section class="status-section section" id="status">
+  <div class="shell">
+    <div class="section-heading split-heading compact-heading">
+      <div>
+        <span class="section-kicker orange">{{ home.status.kicker }}</span>
+        <h2>{{ home.status.title }}</h2>
+      </div>
+      <p>{{ home.status.intro }}</p>
+    </div>
+
+    <div class="status-grid">
+      <article class="status-panel current-panel reveal">
+        <div class="status-panel-top">
+          <span class="status-label current"><span></span>{{ home.status.current.label }}</span>
+          <span class="status-number">01</span>
+        </div>
+        <h3>{{ home.status.current.title }}</h3>
+        <p>{{ home.status.current.body }}</p>
+        <ul class="check-list">
+          {% for point in home.status.current.points %}<li>{{ point }}</li>{% endfor %}
+        </ul>
+        <div class="path-strip">
+          <span class="sr-only">Current CLI processing path:</span>
+          {% for step in home.status.current.path %}<span>{{ step }}</span>{% if not loop.last %}<i aria-hidden="true">→</i>{% endif %}{% endfor %}
+        </div>
+      </article>
+
+      <article class="status-panel direction-panel reveal reveal-delay-1">
+        <div class="status-panel-top">
+          <span class="status-label direction"><span></span>{{ home.status.direction.label }}</span>
+          <span class="status-number">→</span>
+        </div>
+        <h3>{{ home.status.direction.title }}</h3>
+        <p>{{ home.status.direction.body }}</p>
+        <ul class="arrow-list">
+          {% for item in home.status.direction.items %}<li><strong>{{ item.name }}</strong><span>{{ item.description }}</span></li>{% endfor %}
+        </ul>
+        <p class="not-yet"><span aria-hidden="true">!</span> {{ home.status.direction.note }}</p>
+      </article>
+    </div>
+  </div>
+</section>

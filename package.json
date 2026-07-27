@@ -1,0 +1,24 @@
+{
+  "name": "dekopon-agents.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The static landing page for Dekopon",
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && eleventy",
+    "serve": "eleventy --serve",
+    "check": "npm run build && node --check src/assets/site.js && html-validate '_site/**/*.html' && node scripts/check-site.mjs",
+    "test": "npm run check"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.6",
+    "html-validate": "11.5.6"
+  },
+  "engines": {
+    "node": ">=24.8"
+  },
+  "overrides": {
+    "@11ty/recursive-copy": "5.0.2"
+  }
+}
