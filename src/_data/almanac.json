@@ -1,0 +1,56 @@
+{
+  "title": "Dekopon tech almanac",
+  "description": "An implementation-grounded field guide to Dekopon's WebAssembly components, WIT contracts, data boundaries, process model, and future Tokio scheduling.",
+  "source": {
+    "revision": "488317c45171afc3b653894fe967903eec127c73",
+    "shortRevision": "488317c",
+    "date": "2026-07-29"
+  },
+  "chapters": [
+    {
+      "number": "00",
+      "key": "atlas",
+      "label": "Atlas",
+      "shortLabel": "Start",
+      "href": "/almanac/",
+      "title": "Map the machine",
+      "description": "A compact map of the runtime and the vocabulary used throughout the almanac."
+    },
+    {
+      "number": "01",
+      "key": "components",
+      "label": "Components & linking",
+      "shortLabel": "WIT",
+      "href": "/almanac/components/",
+      "title": "Wasm, WIT, Wasmtime, and the linker",
+      "description": "How Rust becomes a component, how exports enter the host, and how imports would expose narrow Rust functions to a guest."
+    },
+    {
+      "number": "02",
+      "key": "boundaries",
+      "label": "Data boundaries",
+      "shortLabel": "Data",
+      "href": "/almanac/boundaries/",
+      "title": "Serialization, copies, and memory",
+      "description": "Follow one tool argument through JSON, the canonical ABI, guest memory, Rust values, and back to the model."
+    },
+    {
+      "number": "03",
+      "key": "lifecycle",
+      "label": "Run lifecycle",
+      "shortLabel": "Run",
+      "href": "/almanac/run-lifecycle/",
+      "title": "The life of an agent run",
+      "description": "Step through current immediate mode and the planned daemon-to-broker process boundary."
+    },
+    {
+      "number": "04",
+      "key": "scheduling",
+      "label": "Scheduling & Lua",
+      "shortLabel": "Runtime",
+      "href": "/almanac/scheduling/",
+      "title": "Tokio, time-slicing, and Lua",
+      "description": "See why async I/O is not CPU fairness, how Wasmtime can yield, and where Lua offers a different trade."
+    }
+  ]
+}

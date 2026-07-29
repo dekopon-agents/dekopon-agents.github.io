@@ -1,0 +1,59 @@
+{% macro chapterNav(activeKey, chapters) %}
+<nav class="almanac-chapter-nav" aria-label="Tech almanac chapters">
+  <div class="shell almanac-chapter-nav-inner">
+    {% for chapter in chapters %}
+      <a class="almanac-chapter-link{% if chapter.key == activeKey %} is-active{% endif %}" href="{{ chapter.href }}"{% if chapter.key == activeKey %} aria-current="page"{% endif %}>
+        <span>{{ chapter.number }}</span>
+        <strong>{{ chapter.shortLabel }}</strong>
+      </a>
+    {% endfor %}
+  </div>
+</nav>
+{% endmacro %}
+
+{% macro status(kind, label) %}
+<span class="almanac-status almanac-status-{{ kind }}"><span aria-hidden="true"></span>{{ label }}</span>
+{% endmacro %}
+
+{% macro sourceStamp(source) %}
+<div class="source-stamp">
+  <span class="source-stamp-mark" aria-hidden="true">⌁</span>
+  <div>
+    <strong>Implementation snapshot</strong>
+    <p>Checked against <a href="https://github.com/dekopon-agents/dekopon/tree/{{ source.revision }}">dekopon <code>main@{{ source.shortRevision }}</code></a>, {{ source.date }}. Future sections are labeled separately.</p>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro chapterPager(previous, next) %}
+<nav class="chapter-pager" aria-label="Adjacent almanac chapters">
+  {% if previous %}
+    <a class="chapter-pager-link chapter-pager-previous" href="{{ previous.href }}">
+      <span>← Previous · {{ previous.number }}</span>
+      <strong>{{ previous.label }}</strong>
+    </a>
+  {% else %}<span></span>{% endif %}
+  {% if next %}
+    <a class="chapter-pager-link chapter-pager-next" href="{{ next.href }}">
+      <span>Next · {{ next.number }} →</span>
+      <strong>{{ next.label }}</strong>
+    </a>
+  {% endif %}
+</nav>
+{% endmacro %}
+
+{% macro pageHero(number, kicker, title, lede, statusKind, statusLabel) %}
+<header class="almanac-article-hero">
+  <div class="shell almanac-article-hero-grid">
+    <div class="almanac-article-number" aria-hidden="true">{{ number }}</div>
+    <div class="almanac-article-heading">
+      <div class="almanac-hero-meta">
+        <span>{{ kicker }}</span>
+        {{ status(statusKind, statusLabel) }}
+      </div>
+      <h1>{{ title | safe }}</h1>
+      <p>{{ lede }}</p>
+    </div>
+  </div>
+</header>
+{% endmacro %}

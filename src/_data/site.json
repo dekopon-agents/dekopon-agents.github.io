@@ -11,6 +11,7 @@
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
     { "label": "Principles", "href": "/#why" },
+    { "label": "Almanac", "href": "/almanac/" },
     { "label": "Authority flow", "href": "/#authority" },
     { "label": "Architecture", "href": "/#architecture" },
     { "label": "Roadmap", "href": "/#roadmap" }
@@ -21,6 +22,7 @@
       "links": [
         { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
         { "label": "Documentation", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
+        { "label": "Tech almanac", "href": "/almanac/" },
         { "label": "Roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" }
       ]
     },

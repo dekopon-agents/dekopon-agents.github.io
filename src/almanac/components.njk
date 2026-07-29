@@ -1,0 +1,271 @@
+---
+layout: layouts/base.njk
+permalink: almanac/components/index.html
+pageTitle: Wasm, WIT, Wasmtime, and linking — Dekopon tech almanac
+pageDescription: How Dekopon compiles Rust providers into WebAssembly components, calls WIT exports, and controls guest authority through Wasmtime's linker.
+bodyClass: almanac-page almanac-article-page almanac-components-page
+almanacPage: true
+almanacSection: components
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
+
+{{ pageHero("01", "Components & linking", "Wasm is the machine.<br><span>WIT is the agreement.</span>", "Trace a Rust provider from source to component, then turn the linker around to see how Rust host functions become callable guest imports.", "current", "Current boundary + future host sketch") }}
+{{ chapterNav("components", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and source">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#stack">The stack</a>
+      <a href="#build">Build pipeline</a>
+      <a href="#directions">Two call directions</a>
+      <a href="#linker-lab">Linker laboratory</a>
+      <a href="#stores">Engine, component, store</a>
+      <a href="#authority">Authority consequence</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="stack" class="article-section">
+      <div class="article-heading">
+        <span>01.1 · vocabulary</span>
+        <h2>Six layers, six different jobs.</h2>
+        <p>The names are often collapsed into “Wasm”. Dekopon uses each layer for a distinct reason.</p>
+      </div>
+
+      <div class="definition-stack">
+        <article><span>artifact</span><h3>Core WebAssembly module</h3><p>Low-level instructions, functions, tables, and linear memory. Rust’s <code>wasm32-unknown-unknown</code> target emits this layer without WASI.</p><code>.wasm</code></article>
+        <article><span>composition</span><h3>WebAssembly component</h3><p>A typed wrapper around one or more core modules. It exposes component-model interfaces rather than only core numeric signatures.</p><code>component</code></article>
+        <article><span>interface</span><h3>WIT</h3><p>WebAssembly Interface Types describes worlds, interfaces, imports, exports, records, variants, resources, strings, and lists. It is language-neutral source-level IDL.</p><code>world provider</code></article>
+        <article><span>generated glue</span><h3><code>wit-bindgen</code> + Wasmtime bindgen</h3><p>The guest SDK generates export adapters; the host generates typed call handles. They agree because both consume the mirrored WIT world.</p><code>Guest ↔ Provider</code></article>
+        <article><span>runtime</span><h3>Wasmtime</h3><p>Validates and compiles the component, owns the engine and stores, performs canonical ABI lifting/lowering, and executes guest machine code.</p><code>Engine / Store · 36.0.12</code></article>
+        <article><span>capability wiring</span><h3>Linker</h3><p>Matches every component import to a host implementation. What the host does not define cannot be called. Exports are looked up after instantiation.</p><code>Linker&lt;T&gt;</code></article>
+      </div>
+
+      <div class="article-callout callout-plain">
+        <strong>The shortest useful distinction</strong>
+        <p><b>WIT says what may be called.</b> Generated bindings say how each language calls it. The canonical ABI says how values are represented at the core boundary. Wasmtime performs the call. The linker decides which imported powers exist.</p>
+      </div>
+    </section>
+
+    <section id="build" class="article-section">
+      <div class="article-heading">
+        <span>01.2 · build pipeline</span>
+        <h2>From ordinary Rust to a typed component.</h2>
+      </div>
+
+      <div class="build-pipeline">
+        <div class="build-step"><span>1</span><strong>Provider Rust</strong><small><code>impl Provider</code></small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step"><span>2</span><strong>Guest adapter</strong><small><code>export_provider!</code></small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step"><span>3</span><strong>Core module</strong><small><code>wasm32-unknown-unknown</code></small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step"><span>4</span><strong>Componentize</strong><small><code>wasm-tools component new</code></small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step build-step-final"><span>5</span><strong>Provider component</strong><small>typed exports · zero imports</small></div>
+      </div>
+
+      <div class="code-pair">
+        <div class="almanac-code-block">
+          <div class="code-block-label"><span>provider.wit</span><a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/crates/dekopon-provider-sdk/wit/provider.wit">source ↗</a></div>
+          <pre><code><span class="code-purple">package</span> dekopon:provider@0.1.0;
+
+<span class="code-purple">world</span> provider {
+    <span class="code-green">export</span> describe: func() -&gt; string;
+    <span class="code-green">export</span> invoke: func(
+        capability: string,
+        input-json: string,
+    ) -&gt; string;
+}</code></pre>
+        </div>
+        <div class="almanac-code-block">
+          <div class="code-block-label"><span>echo/src/lib.rs</span><a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/examples/providers/echo/src/lib.rs">source ↗</a></div>
+          <pre><code><span class="code-purple">impl</span> Provider <span class="code-purple">for</span> EchoProvider {
+    <span class="code-purple">fn</span> manifest() -&gt; ProviderManifest { … }
+
+    <span class="code-purple">fn</span> invoke(
+        capability: &amp;CapabilityId,
+        input: Value,
+    ) -&gt; Result&lt;Value, ProviderError&gt; { … }
+}
+
+<span class="code-green">export_provider!</span>(EchoProvider);</code></pre>
+        </div>
+      </div>
+
+      <p>The macro does not expose the trait directly. It generates a WIT-facing adapter that accepts strings, parses identifiers and JSON, calls the typed Rust implementation, and serializes a tagged <code>ComponentResponse</code>. Componentization packages that adapter and its WIT metadata into the artifact Wasmtime loads.</p>
+
+      <div class="fact-row">
+        <div><span>target</span><strong><code>wasm32-unknown-unknown</code></strong><p>No operating-system contract is assumed.</p></div>
+        <div><span>WIT package</span><strong><code>dekopon:provider@0.1.0</code></strong><p>The same import-free world is published for toolchains.</p></div>
+        <div><span>not accepted</span><strong><code>wasm32-wasip2</code></strong><p>That build imports WASI, which the current linker does not supply.</p></div>
+      </div>
+    </section>
+
+    <section id="directions" class="article-section">
+      <div class="article-heading">
+        <span>01.3 · call direction</span>
+        <h2>“Linking Rust to Wasm” can mean opposite things.</h2>
+      </div>
+
+      <div class="direction-diagrams">
+        <article>
+          <div>{{ status("current", "Current") }}</div>
+          <h3>Host Rust calls a guest export</h3>
+          <div class="direction-flow">
+            <span><small>host Rust</small><b><code>call_invoke</code></b></span>
+            <i aria-hidden="true">→</i>
+            <span><small>canonical ABI</small><b>lift / lower</b></span>
+            <i aria-hidden="true">→</i>
+            <span><small>guest Rust</small><b><code>Provider::invoke</code></b></span>
+          </div>
+          <p>The component exports <code>invoke</code>. Wasmtime’s generated host binding finds that export after instantiation and calls it. No host function is added to the linker for this direction.</p>
+        </article>
+        <article>
+          <div>{{ status("direction", "Future mechanism") }}</div>
+          <h3>Guest Wasm calls a Rust host import</h3>
+          <div class="direction-flow direction-flow-reverse">
+            <span><small>guest Wasm</small><b><code>http.request</code></b></span>
+            <i aria-hidden="true">→</i>
+            <span><small>component import</small><b>WIT contract</b></span>
+            <i aria-hidden="true">→</i>
+            <span><small>host Rust</small><b><code>func_wrap_async</code></b></span>
+          </div>
+          <p>The WIT world must import an interface and the host must register a matching implementation in the linker. The future interface name and shape are not yet designed; the diagram shows the mechanism, not a promised API.</p>
+        </article>
+      </div>
+
+      <div class="article-callout callout-warning">
+        <strong>An export is functionality. An import is requested authority.</strong>
+        <p>A component can offer pure computation through exports without receiving any host power. Filesystem, network, clock, random, secrets, and provider APIs become reachable only when both the component requests them and the host links them.</p>
+      </div>
+    </section>
+
+    <section id="linker-lab" class="article-section article-section-wide">
+      <div class="article-heading">
+        <span>01.4 · interactive</span>
+        <h2>Linker laboratory.</h2>
+        <p>Choose what the component imports and what the Rust host supplies. Instantiation succeeds only when every required import has an exact match.</p>
+      </div>
+
+      <div class="toy linker-lab" data-linker-lab>
+        <div class="toy-toolbar">
+          <div><span class="toy-index">TOY 01</span><strong>Import resolver</strong></div>
+          <span class="toy-note">Browser model · no Wasm is executed</span>
+        </div>
+
+        <div class="linker-controls">
+          <fieldset>
+            <legend>Component profile</legend>
+            <div class="segmented-control" data-component-profiles>
+              <button type="button" data-component-profile="current" aria-pressed="true">Current provider</button>
+              <button type="button" data-component-profile="narrow" aria-pressed="false">Narrow I/O sketch</button>
+              <button type="button" data-component-profile="wasi" aria-pressed="false">WASI guest</button>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Host linker profile</legend>
+            <div class="segmented-control" data-linker-profiles>
+              <button type="button" data-linker-profile="empty" aria-pressed="true">Empty</button>
+              <button type="button" data-linker-profile="narrow" aria-pressed="false">Narrow host</button>
+              <button type="button" data-linker-profile="wasi" aria-pressed="false">Full WASI</button>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="linker-bench">
+          <div class="linker-side linker-guest-side">
+            <div class="linker-side-label"><span>untrusted guest</span><strong>provider.component.wasm</strong></div>
+            <div class="linker-exports">
+              <span>exports</span>
+              <code>describe() -&gt; string</code>
+              <code>invoke(string, string) -&gt; string</code>
+            </div>
+            <div class="linker-imports">
+              <span>imports requested</span>
+              <ul data-linker-imports><li class="is-empty">∅ none</li></ul>
+            </div>
+          </div>
+
+          <div class="linker-socket" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <strong data-linker-socket-label>0 matches</strong>
+          </div>
+
+          <div class="linker-side linker-host-side">
+            <div class="linker-side-label"><span>trusted embedder</span><strong>Rust <code>Linker&lt;StoreState&gt;</code></strong></div>
+            <div class="linker-host-functions">
+              <span>definitions supplied</span>
+              <ul data-linker-definitions><li class="is-empty">∅ none</li></ul>
+            </div>
+            <div class="linker-authority">
+              <span>reachable authority</span>
+              <p data-linker-authority>No filesystem, network, clock, random, environment, or credentials.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="linker-result is-success" data-linker-result aria-live="polite">
+          <span data-linker-result-mark aria-hidden="true">✓</span>
+          <div><strong data-linker-result-title>Instantiation succeeds</strong><p data-linker-result-detail>The current component has zero imports, so Dekopon’s empty linker satisfies the world.</p></div>
+        </div>
+      </div>
+
+      <p class="toy-caption">The “narrow I/O” names are deliberately illustrative, and the WASI profile shows representative imports rather than a complete WASI world. Dekopon has committed to broker-controlled narrow asynchronous host interfaces, but no privileged WIT contract exists on the source snapshot.</p>
+    </section>
+
+    <section id="stores" class="article-section">
+      <div class="article-heading">
+        <span>01.5 · object lifetimes</span>
+        <h2>Compile once; isolate each call.</h2>
+      </div>
+
+      <div class="lifetime-board">
+        <div class="lifetime-long">
+          <span>ProviderRegistry lifetime</span>
+          <div><strong>Engine</strong><small>shared compiler/runtime configuration</small></div>
+          <div><strong>Component</strong><small>compiled machine code retained in memory</small></div>
+          <div><strong>route map</strong><small>capability ID → provider index</small></div>
+        </div>
+        <div class="lifetime-calls">
+          <span>Every <code>describe</code> or <code>invoke</code></span>
+          <div><b>call 1</b><i>fresh Store</i><i>fresh instance</i><i>fresh linear memory</i></div>
+          <div><b>call 2</b><i>fresh Store</i><i>fresh instance</i><i>fresh linear memory</i></div>
+          <div><b>call n</b><i>fresh Store</i><i>fresh instance</i><i>fresh linear memory</i></div>
+        </div>
+      </div>
+
+      <p>A <code>Store&lt;StoreState&gt;</code> owns invocation state and resource limits. It is not a process and it is not an OS thread. In current immediate mode, the main thread creates the Store and synchronously enters guest code. A runtime mutex serializes all component execution. A short-lived deadline helper thread waits and increments the engine epoch only if the call exceeds its wall-clock limit.</p>
+
+      <div class="current-facts">
+        <article><span>shared</span><h3>Engine + compiled components</h3><p>Shared only inside one registry and one process. There is no on-disk or cross-process compilation cache.</p></article>
+        <article><span>fresh</span><h3>Store + instance</h3><p>Memory, fuel, deadline, and guest state do not carry from one description or invocation to the next.</p></article>
+        <article><span>serialized</span><h3>Execution lock</h3><p>Even if callers appeared concurrently, one shared mutex currently admits only one component operation at a time.</p></article>
+      </div>
+    </section>
+
+    <section id="authority" class="article-section">
+      <div class="article-heading">
+        <span>01.6 · security consequence</span>
+        <h2>The empty linker is executable least privilege.</h2>
+      </div>
+
+      <div class="authority-equation">
+        <span>component imports</span><b>∩</b><span>host definitions</span><b>=</b><strong>guest-reachable host authority</strong>
+      </div>
+      <p>For the current provider world, the left side is empty. A malicious provider can loop, allocate within limits, transform its input, trap, or return malicious output—but it cannot name a linked operation that opens a file or socket, reads a clock, obtains random bytes, looks up an environment variable, or fetches a credential.</p>
+      <p>That boundary is strong but narrow. It does not make all Wasm safe, defend a compromised host, validate arbitrary provider semantics, or authorize an external effect. Future imports must be derived from a broker-owned authorization and constrained more narrowly than “give this component network”.</p>
+
+      <div class="source-links">
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/crates/dekopon-provider-host/src/lib.rs"><span>Implementation</span><strong><code>dekopon-provider-host/src/lib.rs</code> ↗</strong></a>
+        <a href="https://component-model.bytecodealliance.org/"><span>External reference</span><strong>WebAssembly Component Model guide ↗</strong></a>
+        <a href="https://docs.rs/wasmtime/36.0.12/wasmtime/component/struct.Linker.html"><span>External reference</span><strong>Wasmtime component Linker API ↗</strong></a>
+      </div>
+    </section>
+
+    {{ chapterPager(almanac.chapters[0], almanac.chapters[2]) }}
+  </article>
+</div>

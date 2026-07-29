@@ -1,0 +1,276 @@
+---
+layout: layouts/base.njk
+permalink: almanac/boundaries/index.html
+pageTitle: Serialization, copies, and memory — Dekopon tech almanac
+pageDescription: Follow Dekopon tool data through an LLM HTTP boundary, Rust serde_json values, WIT strings, the canonical ABI, and WebAssembly linear memory.
+bodyClass: almanac-page almanac-article-page almanac-boundaries-page
+almanacPage: true
+almanacSection: boundaries
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
+
+{{ pageHero("02", "Data boundaries", "Every arrow has<br><span>a representation.</span>", "Follow a model-generated tool argument into Rust, through a WIT string and guest linear memory, then all the way back to the model.", "current", "Current path + strategy analysis") }}
+{{ chapterNav("boundaries", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and source">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#journey">The whole journey</a>
+      <a href="#boundary-lab">Boundary laboratory</a>
+      <a href="#canonical-abi">Canonical ABI</a>
+      <a href="#strategies">Serialization choices</a>
+      <a href="#direct-memory">Direct memory sharing</a>
+      <a href="#llm-edge">The LLM edge</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="journey" class="article-section">
+      <div class="article-heading">
+        <span>02.1 · route map</span>
+        <h2>One tool call, three trust boundaries.</h2>
+        <p>The current prompt loop is synchronous, but the data changes shape repeatedly. “Rust → Wasm → Rust” is only the middle of the trip.</p>
+      </div>
+
+      <div class="data-journey-map">
+        <div class="journey-zone journey-zone-remote">
+          <div class="journey-zone-label"><span>outside <code>dekopon-run</code></span><strong>model endpoint</strong></div>
+          <div class="journey-node"><small>HTTP response</small><strong>tool call arguments</strong><code>JSON text inside JSON</code></div>
+        </div>
+        <i aria-hidden="true">↓</i>
+        <div class="journey-zone journey-zone-host">
+          <div class="journey-zone-label"><span>process · main OS thread</span><strong>Rust host</strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small><code>dekopon-model</code></small><strong><code>String</code></strong><code>function.arguments</code></div>
+            <b aria-hidden="true">→ parse →</b>
+            <div class="journey-node"><small><code>dekopon-run</code></small><strong><code>serde_json::Value</code></strong><code>must be object</code></div>
+            <b aria-hidden="true">→ encode →</b>
+            <div class="journey-node"><small>provider host</small><strong><code>String</code></strong><code>input_json</code></div>
+          </div>
+        </div>
+        <i aria-hidden="true">↓ canonical lower · UTF-8 bytes</i>
+        <div class="journey-zone journey-zone-guest">
+          <div class="journey-zone-label"><span>same process + calling thread · sandbox memory</span><strong>Wasm component</strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>generated adapter</small><strong>WIT <code>string</code></strong><code>ptr + length</code></div>
+            <b aria-hidden="true">→ parse →</b>
+            <div class="journey-node"><small>guest Rust heap</small><strong><code>serde_json::Value</code></strong><code>Provider::invoke</code></div>
+            <b aria-hidden="true">→ encode →</b>
+            <div class="journey-node"><small>generated adapter</small><strong>response <code>String</code></strong><code>succeeded | failed</code></div>
+          </div>
+        </div>
+        <i aria-hidden="true">↑ canonical lift · then the path reverses</i>
+      </div>
+
+      <div class="article-callout callout-plain">
+        <strong>Trust does not improve merely because syntax parsed.</strong>
+        <p>The model’s tool name and arguments remain untrusted after JSON decoding. Guest output remains untrusted after canonical lifting and typed response decoding. Parsing proves shape, not truth, permission, or safety.</p>
+      </div>
+    </section>
+
+    <section id="boundary-lab" class="article-section article-section-wide">
+      <div class="article-heading">
+        <span>02.2 · interactive</span>
+        <h2>Boundary laboratory.</h2>
+        <p>Edit the object and compare four boundary designs. The first is Dekopon today; the others are design alternatives, not implemented modes.</p>
+      </div>
+
+      <div class="toy boundary-lab" data-boundary-lab>
+        <div class="toy-toolbar">
+          <div><span class="toy-index">TOY 02</span><strong>Rust ↔ component round trip</strong></div>
+          <span class="toy-note">Live UTF-8 accounting · simulated transforms</span>
+        </div>
+
+        <div class="boundary-input-grid">
+          <label class="toy-field">
+            <span>Host input · JSON object</span>
+            <textarea rows="5" spellcheck="false" data-boundary-input>{"message":"Hello, Wasm 🦀"}</textarea>
+            <small data-boundary-error aria-live="polite">Valid object · edit it and the path updates.</small>
+          </label>
+          <label class="toy-field">
+            <span>Provider capability</span>
+            <select data-boundary-transform>
+              <option value="echo.reverse">echo.reverse</option>
+              <option value="echo.upcase">echo.upcase</option>
+              <option value="echo.downcase">echo.downcase</option>
+              <option value="echo.ransom-case">echo.ransom-case</option>
+              <option value="echo.echo">echo.echo</option>
+            </select>
+            <small>The transforms mirror the current Rust echo provider.</small>
+          </label>
+        </div>
+
+        <fieldset class="boundary-strategy-fieldset">
+          <legend>Boundary strategy</legend>
+          <div class="boundary-strategy-tabs" data-boundary-strategies>
+            <button type="button" data-boundary-strategy="json" aria-pressed="true"><span>Current</span><strong>JSON over WIT strings</strong></button>
+            <button type="button" data-boundary-strategy="typed" aria-pressed="false"><span>Alternative</span><strong>Typed WIT records</strong></button>
+            <button type="button" data-boundary-strategy="binary" aria-pressed="false"><span>Alternative</span><strong>Binary bytes</strong></button>
+            <button type="button" data-boundary-strategy="handle" aria-pressed="false"><span>Alternative</span><strong>Host resource handle</strong></button>
+          </div>
+        </fieldset>
+
+        <div class="boundary-metrics" aria-live="polite">
+          <div><span>payload into guest</span><strong data-boundary-bytes>36 B</strong></div>
+          <div><span>boundary codecs</span><strong data-boundary-codecs>2 encode · 2 decode</strong></div>
+          <div><span>bulk transfers</span><strong data-boundary-copies>2 payload strings + capability ID</strong></div>
+          <div><span>schema location</span><strong data-boundary-schema>runtime JSON</strong></div>
+        </div>
+
+        <div class="boundary-stage-grid">
+          <div class="boundary-stage" data-boundary-stage="host">
+            <span>01 · host Rust</span><strong data-boundary-host-type><code>serde_json::Value</code></strong>
+            <pre data-boundary-host-value>{"message":"Hello, Wasm 🦀"}</pre>
+          </div>
+          <i aria-hidden="true">→</i>
+          <div class="boundary-stage boundary-stage-wire" data-boundary-stage="wire">
+            <span>02 · canonical boundary</span><strong data-boundary-wire-type>WIT <code>string</code></strong>
+            <pre data-boundary-wire-value>ptr: 0x… · len: 30</pre>
+          </div>
+          <i aria-hidden="true">→</i>
+          <div class="boundary-stage boundary-stage-guest" data-boundary-stage="guest">
+            <span>03 · guest Rust</span><strong data-boundary-guest-type><code>serde_json::Value</code></strong>
+            <pre data-boundary-guest-value>{"message":"Hello, Wasm 🦀"}</pre>
+          </div>
+          <i aria-hidden="true">→</i>
+          <div class="boundary-stage boundary-stage-output" data-boundary-stage="output">
+            <span>04 · returned output</span><strong data-boundary-output-type>tagged JSON response</strong>
+            <pre data-boundary-output-value>{"message":"🦀 msaW ,olleH"}</pre>
+          </div>
+        </div>
+
+        <div class="memory-inspector">
+          <div class="memory-inspector-heading">
+            <div><span data-memory-label>Illustrative guest allocation</span><strong data-memory-address><code>offset 0x1000</code> · 30 UTF-8 bytes</strong></div>
+            <span data-memory-caveat>Offset is pedagogical; Wasmtime chooses the real allocation.</span>
+          </div>
+          <div class="memory-ruler" aria-hidden="true"><span>+00</span><span>+08</span><span>+10</span><span>+18</span></div>
+          <output class="memory-hex" data-memory-hex aria-label="UTF-8 bytes in hexadecimal"></output>
+          <output class="memory-ascii" data-memory-ascii aria-label="UTF-8 byte character view"></output>
+        </div>
+
+        <div class="boundary-explanation" aria-live="polite">
+          <strong data-boundary-explanation-title>Current: simple contract, repeated serialization</strong>
+          <p data-boundary-explanation>Rust serializes the input Value, the canonical ABI transfers a string into guest memory, the guest parses it, then the same work happens in reverse for a tagged response.</p>
+        </div>
+      </div>
+      <p class="toy-caption">Byte lengths are exact UTF-8 lengths for the displayed payload. “Transfers” are logical canonical-boundary transfers, not a promise about every allocator-level copy. Binary and handle modes are architectural illustrations, not production encoders.</p>
+    </section>
+
+    <section id="canonical-abi" class="article-section">
+      <div class="article-heading">
+        <span>02.3 · component mechanics</span>
+        <h2>A WIT string is not a shared <code>&amp;str</code>.</h2>
+      </div>
+
+      <div class="canonical-grid">
+        <div class="canonical-copy">
+          <p>WIT presents <code>string</code> as a language-level value. At a linear-memory core boundary, the canonical ABI lowers that value to a representation involving an offset and a length, allocates with the component’s canonical reallocator when necessary, and validates bounds and encoding while lifting the result.</p>
+          <p>Generated bindings hide those details, which is the point: host Rust receives an owned <code>String</code>; guest Rust receives its own value in guest-managed memory. Neither side receives a native pointer into the other side’s ordinary heap.</p>
+        </div>
+        <div class="memory-cutaway">
+          <div class="memory-space host-memory"><span>host address space</span><strong>Rust heap</strong><code>String { ptr, len, cap }</code></div>
+          <div class="canonical-gate"><span>lower</span><strong>canonical ABI</strong><span>lift</span></div>
+          <div class="memory-space guest-memory"><span>Store-owned linear memory</span><strong>guest bytes</strong><code>offset + length</code></div>
+        </div>
+      </div>
+
+      <div class="invariant-notes">
+        <article><span>bounds</span><h3>Offsets are checked</h3><p>A guest-supplied offset/length pair must describe in-bounds memory. An invalid canonical value traps rather than becoming a Rust reference.</p></article>
+        <article><span>borrow</span><h3>Store access is exclusive</h3><p>Host memory views are tied to access to the Store. Growing memory can invalidate prior views, so long-lived raw slices are the wrong abstraction.</p></article>
+        <article><span>lifetime</span><h3>Current memory dies per call</h3><p>Dekopon creates a fresh Store and instance for each operation. No guest pointer remains meaningful on the next invocation.</p></article>
+      </div>
+    </section>
+
+    <section id="strategies" class="article-section">
+      <div class="article-heading">
+        <span>02.4 · design space</span>
+        <h2>Serialization is a product decision, not only a speed decision.</h2>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Strategy</th><th scope="col">Boundary shape</th><th scope="col">Strength</th><th scope="col">Cost / risk</th><th scope="col">Dekopon fit</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">JSON over WIT strings</th><td><code>string → string</code></td><td>Easy inspection, easy version-zero iteration, natural LLM/tool interop.</td><td>Repeated UTF-8 encoding, parsing, allocation, and runtime-only field typing.</td><td><span class="table-status current">Current</span> Small control payloads while the trait stabilizes.</td></tr>
+            <tr><th scope="row">Typed WIT records / variants</th><td><code>record</code>, <code>result</code>, <code>variant</code></td><td>Language-neutral static contract; generated validation; removes the inner JSON envelope.</td><td>Contract changes need explicit versioning; recursive/dynamic JSON remains awkward; strings/lists still lower through memory.</td><td><span class="table-status explore">Candidate</span> Strong destination for stable manifests and responses.</td></tr>
+            <tr><th scope="row">CBOR / MessagePack / Protobuf bytes</th><td><code>list&lt;u8&gt;</code></td><td>Compact binary payloads; schemaful options can be efficient and deterministic.</td><td>Still copies bytes; adds codec/tooling complexity; poor browser/operator readability; LLM edge is still JSON-like.</td><td><span class="table-status explore">Situational</span> Useful only after measured payload pressure.</td></tr>
+            <tr><th scope="row">WIT resources / handles</th><td>opaque typed handle</td><td>Keeps large or sensitive state host-owned; operations can stream or page data through narrow methods.</td><td>More host calls, lifecycle rules, revocation, and TOCTOU concerns; creates an authority-bearing interface.</td><td><span class="table-status direction">Future tool</span> Better than handing credentials or broad raw memory to a provider.</td></tr>
+            <tr><th scope="row">Raw shared linear memory protocol</th><td>offsets, lengths, ring buffers</td><td>Can reduce copies for high-volume local data when ownership is rigorously designed.</td><td>Manual ABI, synchronization, aliasing, bounds, lifetime, portability, and sandbox-review burden.</td><td><span class="table-status avoid">Not a default</span> Requires benchmark proof and a narrow threat model.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="zero-copy-note">
+        <span>About “zero-copy” codecs</span>
+        <h3>Zero-copy decoding is not automatically zero-copy crossing.</h3>
+        <p>Offset-based formats such as FlatBuffers or Cap’n Proto can let a guest traverse a validated buffer without first rebuilding a tree of objects. The buffer still has to arrive in that guest’s linear memory unless the architecture also defines shared memory or host-backed access. Rust-specific archived layouts such as <code>rkyv</code> add alignment, validation, versioning, and language-portability questions; they are not a drop-in replacement for a WIT contract.</p>
+      </div>
+
+      <div class="article-callout callout-decision">
+        <strong>Likely optimization order</strong>
+        <p>Measure first. Stabilize high-value shapes as typed WIT. Avoid serializing the same logical value twice. Introduce resource handles or streams for genuinely large host-owned data. Reach for a custom shared-memory protocol only if profiling shows canonical typed transfers cannot meet a concrete budget.</p>
+      </div>
+    </section>
+
+    <section id="direct-memory" class="article-section">
+      <div class="article-heading">
+        <span>02.5 · the tempting shortcut</span>
+        <h2>What “direct memory sharing” can—and cannot—mean.</h2>
+      </div>
+
+      <div class="memory-myths">
+        <article>
+          <span class="myth-label">Not possible as stated</span>
+          <h3>“Pass a Rust struct pointer into Wasm.”</h3>
+          <p>A native Rust pointer points into host virtual memory and follows Rust layout and lifetime rules. A Wasm32 pointer is an offset in one instance’s linear memory. They are not interchangeable addresses.</p>
+        </article>
+        <article>
+          <span class="myth-label possible">Possible, lower level</span>
+          <h3>“Let the host read or write guest linear memory.”</h3>
+          <p>Wasmtime can expose an instance’s linear memory to the embedder while the Store is correctly borrowed. A custom core-Wasm ABI can use offsets and lengths. This bypasses much component-model ergonomics, not the need for validation and ownership.</p>
+        </article>
+        <article>
+          <span class="myth-label possible">Possible, specialized</span>
+          <h3>“Use a shared Wasm memory or ring buffer.”</h3>
+          <p>WebAssembly shared-memory/thread features can support concurrent protocols where runtime, target, and component choices allow it. Atomics, cancellation, backpressure, and malicious indices become part of the security design.</p>
+        </article>
+        <article>
+          <span class="myth-label preferred">Often preferable</span>
+          <h3>“Keep data in the host and pass a handle.”</h3>
+          <p>A typed resource can represent a host-owned buffer, response body, or scoped client. The guest gets only methods the linker exposes; the host keeps credentials, destinations, and lifetime enforcement on its side.</p>
+        </article>
+      </div>
+
+      <p>For Dekopon, direct access is especially sensitive because a future broker host will own authority. A fast buffer path must not become a side channel around output limits, evidence capture, destination constraints, or credential isolation. Zero-copy is not zero-policy.</p>
+    </section>
+
+    <section id="llm-edge" class="article-section">
+      <div class="article-heading">
+        <span>02.6 · outside the process</span>
+        <h2>Shared memory stops at the model boundary.</h2>
+      </div>
+
+      <div class="llm-edge-board">
+        <div><span>local process</span><strong>Rust conversation state</strong><code>Vec&lt;ModelMessage&gt;</code></div>
+        <i aria-hidden="true">serialize request →</i>
+        <div class="llm-edge-wire"><span>network</span><strong>HTTP body / SSE stream</strong><code>JSON-compatible protocol</code></div>
+        <i aria-hidden="true">→ parse response</i>
+        <div><span>another process or machine</span><strong>model server</strong><code>Ollama-compatible or ChatGPT/Codex</code></div>
+      </div>
+
+      <p>An in-process memory optimization can reduce the Rust↔Wasm portion only. The prompt, tool definitions, model-generated arguments, tool results, and final response still cross an HTTP protocol boundary. For remote models they also cross a machine and trust boundary. That usually makes clear contracts, bounds, and redaction more valuable than shaving a small control-message copy.</p>
+
+      <div class="source-links">
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/crates/dekopon-run/src/prompt.rs"><span>Implementation</span><strong><code>dekopon-run/src/prompt.rs</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/crates/dekopon-provider-sdk/src/lib.rs"><span>Implementation</span><strong><code>dekopon-provider-sdk/src/lib.rs</code> ↗</strong></a>
+        <a href="https://github.com/WebAssembly/component-model/blob/main/design/mvp/CanonicalABI.md"><span>External reference</span><strong>Component Model canonical ABI ↗</strong></a>
+      </div>
+    </section>
+
+    {{ chapterPager(almanac.chapters[1], almanac.chapters[3]) }}
+  </article>
+</div>
