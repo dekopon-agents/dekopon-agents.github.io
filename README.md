@@ -12,14 +12,16 @@ The site is compiled with [Eleventy](https://www.11ty.dev/) and ships plain HTML
 |---|---|
 | Homepage copy, labels, milestones, or links | `src/_data/home.json` |
 | Site metadata, navigation, or footer links | `src/_data/site.json` |
+| Almanac chapter metadata and source snapshot | `src/_data/almanac.json` |
+| Almanac articles | `src/almanac/*.njk` |
 | Section structure | `src/_includes/sections/` |
 | Shared page chrome | `src/_includes/layouts/base.njk` |
-| Visual design and responsive layout | `src/assets/styles.css` |
-| Progressive interaction | `src/assets/site.js` |
+| Homepage visual design and interaction | `src/assets/styles.css` and `src/assets/site.js` |
+| Almanac visual design and interactive diagrams | `src/assets/almanac.css` and `src/assets/almanac.js` |
 
-Keep product copy in the data files rather than embedding it in layout templates. This lets content reviews avoid unrelated design diffs, and design reviews avoid rewriting source copy.
+Keep homepage product copy in the data files rather than embedding it in layout templates. Long-form almanac prose lives in its article templates, while shared chapter metadata stays in `src/_data/almanac.json`. This keeps reusable layout chrome free of page-specific copy.
 
-The content reflects the canonical design documents in the [Dekopon repository](https://github.com/dekopon-agents/dekopon/tree/main/docs). It must preserve their distinction between **Current**, **Committed direction**, and unshipped work.
+The content reflects the canonical design documents in the [Dekopon repository](https://github.com/dekopon-agents/dekopon/tree/main/docs). It must preserve their distinction between **Current**, **Committed direction**, and unshipped work. Almanac pages pin the implementation snapshot recorded in `src/_data/almanac.json`; update that revision only after rechecking the linked code and architecture documents.
 
 ## Local development
 

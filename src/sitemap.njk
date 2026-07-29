@@ -8,4 +8,10 @@ eleventyExcludeFromCollections: true
     <loc>{{ site.url }}/</loc>
     <changefreq>weekly</changefreq>
   </url>
+  {% for chapter in almanac.chapters %}
+  <url>
+    <loc>{{ site.url }}{{ chapter.href }}</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  {% endfor %}
 </urlset>

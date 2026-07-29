@@ -8,7 +8,7 @@
     "clean": "node scripts/clean.mjs",
     "build": "npm run clean && eleventy",
     "serve": "eleventy --serve",
-    "check": "npm run build && node --check src/assets/site.js && html-validate '_site/**/*.html' && node scripts/check-site.mjs",
+    "check": "npm run build && node --check src/assets/site.js && node --check src/assets/almanac.js && html-validate '_site/**/*.html' && node scripts/check-site.mjs",
     "test": "npm run check"
   },
   "devDependencies": {

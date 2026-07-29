@@ -1,0 +1,146 @@
+---
+layout: layouts/base.njk
+permalink: almanac/index.html
+pageTitle: Tech almanac — Dekopon
+pageDescription: An implementation-grounded guide to Dekopon's WebAssembly components, WIT boundaries, serialization, process model, and future Tokio scheduling.
+bodyClass: almanac-page almanac-atlas-page
+almanacPage: true
+almanacSection: atlas
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, status, sourceStamp %}
+
+<header class="almanac-home-hero">
+  <div class="almanac-hero-gridlines" aria-hidden="true"></div>
+  <div class="shell almanac-home-hero-grid">
+    <div class="almanac-home-copy">
+      <div class="almanac-overline"><span>Field notes / runtime anatomy</span><code>edition 01</code></div>
+      <h1>The machinery<br><span>under the agent.</span></h1>
+      <p class="almanac-home-lede">A source-linked field guide to the path from Rust to Wasm, from a model tool call into guest memory, and from today’s synchronous runner toward a bounded Tokio host.</p>
+      <div class="almanac-legend" role="group" aria-label="Feature status legend">
+        {{ status("current", "Current") }}
+        {{ status("direction", "Committed direction") }}
+        {{ status("exploration", "Exploration") }}
+      </div>
+      {{ sourceStamp(almanac.source) }}
+    </div>
+
+    <div class="runtime-cutaway" data-stack-map>
+      <div class="cutaway-topline">
+        <span>Current prompt run · cutaway</span>
+        <span class="cutaway-live"><i aria-hidden="true"></i> one process</span>
+      </div>
+      <div class="cutaway-machine">
+        <div class="cutaway-outside">
+          <button class="cutaway-node cutaway-model" type="button" data-stack-node="model" aria-pressed="false">
+            <span>outside the process</span>
+            <strong>LLM endpoint</strong>
+            <small>HTTP · another process or machine</small>
+          </button>
+          <span class="cutaway-packet" aria-hidden="true">JSON / SSE ↕</span>
+        </div>
+        <div class="cutaway-process">
+          <div class="cutaway-process-label"><span>OS process</span><strong>dekopon-run</strong></div>
+          <button class="cutaway-node" type="button" data-stack-node="loop" aria-pressed="false">
+            <span>main OS thread</span>
+            <strong>Rust prompt loop</strong>
+            <small>blocking model client + routing</small>
+          </button>
+          <span class="cutaway-arrow" aria-hidden="true">arguments ↓ · result ↑</span>
+          <button class="cutaway-node cutaway-runtime" type="button" data-stack-node="runtime" aria-pressed="false">
+            <span>same process · same calling thread</span>
+            <strong>Wasmtime engine + component</strong>
+            <small>fresh Store · fresh instance · guest memory</small>
+          </button>
+          <div class="cutaway-thread-row">
+            <button class="cutaway-node cutaway-helper" type="button" data-stack-node="timer" aria-pressed="false">
+              <span>temporary OS thread</span>
+              <strong>deadline helper</strong>
+              <small>increments epoch only on timeout</small>
+            </button>
+            <button class="cutaway-node cutaway-empty" type="button" data-stack-node="linker" aria-pressed="false">
+              <span>authority surface</span>
+              <strong>empty linker</strong>
+              <small>zero guest imports</small>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="cutaway-readout" aria-live="polite">
+        <span data-stack-readout-label>Select a layer</span>
+        <p data-stack-readout>Every box says both <em>what</em> runs and <em>where</em> it runs. Choose one to inspect it.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+{{ chapterNav("atlas", almanac.chapters) }}
+
+<section class="almanac-section atlas-chapters" id="chapters">
+  <div class="shell">
+    <div class="almanac-section-heading">
+      <span class="almanac-section-index">00—04</span>
+      <div><p class="almanac-kicker">Choose a layer</p><h2>Five maps, one runtime.</h2></div>
+      <p>Start with the vocabulary, then follow data and control through increasingly concrete boundaries. Each chapter separates code that exists from architecture that is only planned.</p>
+    </div>
+
+    <div class="atlas-card-grid">
+      {% for chapter in almanac.chapters %}
+        {% if chapter.key != "atlas" %}
+        <a class="atlas-card atlas-card-{{ chapter.key }} reveal" href="{{ chapter.href }}">
+          <div class="atlas-card-top"><span>{{ chapter.number }}</span><span aria-hidden="true">↗</span></div>
+          <div class="atlas-card-glyph" aria-hidden="true">
+            {% if chapter.key == "components" %}<span>{ WIT }</span>
+            {% elif chapter.key == "boundaries" %}<span>01 → 7B</span>
+            {% elif chapter.key == "lifecycle" %}<span>●──●──●</span>
+            {% else %}<span>▮▯▮▯</span>{% endif %}
+          </div>
+          <h2>{{ chapter.title }}</h2>
+          <p>{{ chapter.description }}</p>
+          <strong>Open chapter <span aria-hidden="true">→</span></strong>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="almanac-section mental-model-section">
+  <div class="shell mental-model-grid">
+    <div class="mental-model-copy">
+      <p class="almanac-kicker">The 90-second model</p>
+      <h2>Six ideas prevent most category errors.</h2>
+      <p>“Wasm”, “component”, “WIT”, “linker”, and “async” describe different layers. Keeping them separate makes performance and authority discussions much easier.</p>
+    </div>
+    <ol class="mental-model-list">
+      <li><span>01</span><div><strong>WIT is a contract, not an implementation.</strong><p>It names typed imports and exports. Bindgen turns that contract into Rust glue on each side.</p></div></li>
+      <li><span>02</span><div><strong>The host calls exports; the guest calls imports.</strong><p>Wasmtime’s linker supplies imports. Dekopon’s current component asks for none, so an empty linker is enough.</p></div></li>
+      <li><span>03</span><div><strong>A Store is an execution context, not a thread.</strong><p>Today the calling main thread enters a fresh Store. A helper thread only watches the wall-clock deadline.</p></div></li>
+      <li><span>04</span><div><strong>The model never runs inside Wasm.</strong><p>The Rust prompt loop performs HTTP, parses untrusted tool arguments, invokes Wasm, and sends the result back over HTTP.</p></div></li>
+      <li><span>05</span><div><strong>Linear memory is not shared Rust memory.</strong><p>Strings cross through the component model’s canonical ABI. Current Dekopon adds JSON encode/decode on both sides.</p></div></li>
+      <li><span>06</span><div><strong>Async I/O is not CPU time-slicing.</strong><p>A future host must suspend waiting host calls and also make long-running guest compute yield, or a Tokio worker can still be monopolized.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="almanac-section truth-labels-section">
+  <div class="shell truth-labels-grid">
+    <div>
+      <p class="almanac-kicker">Reading rule</p>
+      <h2>Architecture tense is part of the API.</h2>
+    </div>
+    <div class="truth-label-cards">
+      <article><div>{{ status("current", "Current") }}</div><h3>Implemented and testable</h3><p>The synchronous <code>dekopon-run</code>, JSON-over-WIT provider world, empty linker, fresh bounded stores, blocking model clients, and serialized calls exist on the source snapshot.</p></article>
+      <article><div>{{ status("direction", "Committed direction") }}</div><h3>Accepted constraint, not shipped</h3><p>Separate daemon and broker processes, broker-owned credentials, a shared engine/cache, fresh stores, and narrow asynchronous host functions are design commitments.</p></article>
+      <article><div>{{ status("exploration", "Exploration") }}</div><h3>A design sketch with open choices</h3><p>The Tokio worker layout, transport, yield mechanism and quantum, typed replacement for JSON, and bulk-data handle design still require implementation evidence.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="almanac-closing-band">
+  <div class="shell">
+    <span>Begin at the binary boundary</span>
+    <h2>What exactly gets linked?</h2>
+    <a class="button button-primary" href="/almanac/components/">Open Components &amp; linking <span aria-hidden="true">→</span></a>
+  </div>
+</section>
