@@ -43,6 +43,8 @@ npm audit --audit-level=high
 
 `.github/workflows/pages.yml` builds every push and pull request. A successful build on `main` uploads `_site/` and deploys it through GitHub Pages immediately. `_site/` is generated output and is not committed.
 
+The site also serves `/.well-known/wasm-pkg/registry.json`. This lets `wkg` map Dekopon WIT package names to the `ghcr.io/dekopon-agents/` OCI namespace; package contents and publication remain owned by the main Dekopon repository.
+
 ## License
 
 The site is available under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
