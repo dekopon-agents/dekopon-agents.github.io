@@ -26,6 +26,27 @@ const exists = async (target) => {
 const files = await walk(outputDirectory);
 const htmlFiles = files.filter((file) => file.endsWith(".html"));
 const pageIds = new Map();
+const registryMetadataFile = path.join(outputDirectory, ".well-known", "wasm-pkg", "registry.json");
+const expectedRegistryMetadata = {
+    preferredProtocol: "oci",
+    oci: {
+        registry: "ghcr.io",
+        namespacePrefix: "dekopon-agents/"
+    }
+};
+
+if (!(await exists(registryMetadataFile))) {
+    failures.push("missing .well-known/wasm-pkg/registry.json");
+} else {
+    try {
+        const metadata = JSON.parse(await readFile(registryMetadataFile, "utf8"));
+        if (JSON.stringify(metadata) !== JSON.stringify(expectedRegistryMetadata)) {
+            failures.push(".well-known/wasm-pkg/registry.json: unexpected registry mapping");
+        }
+    } catch (error) {
+        failures.push(`.well-known/wasm-pkg/registry.json: invalid JSON (${error.message})`);
+    }
+}
 
 for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");
