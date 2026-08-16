@@ -1,26 +1,30 @@
 {
   "name": "Dekopon",
   "wordmark": "dekopon",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon — Controlled authority for AI agents",
-  "description": "Dekopon is a capability-oriented control plane for self-hosted AI agents, designed from the start for Raspberry Pi and your own hardware.",
+  "title": "Dekopon v0.2.0 — Controlled authority for AI agents",
+  "description": "Dekopon is a self-hosted AI agent control plane with isolated custom tools, brokered permissions, durable audit, and correlated OpenTelemetry traces and logs.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",
+  "releaseNotes": "/whats-new/",
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
-    { "label": "Principles", "href": "/#why" },
-    { "label": "Almanac", "href": "/almanac/" },
-    { "label": "Authority flow", "href": "/#authority" },
-    { "label": "Architecture", "href": "/#architecture" },
-    { "label": "Roadmap", "href": "/#roadmap" }
+    { "label": "What’s New", "href": "/whats-new/" },
+    { "label": "Tool design", "href": "/#tool-design" },
+    { "label": "Authority", "href": "/#authority" },
+    { "label": "Observability", "href": "/#observability" },
+    { "label": "Almanac", "href": "/almanac/" }
   ],
   "footer": [
     {
       "heading": "Project",
       "links": [
         { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
+        { "label": "What’s new in v0.2.0", "href": "/whats-new/" },
+        { "label": "v0.2.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0" },
+        { "label": "crates.io", "href": "https://crates.io/crates/dekopon" },
         { "label": "Documentation", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
         { "label": "Tech almanac", "href": "/almanac/" },
         { "label": "Roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" }
@@ -37,7 +41,7 @@
     {
       "heading": "Security",
       "links": [
-        { "label": "System design", "href": "https://github.com/dekopon-agents/dekopon/blob/da68935/docs/design.md" },
+        { "label": "System design", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/design.md" },
         { "label": "Security model", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md" },
         { "label": "Report a vulnerability", "href": "https://github.com/dekopon-agents/dekopon/blob/main/SECURITY.md" }
       ]

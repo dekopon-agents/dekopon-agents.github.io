@@ -1,0 +1,194 @@
+---
+layout: layouts/base.njk
+permalink: almanac/observability/index.html
+pageTitle: Audit and OpenTelemetry — Dekopon v0.2.0 tech almanac
+pageDescription: How Dekopon v0.2.0 separates durable broker audit, OTLP traces, and OTLP logs; correlates runner and broker spans; minimizes payloads; and runs with OpenObserve on a Raspberry Pi.
+bodyClass: almanac-page almanac-article-page almanac-observability-page
+almanacPage: true
+almanacSection: observability
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
+
+{{ pageHero("04", "Audit & OpenTelemetry", "Three signals.<br><span>One correlated run.</span>", "Durable audit proves what the broker authorized. Traces explain execution. Logs retain accounting and exceptional facts. Dekopon keeps those jobs separate and links them when it matters.", "current", "Current in v0.2.0") }}
+{{ chapterNav("observability", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and source">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#signals">Three signals</a>
+      <a href="#trace">Cross-process trace</a>
+      <a href="#logs">Logs with a job</a>
+      <a href="#payloads">Payload and redaction</a>
+      <a href="#openobserve">OpenObserve</a>
+      <a href="#footprint">Measured Pi footprint</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="signals" class="article-section">
+      <div class="article-heading">
+        <span>04.1 · semantic separation</span>
+        <h2>Do not turn telemetry into a weaker copy of audit.</h2>
+        <p>Dekopon emits three signals because authorization history, performance diagnosis, and retained operational facts have different integrity and retention requirements.</p>
+      </div>
+
+      <div class="truth-label-cards">
+        <article><div>{{ status("current", "Broker audit") }}</div><h3>What was authorized?</h3><p>Permanent owner-only metadata, hash-linked and append-synchronized, with decision and terminal outcome records plus a separate count/head checkpoint.</p></article>
+        <article><div>{{ status("current", "OTel traces") }}</div><h3>What ran, and how long?</h3><p>Sampled spans for commands, model turns, scripts, shell words, authorization, provider work, and HTTP—complete with parentage and duration.</p></article>
+        <article><div>{{ status("current", "OTel logs") }}</div><h3>What must outlive a span?</h3><p>The runner exports cost accounting, refusals, errors, and optional transcript payloads over OTLP. Broker operational logs use structured JSON stdout for a collector.</p></article>
+      </div>
+
+      <div class="article-callout callout-warning">
+        <strong>Operational telemetry is not authorization evidence.</strong>
+        <p>An OTLP backend may sample, expire, reject, or be unavailable. Broker startup and effect execution therefore do not depend on telemetry delivery. The hash-linked audit chain remains the contract for what the broker decided and attempted.</p>
+      </div>
+    </section>
+
+    <section id="trace" class="article-section">
+      <div class="article-heading">
+        <span>04.2 · one trace across a socket</span>
+        <h2>The runner and broker export independently—and still meet.</h2>
+      </div>
+
+      <div class="data-journey-map">
+        <div class="journey-zone journey-zone-host">
+          <div class="journey-zone-label"><span>OTLP emitter 01</span><strong><code>dekopon-run</code></strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>root</small><strong><code>runner.command</code></strong><code>one CLI command</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>session</small><strong><code>prompt.model_turn</code></strong><code>tokens + outcome</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>tool</small><strong><code>prompt.script</code></strong><code>shell.command children</code></div>
+          </div>
+        </div>
+        <i aria-hidden="true">↓ W3C traceParent on the proposal frame</i>
+        <div class="journey-zone journey-zone-guest">
+          <div class="journey-zone-label"><span>OTLP emitter 02</span><strong><code>dekopon-brokerd</code></strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>remote child</small><strong><code>broker.invocation</code></strong><code>same trace ID</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>decision</small><strong><code>broker.authorize</code></strong><code>allowed / denied / replay</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>effect path</small><strong><code>provider.invoke</code></strong><code>http.request child</code></div>
+          </div>
+        </div>
+      </div>
+
+      <p>The broker never relays the runner’s telemetry. Each process owns and flushes its own exporter. The optional <code>traceParent</code> field carries only telemetry parentage; it is untrusted, strictly parsed, and never influences identity, policy, replay rejection, routing, or audit.</p>
+
+      <div class="invariant-notes">
+        <article><span>W3C</span><h3><code>traceParent</code></h3><p>Ephemeral backend correlation. A malformed value rejects the request rather than creating a misleading parent relationship.</p></article>
+        <article><span>Dekopon</span><h3><code>TraceId</code></h3><p>Durable session/invocation correlation in protocol and audit. It has a different job and lifetime from the OTel trace ID.</p></article>
+        <article><span>independent</span><h3>Two exporters</h3><p>A broker-only deployment cannot see model/direct work; a runner-only deployment cannot see broker authorization and provider internals.</p></article>
+      </div>
+    </section>
+
+    <section id="logs" class="article-section">
+      <div class="article-heading">
+        <span>04.3 · no span mirrors</span>
+        <h2>A log must justify why it is not already a span.</h2>
+      </div>
+
+      <p>Earlier builds emitted started/completed log pairs for work that now has first-class spans. Version 0.2.0 removes that duplication. A span already owns start time, parent, duration, and outcome; copying those fields into logs costs storage and makes operators join two noisy approximations of the same event.</p>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Log event</th><th scope="col">Why it survives</th><th scope="col">Fields</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>accounting.model.turn</code></th><td>Model calls cost money or quota after traces expire.</td><td>turn, duration, counts, normalized token usage, outcome</td></tr>
+            <tr><th scope="row"><code>accounting.http.request</code></th><td>External calls consume rate limits and operational budget.</td><td>method, authority, status, request/response bytes, outcome</td></tr>
+            <tr><th scope="row">refusal / error events</th><td>Operational exceptions need independent retention and search.</td><td>stable categories, IDs needed to reconcile—never raw untrusted errors</td></tr>
+            <tr><th scope="row"><code>agent.model.*</code></th><td>Conversation text is unbounded payload, not a span attribute.</td><td>full prompt/answer only after explicit payload opt-in</td></tr>
+            <tr><th scope="row"><code>agent.tool.*</code></th><td>Script and output are unbounded payload.</td><td>verbatim script/output only after explicit payload opt-in</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Token usage appears on both the <code>prompt.model_turn</code> span and the accounting record by design: one explains why this call behaved as it did; the other survives sampling to answer how much work accumulated. An unreported token field stays absent rather than being rewritten as zero.</p>
+    </section>
+
+    <section id="payloads" class="article-section">
+      <div class="article-heading">
+        <span>04.4 · data minimization</span>
+        <h2>Metadata by default. Payload only by deliberate opt-in.</h2>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Always useful metadata</th><th scope="col">Withheld by default</th><th scope="col">Never added by payload mode</th></tr></thead>
+          <tbody>
+            <tr><td>service, model, provider, capability IDs</td><td>prompts and model answers</td><td>bearer tokens and provider credentials</td></tr>
+            <tr><td>timings, counts, outcomes, source locations</td><td>model-authored scripts and their output</td><td>OTLP authorization headers</td></tr>
+            <tr><td>command kind, argument count, exit code</td><td>provider input and output</td><td>HTTP request/response headers or bodies</td></tr>
+            <tr><td>HTTP method, authority, status, byte counts</td><td>URL path and query</td><td>durable audit payloads</td></tr>
+            <tr><td>invocation, capability, trace linkage</td><td>proposal input</td><td>raw untrusted error text</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><code>--otel-telemetry-payloads true</code>, <code>DEKOPON_OTEL_TELEMETRY_PAYLOADS</code>, or broker <code>telemetryPayloads: true</code> opts selected proposal, URL, and transcript fields into telemetry. It widens data, not credentials. Durable audit is unchanged.</p>
+
+      <div class="article-callout callout-decision">
+        <strong>Redaction is a type, not a logging convention.</strong>
+        <p><code>Redacted&lt;T&gt;</code> renders a marker through <code>Debug</code>, <code>Display</code>, and serialization. Exposing a value requires a conspicuous call, and persisting the few intended secrets requires an explicit serializer on that field.</p>
+      </div>
+    </section>
+
+    <section id="openobserve" class="article-section">
+      <div class="article-heading">
+        <span>04.5 · receiver</span>
+        <h2>OpenObserve is the proved path, not a proprietary dependency.</h2>
+      </div>
+
+      <p>Dekopon exports standard protobuf OTLP over HTTP or gRPC. The repository includes a pinned one-container OpenObserve example and a black-box CI smoke test that starts the receiver, invokes a real component, searches the trace and log streams, verifies required spans, checks trace/log correlation, and proves a sentinel provider input did not leak.</p>
+
+      <pre><code><span class="code-purple">export</span> OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:5080/api/default
+<span class="code-purple">export</span> OTEL_EXPORTER_OTLP_HEADERS='Authorization=Basic%20&lt;TOKEN&gt;,organization=default,stream-name=dekopon'
+<span class="code-purple">export</span> OTEL_SERVICE_NAME=dekopon-run
+
+dekopon-run prompt --model qwen3 'Upcase hello' \
+  --provider echo-provider.wasm</code></pre>
+
+      <div class="invariant-notes">
+        <article><span>HTTP</span><h3>Signal paths appended</h3><p>The generic base receives <code>/v1/traces</code> and <code>/v1/logs</code>. OpenObserve reads organization from <code>/api/&lt;org&gt;</code>.</p></article>
+        <article><span>gRPC</span><h3>Protocol method paths</h3><p>The endpoint is an authority; <code>organization=&lt;org&gt;</code> must travel in the standard OTLP header set.</p></article>
+        <article><span>both</span><h3>One header configuration</h3><p><code>stream-name=dekopon</code> routes traces and logs alike. Credentials stay in environment headers, never CLI arguments or broker YAML.</p></article>
+      </div>
+
+      <p>Plain HTTP is appropriate only for loopback development or an isolated trusted network; HTTPS uses WebPKI roots and redirects are disabled so receiver authorization headers cannot be forwarded to a new destination. Runner flush failures fail the short-lived command. Broker exporter construction or shutdown failures are logged but do not block authorization service or replace durable audit.</p>
+    </section>
+
+    <section id="footprint" class="article-section">
+      <div class="article-heading">
+        <span>04.6 · measured on the project Raspberry Pi</span>
+        <h2>A detailed prompt trace can still be tiny.</h2>
+      </div>
+
+      <article class="footprint-proof">
+        <div class="proof-topline"><span></span>OpenObserve · physical allocated blocks</div>
+        <div class="proof-value">200 KiB</div>
+        <h3>Dekopon trace + log payload in the current sample</h3>
+        <p>The <code>dekopon</code> streams used to exercise a simple prompt occupy 148 KiB of trace payload and 52 KiB of log payload on the Raspberry Pi’s NVMe-backed OpenObserve volume.</p>
+        <dl>
+          <div><dt>traces</dt><dd>148 KiB</dd></div>
+          <div><dt>logs</dt><dd>52 KiB</dd></div>
+          <div><dt>combined</dt><dd>200 KiB</dd></div>
+        </dl>
+        <small>Snapshot: 16 Aug 2026. Physical allocation, not sparse apparent size. The complete OpenObserve stream tree was 1.22 MiB: 388 KiB of all log/trace payload across streams and 860 KiB of indexes, metadata, bloom data, and directory overhead. Values change as ingestion continues.</small>
+      </article>
+
+      <p>The point is not that every future run will consume exactly 200 KiB; retention, payload opt-in, model turns, command count, backend compaction, and indexing all matter. The point is that useful cross-process traces plus accounting logs are entirely practical on small self-hosted hardware—and Dekopon measures physical disk use rather than quoting sparse WAL file sizes.</p>
+
+      <div class="source-links">
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/observability.md"><span>Signal contract</span><strong><code>docs/observability.md</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/tree/{{ almanac.source.revision }}/examples/otel-traces"><span>OpenObserve example</span><strong><code>examples/otel-traces</code> ↗</strong></a>
+        <a href="https://openobserve.ai/"><span>Receiver</span><strong>OpenObserve ↗</strong></a>
+      </div>
+    </section>
+
+    {{ chapterPager(almanac.chapters[3], null) }}
+  </article>
+</div>

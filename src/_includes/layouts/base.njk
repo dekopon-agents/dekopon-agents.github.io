@@ -28,7 +28,6 @@
   {% if almanacPage %}<link rel="stylesheet" href="/assets/almanac.css">{% endif %}
   <script>document.documentElement.classList.remove('no-js');</script>
   <script src="/assets/site.js" defer></script>
-  {% if almanacPage %}<script src="/assets/almanac.js" defer></script>{% endif %}
 </head>
 <body class="{{ bodyClass or '' }}">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -45,7 +44,7 @@
       </nav>
 
       <div class="header-actions">
-        <a class="version-link" href="{{ site.releases }}" aria-label="Dekopon releases">
+        <a class="version-link" href="{{ site.releaseNotes }}" aria-label="What’s new in Dekopon {{ site.version }}">
           <span class="live-dot" aria-hidden="true"></span>
           {{ site.version }}
         </a>

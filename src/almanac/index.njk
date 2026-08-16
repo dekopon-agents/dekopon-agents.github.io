@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/index.html
-pageTitle: Tech almanac — Dekopon
-pageDescription: An implementation-grounded guide to Dekopon's WebAssembly components, WIT boundaries, serialization, process model, and future Tokio scheduling.
+pageTitle: Dekopon v0.2.0 tech almanac
+pageDescription: An implementation-grounded guide to Dekopon isolation, one-tool scripting, brokered permissions, durable audit, and OpenTelemetry.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
 almanacSection: atlas
@@ -14,61 +14,60 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>Field notes / runtime anatomy</span><code>edition 01</code></div>
-      <h1>The machinery<br><span>under the agent.</span></h1>
-      <p class="almanac-home-lede">A source-linked field guide to the path from Rust to Wasm, from a model tool call into guest memory, and from today’s synchronous runner toward a bounded Tokio host.</p>
+      <div class="almanac-overline"><span>Field notes / v0.2.0 anatomy</span><code>edition 02</code></div>
+      <h1>The boundaries<br><span>under the agent.</span></h1>
+      <p class="almanac-home-lede">A source-linked field guide to the machinery Dekopon now ships: an isolated one-tool runner, two Wasm authority profiles, a separate policy broker, durable audit, and cross-process OpenTelemetry.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status legend">
-        {{ status("current", "Current") }}
-        {{ status("direction", "Committed direction") }}
-        {{ status("exploration", "Exploration") }}
+        {{ status("current", "Current in v0.2.0") }}
+        {{ status("direction", "Next milestone") }}
       </div>
       {{ sourceStamp(almanac.source) }}
     </div>
 
-    <div class="runtime-cutaway" data-stack-map>
+    <div class="runtime-cutaway">
       <div class="cutaway-topline">
-        <span>Current prompt run · cutaway</span>
-        <span class="cutaway-live"><i aria-hidden="true"></i> one process</span>
+        <span>Broker-backed prompt · current</span>
+        <span class="cutaway-live"><i aria-hidden="true"></i> two processes</span>
       </div>
       <div class="cutaway-machine">
         <div class="cutaway-outside">
-          <button class="cutaway-node cutaway-model" type="button" data-stack-node="model" aria-pressed="false">
-            <span>outside the process</span>
+          <div class="cutaway-node cutaway-model">
+            <span>outside the authority boundary</span>
             <strong>LLM endpoint</strong>
-            <small>HTTP · another process or machine</small>
-          </button>
-          <span class="cutaway-packet" aria-hidden="true">JSON / SSE ↕</span>
+            <small>returns one bash({ script }) call</small>
+          </div>
+          <span class="cutaway-packet" aria-hidden="true">model protocol ↕</span>
         </div>
         <div class="cutaway-process">
-          <div class="cutaway-process-label"><span>OS process</span><strong>dekopon-run</strong></div>
-          <button class="cutaway-node" type="button" data-stack-node="loop" aria-pressed="false">
-            <span>main OS thread</span>
-            <strong>Rust prompt loop</strong>
-            <small>blocking model client + routing</small>
-          </button>
-          <span class="cutaway-arrow" aria-hidden="true">arguments ↓ · result ↑</span>
-          <button class="cutaway-node cutaway-runtime" type="button" data-stack-node="runtime" aria-pressed="false">
-            <span>same process · same calling thread</span>
-            <strong>Wasmtime engine + component</strong>
-            <small>fresh Store · fresh instance · guest memory</small>
-          </button>
+          <div class="cutaway-process-label"><span>UNPRIVILEGED PROCESS</span><strong>dekopon-run</strong></div>
+          <div class="cutaway-node">
+            <span>bounded interpreter</span>
+            <strong>dekopon-shell</strong>
+            <small>JSON values · no OS shell · proposal client</small>
+          </div>
+          <span class="cutaway-arrow" aria-hidden="true">identity-free proposal ↓</span>
+          <div class="cutaway-node cutaway-runtime">
+            <span>PRIVILEGED PROCESS</span>
+            <strong>dekopon-brokerd</strong>
+            <small>peer UID · exact policy · replay defense · audit</small>
+          </div>
           <div class="cutaway-thread-row">
-            <button class="cutaway-node cutaway-helper" type="button" data-stack-node="timer" aria-pressed="false">
-              <span>temporary OS thread</span>
-              <strong>deadline helper</strong>
-              <small>increments epoch only on timeout</small>
-            </button>
-            <button class="cutaway-node cutaway-empty" type="button" data-stack-node="linker" aria-pressed="false">
-              <span>authority surface</span>
-              <strong>empty linker</strong>
-              <small>zero guest imports</small>
-            </button>
+            <div class="cutaway-node cutaway-helper">
+              <span>fresh bounded Store</span>
+              <strong>Wasm provider</strong>
+              <small>one authorized operation</small>
+            </div>
+            <div class="cutaway-node cutaway-empty">
+              <span>only linked host import</span>
+              <strong>dekopon:http@1.0.0</strong>
+              <small>exact authority + method + bytes</small>
+            </div>
           </div>
         </div>
       </div>
-      <div class="cutaway-readout" aria-live="polite">
-        <span data-stack-readout-label>Select a layer</span>
-        <p data-stack-readout>Every box says both <em>what</em> runs and <em>where</em> it runs. Choose one to inspect it.</p>
+      <div class="cutaway-readout">
+        <span>v0.2.0 authority rule</span>
+        <p>The runner can ask. Only the broker can turn that request into constrained execution, evidence, and durable audit.</p>
       </div>
     </div>
   </div>
@@ -80,8 +79,8 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">00—04</span>
-      <div><p class="almanac-kicker">Choose a layer</p><h2>Five maps, one runtime.</h2></div>
-      <p>Start with the vocabulary, then follow data and control through increasingly concrete boundaries. Each chapter separates code that exists from architecture that is only planned.</p>
+      <div><p class="almanac-kicker">Choose a boundary</p><h2>Four deep dives, one released system.</h2></div>
+      <p>Each chapter follows code at <code>v0.2.0</code>, distinguishes direct from broker-backed execution, and names the remaining pre-production limits instead of hand-waving them away.</p>
     </div>
 
     <div class="atlas-card-grid">
@@ -90,10 +89,10 @@ ogType: article
         <a class="atlas-card atlas-card-{{ chapter.key }} reveal" href="{{ chapter.href }}">
           <div class="atlas-card-top"><span>{{ chapter.number }}</span><span aria-hidden="true">↗</span></div>
           <div class="atlas-card-glyph" aria-hidden="true">
-            {% if chapter.key == "components" %}<span>{ WIT }</span>
-            {% elif chapter.key == "boundaries" %}<span>01 → 7B</span>
-            {% elif chapter.key == "lifecycle" %}<span>●──●──●</span>
-            {% else %}<span>▮▯▮▯</span>{% endif %}
+            {% if chapter.key == "components" %}<span>{ link }</span>
+            {% elif chapter.key == "boundaries" %}<span>1 tool → N caps</span>
+            {% elif chapter.key == "lifecycle" %}<span>proposal ≠ grant</span>
+            {% else %}<span>audit · trace · log</span>{% endif %}
           </div>
           <h2>{{ chapter.title }}</h2>
           <p>{{ chapter.description }}</p>
@@ -109,16 +108,16 @@ ogType: article
   <div class="shell mental-model-grid">
     <div class="mental-model-copy">
       <p class="almanac-kicker">The 90-second model</p>
-      <h2>Six ideas prevent most category errors.</h2>
-      <p>“Wasm”, “component”, “WIT”, “linker”, and “async” describe different layers. Keeping them separate makes performance and authority discussions much easier.</p>
+      <h2>Six facts explain the architecture.</h2>
+      <p>Dekopon’s maturity is in its seams. Keep these distinctions straight and the codebase becomes much easier to reason about.</p>
     </div>
     <ol class="mental-model-list">
-      <li><span>01</span><div><strong>WIT is a contract, not an implementation.</strong><p>It names typed imports and exports. Bindgen turns that contract into Rust glue on each side.</p></div></li>
-      <li><span>02</span><div><strong>The host calls exports; the guest calls imports.</strong><p>Wasmtime’s linker supplies imports. Dekopon’s current component asks for none, so an empty linker is enough.</p></div></li>
-      <li><span>03</span><div><strong>A Store is an execution context, not a thread.</strong><p>Today the calling main thread enters a fresh Store. A helper thread only watches the wall-clock deadline.</p></div></li>
-      <li><span>04</span><div><strong>The model never runs inside Wasm.</strong><p>The Rust prompt loop performs HTTP, parses untrusted tool arguments, invokes Wasm, and sends the result back over HTTP.</p></div></li>
-      <li><span>05</span><div><strong>Linear memory is not shared Rust memory.</strong><p>Strings cross through the component model’s canonical ABI. Current Dekopon adds JSON encode/decode on both sides.</p></div></li>
-      <li><span>06</span><div><strong>Async I/O is not CPU time-slicing.</strong><p>A future host must suspend waiting host calls and also make long-running guest compute yield, or a Tokio worker can still be monopolized.</p></div></li>
+      <li><span>01</span><div><strong>The model gets one tool, not one tool per capability.</strong><p>Its script composes only session-granted operations through a pure Rust interpreter.</p></div></li>
+      <li><span>02</span><div><strong>Direct mode and broker mode are intentionally different.</strong><p>The direct linker is empty and read-only; the broker linker exposes one project-owned HTTP contract after authorization.</p></div></li>
+      <li><span>03</span><div><strong>A component import is a requirement, not a permission.</strong><p>The broker still binds exact destination, method, calls, bytes, and deadline to one invocation.</p></div></li>
+      <li><span>04</span><div><strong>A proposal is not authority.</strong><p>Identity and policy never arrive as client fields. The broker derives context from Unix peer credentials and trusted configuration.</p></div></li>
+      <li><span>05</span><div><strong>Every operation starts fresh.</strong><p>Compiled components are reused, but each describe or invoke receives a new bounded Store and instance.</p></div></li>
+      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization is hash-linked; timing is traced; accounting and exceptional facts are logged.</p></div></li>
     </ol>
   </div>
 </section>
@@ -126,21 +125,21 @@ ogType: article
 <section class="almanac-section truth-labels-section">
   <div class="shell truth-labels-grid">
     <div>
-      <p class="almanac-kicker">Reading rule</p>
-      <h2>Architecture tense is part of the API.</h2>
+      <p class="almanac-kicker">Release posture</p>
+      <h2>Substantial does not mean overclaimed.</h2>
     </div>
     <div class="truth-label-cards">
-      <article><div>{{ status("current", "Current") }}</div><h3>Implemented and testable</h3><p>The synchronous <code>dekopon-run</code>, JSON-over-WIT provider world, empty linker, fresh bounded stores, blocking model clients, and serialized calls exist on the source snapshot.</p></article>
-      <article><div>{{ status("direction", "Committed direction") }}</div><h3>Accepted constraint, not shipped</h3><p>Separate daemon and broker processes, broker-owned credentials, a shared engine/cache, fresh stores, and narrow asynchronous host functions are design commitments.</p></article>
-      <article><div>{{ status("exploration", "Exploration") }}</div><h3>A design sketch with open choices</h3><p>The Tokio worker layout, transport, yield mechanism and quantum, typed replacement for JSON, and bulk-data handle design still require implementation evidence.</p></article>
+      <article><div>{{ status("current", "Released") }}</div><h3>v0.2.0 is implemented and testable</h3><p>Seventeen public crates, three CLIs, four attested platform archives, 470+ workspace tests, and an OpenObserve delivery smoke test.</p></article>
+      <article><div>{{ status("current", "Enforced") }}</div><h3>The local authority path is real</h3><p>Peer authentication, exact policy, replay rejection, constrained async provider HTTP, evidence, hash-linked files, checkpoints, and trace propagation all ship.</p></article>
+      <article><div>{{ status("direction", "Still next") }}</div><h3>Production gaps remain explicit</h3><p>Broker-owned credential resolution, independent checkpoint anchoring, a long-running agent daemon, non-Unix transport, and multi-tenant isolation are not claimed.</p></article>
     </div>
   </div>
 </section>
 
 <section class="almanac-closing-band">
   <div class="shell">
-    <span>Begin at the binary boundary</span>
-    <h2>What exactly gets linked?</h2>
-    <a class="button button-primary" href="/almanac/components/">Open Components &amp; linking <span aria-hidden="true">→</span></a>
+    <span>Begin at the executable sandbox</span>
+    <h2>What can a provider actually reach?</h2>
+    <a class="button button-primary" href="/almanac/components/">Open Isolation &amp; linking <span aria-hidden="true">→</span></a>
   </div>
 </section>

@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/run-lifecycle/index.html
-pageTitle: The life of an agent run — Dekopon tech almanac
-pageDescription: A process- and thread-level walkthrough of Dekopon's current immediate prompt runner and its planned separate daemon and broker architecture.
+pageTitle: Permissioned invocation lifecycle — Dekopon v0.2.0 tech almanac
+pageDescription: Follow a Dekopon v0.2.0 broker invocation from identity-free proposal through peer authentication, exact policy, single-use authorization, bounded execution, evidence, replay defense, and durable audit.
 bodyClass: almanac-page almanac-article-page almanac-lifecycle-page
 almanacPage: true
 almanacSection: lifecycle
@@ -10,243 +10,177 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
 
-{{ pageHero("03", "Run lifecycle", "Follow control.<br><span>Name the process.</span>", "Step through one current prompt run and one future authorized effect. At every stop, the map identifies the OS process, thread or task, memory owner, and trust status.", "direction", "Current + committed topology") }}
+{{ pageHero("03", "Permissioned lifecycle", "Propose intent.<br><span>Bind authority once.</span>", "Follow one current v0.2.0 invocation across the Unix process boundary, through exact policy and constrained provider work, into evidence and durable audit.", "current", "Current local broker path") }}
 {{ chapterNav("lifecycle", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
   <aside class="article-rail" aria-label="Article navigation and source">
     <nav aria-label="On this page">
       <span>On this page</span>
-      <a href="#two-runs">Two different runs</a>
-      <a href="#run-explorer">Run explorer</a>
-      <a href="#current-threads">Current threads</a>
-      <a href="#future-boundary">Future process boundary</a>
-      <a href="#authority-transition">Authority transition</a>
-      <a href="#open-design">Open design</a>
+      <a href="#wire">What crosses the wire</a>
+      <a href="#lifecycle">Nine current stages</a>
+      <a href="#policy">Exact permissioning</a>
+      <a href="#audit">Durable audit</a>
+      <a href="#failures">Failure semantics</a>
+      <a href="#limits">Current trust limit</a>
     </nav>
     {{ sourceStamp(almanac.source) }}
   </aside>
 
   <article class="almanac-prose">
-    <section id="two-runs" class="article-section">
+    <section id="wire" class="article-section">
       <div class="article-heading">
-        <span>03.1 · do not conflate</span>
-        <h2>Today’s laboratory is not tomorrow’s control plane.</h2>
+        <span>03.1 · authenticated transport</span>
+        <h2>The request has nowhere to claim authority.</h2>
+        <p><code>dekopon-run</code> opens one fresh Unix connection, validates private socket metadata and the configured server UID, writes one bounded frame, reads one bounded response, and closes the connection.</p>
       </div>
 
-      <div class="run-mode-cards">
-        <article class="run-mode-current">
-          <div>{{ status("current", "Current") }}<span>one executable</span></div>
-          <h3><code>dekopon-run prompt</code></h3>
-          <p>A synchronous one-shot developer path. It performs blocking model HTTP and import-free read-only component calls in one process. It does not authorize anything.</p>
-          <ul><li>one <code>dekopon-run</code> OS process</li><li>main thread performs orchestration and guest execution</li><li>short-lived deadline thread per component call</li><li>model endpoint is out of process</li></ul>
-        </article>
-        <article class="run-mode-future">
-          <div>{{ status("direction", "Committed direction") }}<span>separate deployment units</span></div>
-          <h3><code>dekopond</code> → <code>dekopon-brokerd</code></h3>
-          <p>An unprivileged orchestration daemon sends an authenticated proposal to a separately deployed broker. The broker alone evaluates policy, holds provider credentials, executes a constrained provider, and records evidence.</p>
-          <ul><li>at least two OS processes and pods for writes</li><li>authorization created and consumed inside broker boundary</li><li>future async Wasmtime host integrated with Tokio</li><li>exact transport and worker topology remain open</li></ul>
-        </article>
-      </div>
-
-      <div class="article-callout callout-warning">
-        <strong>“One Tokio process” has a security limit.</strong>
-        <p>Multiple agent tasks and Wasm stores may share one Tokio runtime <em>inside a role</em>. Once external-write authority exists, Dekopon’s design forbids collapsing orchestration and broker authority into one process. The daemon and broker remain separate even if each is internally concurrent.</p>
-      </div>
-    </section>
-
-    <section id="run-explorer" class="article-section article-section-wide">
-      <div class="article-heading">
-        <span>03.2 · interactive</span>
-        <h2>Run explorer.</h2>
-        <p>Switch timelines, then advance one event at a time. Highlighted boxes are executing or holding the data for that event.</p>
-      </div>
-
-      <div class="toy lifecycle-lab" data-lifecycle-lab>
-        <div class="toy-toolbar">
-          <div><span class="toy-index">TOY 03</span><strong>Process / thread debugger</strong></div>
-          <span class="toy-note">Architecture playback · not a timing trace</span>
+      <div class="authority-state-machine">
+        <div><span>client may send</span><strong>proposal fields</strong><small>capability · JSON input · invocation ID · trace ID · traceParent</small></div>
+        <i aria-hidden="true">private Unix socket →</i>
+        <div class="authority-broker-box">
+          <span>kernel + owner-controlled mapping</span>
+          <div><strong>peer UID</strong><b>→</b><strong>principal + actor</strong><b>→</b><strong>policy context</strong></div>
         </div>
-
-        <div class="lifecycle-mode-row">
-          <div class="segmented-control lifecycle-mode-control" data-lifecycle-modes>
-            <button type="button" data-lifecycle-mode="current" aria-pressed="true">Current immediate run</button>
-            <button type="button" data-lifecycle-mode="future" aria-pressed="false">Future authorized run</button>
-          </div>
-          <div class="lifecycle-status-key"><span class="key-executing"><i></i> executing</span><span class="key-data"><i></i> data resident</span><span class="key-boundary"><i></i> process crossing</span></div>
-        </div>
-
-        <div class="lifecycle-canvas" data-lifecycle-canvas>
-          <div class="lifecycle-map lifecycle-map-current" data-lifecycle-map="current">
-            <div class="lifecycle-external lifecycle-user" data-life-node="operator">
-              <span>terminal / parent shell</span><strong>operator</strong><small>starts process</small>
-            </div>
-            <i class="life-wire" aria-hidden="true">↓ CLI args</i>
-            <div class="process-frame process-frame-run" data-life-node="run-process">
-              <div class="process-frame-heading"><span>OS PROCESS 01</span><strong><code>dekopon-run</code></strong><small>current · synchronous</small></div>
-              <div class="thread-frame main-thread-frame" data-life-node="main-thread">
-                <div class="thread-frame-heading"><span>OS thread</span><strong>main</strong><small>blocking call stack</small></div>
-                <div class="task-node" data-life-node="prompt-loop"><span>Rust</span><strong>prompt loop</strong><small>messages · tools · routing</small></div>
-                <div class="task-node" data-life-node="model-client"><span>Rust</span><strong>blocking model client</strong><small><code>ureq</code> HTTP / SSE</small></div>
-                <div class="wasm-context" data-life-node="wasm-store">
-                  <span>Wasmtime execution context · not a thread</span>
-                  <strong>fresh Store + instance</strong>
-                  <div data-life-node="guest-memory"><small>guest linear memory</small><code>WIT strings + Rust heap</code></div>
-                </div>
-              </div>
-              <div class="thread-frame helper-thread-frame" data-life-node="deadline-thread">
-                <div class="thread-frame-heading"><span>temporary OS thread</span><strong>dekopon-provider-deadline</strong><small>one per describe / invoke</small></div>
-                <div class="task-node"><span>waits</span><strong><code>recv_timeout</code></strong><small>increment engine epoch on expiry</small></div>
-              </div>
-            </div>
-            <div class="network-boundary" data-life-node="model-network"><span>process / machine boundary</span><strong>HTTPS or loopback HTTP</strong><small>serialized model protocol</small></div>
-            <div class="lifecycle-external lifecycle-model" data-life-node="model-endpoint"><span>OTHER PROCESS OR MACHINE</span><strong>LLM endpoint</strong><small>Ollama-compatible or ChatGPT/Codex</small></div>
-          </div>
-
-          <div class="lifecycle-map lifecycle-map-future" data-lifecycle-map="future" hidden>
-            <div class="future-daemon-side">
-              <div class="lifecycle-external future-model-external" data-life-node="future-model-endpoint"><span>OTHER PROCESS OR MACHINE</span><strong>LLM endpoint</strong><small>model inference stays outside the daemon</small></div>
-              <div class="future-model-wire" data-life-node="future-model-network"><span>HTTP / SSE</span><i aria-hidden="true">↕</i></div>
-              <div class="process-frame process-frame-daemon" data-life-node="daemon-process">
-              <div class="process-frame-heading"><span>OS PROCESS A · UNPRIVILEGED</span><strong><code>dekopond</code></strong><small>committed role</small></div>
-              <div class="runtime-frame" data-life-node="daemon-runtime">
-                <span>Tokio runtime · worker threads*</span>
-                <div class="future-task-row">
-                  <div class="task-node" data-life-node="agent-task"><span>async task</span><strong>agent run</strong><small>context + tool proposal</small></div>
-                  <div class="task-node" data-life-node="future-model-client"><span>async task</span><strong>model client</strong><small>await network</small></div>
-                </div>
-              </div>
-            </div>
-            </div>
-            <div class="authenticated-boundary" data-life-node="broker-transport"><span>PROCESS / POD BOUNDARY</span><strong>authenticated proposal envelope →</strong><small>transport + replay design not implemented</small></div>
-            <div class="process-frame process-frame-broker" data-life-node="broker-process">
-              <div class="process-frame-heading"><span>OS PROCESS B · PRIVILEGED</span><strong><code>dekopon-brokerd</code></strong><small>committed role</small></div>
-              <div class="runtime-frame broker-runtime-frame" data-life-node="broker-runtime">
-                <span>Tokio runtime · worker threads*</span>
-                <div class="future-task-row">
-                  <div class="task-node" data-life-node="policy-task"><span>broker code</span><strong>authenticate + policy</strong><small>trusted identity + constraints</small></div>
-                  <div class="task-node" data-life-node="audit-task"><span>broker code</span><strong>evidence + audit</strong><small>durable ordering*</small></div>
-                </div>
-                <div class="wasm-context future-wasm-context" data-life-node="future-wasm-store">
-                  <span>one invocation task · fresh Store</span>
-                  <strong>Wasmtime async call / fiber*</strong>
-                  <div data-life-node="host-import"><small>narrow host import*</small><code>await provider I/O</code></div>
-                </div>
-              </div>
-              <div class="broker-owned-state" data-life-node="broker-secrets"><span>broker-owned</span><strong>credentials + authorization state</strong><small>never enter daemon or guest memory</small></div>
-            </div>
-            <div class="network-boundary provider-boundary" data-life-node="provider-network"><span>external system boundary</span><strong>constrained request*</strong><small>destination + timeout + idempotency</small></div>
-            <div class="lifecycle-external lifecycle-provider" data-life-node="external-provider"><span>OTHER PROCESS / SERVICE</span><strong>provider API</strong><small>effect occurs here</small></div>
-          </div>
-        </div>
-
-        <div class="lifecycle-scrubber">
-          <button type="button" class="icon-control" data-life-previous aria-label="Previous event">←</button>
-          <button type="button" class="play-control" data-life-play><span aria-hidden="true">▶</span><strong>Play run</strong></button>
-          <button type="button" class="icon-control" data-life-next aria-label="Next event">→</button>
-          <div class="life-progress"><span data-life-step-count>01 / 09</span><div><i data-life-progress></i></div></div>
-        </div>
-
-        <div class="lifecycle-event" aria-live="polite">
-          <div class="lifecycle-event-index" data-life-event-index>01</div>
-          <div><span data-life-event-status>Current · process start</span><h3 data-life-event-title>Parse CLI and create the registry</h3><p data-life-event-detail>The main OS thread parses arguments, creates one Wasmtime engine, and begins compiling each selected component.</p></div>
-          <dl>
-            <div><dt>executing in</dt><dd data-life-event-where><code>dekopon-run</code> / main OS thread</dd></div>
-            <div><dt>data here</dt><dd data-life-event-data>CLI options, host limits, component bytes</dd></div>
-            <div><dt>crossing</dt><dd data-life-event-crossing>none</dd></div>
-          </dl>
-        </div>
-
-        <div class="lifecycle-step-list" data-lifecycle-steps role="group" aria-label="Run events"></div>
-      </div>
-      <p class="toy-caption">An asterisk marks future mechanics whose exact implementation is open. The separate daemon/broker authority boundary is committed; thread counts, transport, storage, and WIT host interfaces are not.</p>
-    </section>
-
-    <section id="current-threads" class="article-section">
-      <div class="article-heading">
-        <span>03.3 · current execution inventory</span>
-        <h2>What actually runs where today.</h2>
+        <i aria-hidden="true">→ typed result</i>
+        <div><span>client may receive</span><strong>result + public evidence</strong><small>never a transferable grant</small></div>
       </div>
 
       <div class="comparison-table-wrap">
-        <table class="almanac-table thread-table">
-          <thead><tr><th scope="col">Work</th><th scope="col">OS process</th><th scope="col">Thread / context</th><th scope="col">Blocking?</th><th scope="col">Lifetime</th></tr></thead>
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Present on the invocation wire</th><th scope="col">Deliberately impossible on the wire</th></tr></thead>
           <tbody>
-            <tr><th scope="row">CLI, registry, prompt loop</th><td><code>dekopon-run</code></td><td>main OS thread</td><td>Yes, synchronous stack</td><td>whole command</td></tr>
-            <tr><th scope="row">Component compilation</th><td><code>dekopon-run</code></td><td>called from main thread; Wasmtime implementation may use internal compiler facilities</td><td>Caller waits</td><td>once per component load</td></tr>
-            <tr><th scope="row">Model HTTP / SSE</th><td><code>dekopon-run</code></td><td>main thread in blocking <code>ureq</code> client</td><td>Yes</td><td>one model turn</td></tr>
-            <tr><th scope="row">Guest <code>describe</code> / <code>invoke</code></th><td><code>dekopon-run</code></td><td>main thread enters a Wasmtime Store</td><td>Yes; runtime mutex held</td><td>fresh Store + instance per call</td></tr>
-            <tr><th scope="row">Wall-clock watchdog</th><td><code>dekopon-run</code></td><td>temporary named OS thread</td><td>Waits on channel</td><td>one per component call</td></tr>
-            <tr><th scope="row">LLM inference</th><td>model server process</td><td>owned by Ollama/OpenAI/model service</td><td>Host waits for it</td><td>outside Dekopon</td></tr>
+            <tr><td>protocol version and strict frame shape</td><td>principal or actor claim</td></tr>
+            <tr><td>unique invocation and durable trace identifiers</td><td>policy decision or revision supplied by caller</td></tr>
+            <tr><td>capability ID and bounded untrusted JSON input</td><td>HTTP destinations, methods, or execution constraints</td></tr>
+            <tr><td>optional well-formed W3C <code>traceParent</code></td><td>credentials or <code>AuthorizedInvocation</code></td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>There is no Tokio runtime in <code>dekopon-run</code> on this snapshot. The Wasmtime Cargo dependency also omits its <code>async</code> feature. Fuel currently sets a deterministic instruction budget; epoch interruption plus a helper thread turns the wall-clock deadline into a trap. Neither mechanism currently yields a guest so another agent task can run.</p>
+      <p>Mode <code>0600</code> makes the socket one UID trust domain. Every process running as that UID can use its configured actor, so operators should give the broker/client role a dedicated UID where that distinction matters. This is a documented local boundary, not per-process attestation or multi-tenant identity.</p>
     </section>
 
-    <section id="future-boundary" class="article-section">
+    <section id="lifecycle" class="article-section">
       <div class="article-heading">
-        <span>03.4 · planned deployment</span>
-        <h2>Concurrency inside; isolation between.</h2>
+        <span>03.2 · current state machine</span>
+        <h2>Nine stages keep identity, permission, work, and record aligned.</h2>
       </div>
 
-      <div class="future-topology">
-        <article>
-          <div><span>PROCESS A</span>{{ status("direction", "Committed role") }}</div>
-          <h3><code>dekopond</code></h3>
-          <p>Owns model interaction, context, memory, and unprivileged task coordination. It may run many agent tasks, but it holds no provider credentials and cannot manufacture authorization.</p>
-          <strong>Data owned here</strong><ul><li>conversation and task state</li><li>model credentials inside the selected model client</li><li>untrusted proposed invocation</li></ul>
-        </article>
-        <div class="topology-crossing"><span>authenticated envelope</span><strong>proposal →</strong><small>not an authorized bearer grant</small></div>
-        <article>
-          <div><span>PROCESS B</span>{{ status("direction", "Committed role") }}</div>
-          <h3><code>dekopon-brokerd</code></h3>
-          <p>Authenticates the envelope, resolves trusted identity, evaluates policy, creates and consumes constrained authorization, invokes the provider, and records evidence.</p>
-          <strong>Data owned here</strong><ul><li>trusted actor and policy decision</li><li>provider credentials and constraints</li><li>authorization receipt, result, evidence, audit</li></ul>
-        </article>
-      </div>
-
-      <p>Within the broker process, a shared Wasmtime engine and compiled component cache can amortize compilation. Every invocation still gets a fresh bounded Store. Tokio tasks can overlap network waits and independent invocations, subject to explicit admission limits; sharing an Engine does not imply sharing Store state.</p>
+      <ol class="mental-model-list">
+        <li><span>01</span><div><strong>Authenticate the connection.</strong><p>The server derives peer UID from the connected stream and resolves one exact owner-controlled mapping. Unmapped peers learn no capability inventory.</p></div></li>
+        <li><span>02</span><div><strong>Decode under hard bounds.</strong><p>A four-byte length prefix is checked before allocation; the entire read/write has one deadline; unknown JSON fields fail.</p></div></li>
+        <li><span>03</span><div><strong>Reserve the invocation ID.</strong><p>Replay IDs restored from verified audit history and accepted in the current process cannot be reused—even for a previously denied proposal.</p></div></li>
+        <li><span>04</span><div><strong>Resolve trusted metadata.</strong><p>The broker, not the manifest or model, selects the configured provider/capability metadata used by policy.</p></div></li>
+        <li><span>05</span><div><strong>Evaluate exact deny-by-default policy.</strong><p>Principal, actor, capability, provider, effect, idempotency, and bounded constraints must all match.</p></div></li>
+        <li><span>06</span><div><strong>Append the decision.</strong><p>Every decoded invocation from a mapped peer gets a decision event before provider work begins.</p></div></li>
+        <li><span>07</span><div><strong>Create and consume authorization locally.</strong><p>A private, non-cloneable <code>AuthorizedInvocation</code> binds proposal, decision, receipt, provider, and constraints inside the broker process.</p></div></li>
+        <li><span>08</span><div><strong>Execute in a fresh bounded Store.</strong><p>The host applies exact HTTP grants beneath independent ceilings and collects sanitized call evidence that guest code cannot widen or mask.</p></div></li>
+        <li><span>09</span><div><strong>Append outcome and advance checkpoint.</strong><p>The broker links outcome, digest, evidence, decision, invocation, and trace; then atomically updates the retained count/head checkpoint.</p></div></li>
+      </ol>
     </section>
 
-    <section id="authority-transition" class="article-section">
+    <section id="policy" class="article-section">
       <div class="article-heading">
-        <span>03.5 · security state machine</span>
-        <h2>The crucial object never crosses back.</h2>
+        <span>03.3 · permissioning</span>
+        <h2>Permission narrows at every layer.</h2>
       </div>
 
-      <div class="authority-state-machine">
-        <div><span>daemon may construct</span><strong><code>ProposedInvocation</code></strong><small>untrusted intent + arguments</small></div>
-        <i aria-hidden="true">authenticated request →</i>
-        <div class="authority-broker-box">
-          <span>inside broker execution boundary</span>
-          <div><strong>authenticate</strong><b>→</b><strong>evaluate policy</strong><b>→</b><strong>create <code>AuthorizedInvocation</code></strong><b>→</b><strong>execute</strong></div>
+      <div class="data-journey-map">
+        <div class="journey-zone journey-zone-remote">
+          <div class="journey-zone-label"><span>untrusted</span><strong>proposal</strong></div>
+          <div class="journey-node"><small>asks for</small><strong><code>jsonplaceholder.posts.create</code></strong><code>input cannot assert actor</code></div>
         </div>
-        <i aria-hidden="true">→ result + evidence</i>
-        <div><span>daemon may receive</span><strong><code>InvocationResult</code></strong><small>authorization is not returned</small></div>
+        <i aria-hidden="true">↓ exact context rule</i>
+        <div class="journey-zone journey-zone-host">
+          <div class="journey-zone-label"><span>trusted broker code</span><strong>authorization</strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>identity</small><strong>principal + actor</strong><code>from peer mapping</code></div>
+            <b aria-hidden="true">+</b>
+            <div class="journey-node"><small>operation</small><strong>capability + provider</strong><code>external-write · non-idempotent</code></div>
+            <b aria-hidden="true">+</b>
+            <div class="journey-node"><small>constraints</small><strong>exact HTTP grant</strong><code>authority · POST · 1 call</code></div>
+          </div>
+        </div>
+        <i aria-hidden="true">↓ consumed, never returned</i>
+        <div class="journey-zone journey-zone-guest">
+          <div class="journey-zone-label"><span>bounded execution</span><strong>provider + native host</strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>guest</small><strong>build request</strong><code>cannot set auth headers</code></div>
+            <b aria-hidden="true">→ verify →</b>
+            <div class="journey-node"><small>native engine</small><strong>pin + send</strong><code>no proxy · no redirect</code></div>
+            <b aria-hidden="true">→ record →</b>
+            <div class="journey-node"><small>evidence</small><strong>sanitized metadata</strong><code>no body or URL path</code></div>
+          </div>
+        </div>
       </div>
 
-      <p>The future daemon-to-broker wire carries a proposal and trusted envelope context. It does not carry a serialized <code>AuthorizedInvocation</code> for the broker to trust, and the broker does not return transferable authorization to the daemon. Private Rust fields help prevent accidental in-process fabrication; process isolation and authenticated execution provide the real control.</p>
+      <p>Rust typestate makes accidental fabrication and reuse harder, but it is defense in depth. The real control is the separately deployed process, authenticated socket, trusted mapping, exact policy, single-use grant bound to execution, constrained linker, and durable ordering. No one layer is advertised as a substitute for the others.</p>
     </section>
 
-    <section id="open-design" class="article-section">
+    <section id="audit" class="article-section">
       <div class="article-heading">
-        <span>03.6 · unresolved on purpose</span>
-        <h2>What the diagram does not decide.</h2>
+        <span>03.4 · integrity and replay</span>
+        <h2>Audit is not a printf after the effect.</h2>
       </div>
 
-      <div class="open-question-grid">
-        <article><span>transport</span><h3>How do processes talk?</h3><p>Unix socket, local RPC, mTLS, identity format, freshness, replay defense, and protocol negotiation are not implemented.</p></article>
-        <article><span>executor</span><h3>Which threads poll Wasm?</h3><p>General Tokio workers, a dedicated runtime, or a bounded executor pool remain options. CPU and memory budgets must drive the choice.</p></article>
-        <article><span>fairness</span><h3>Fuel or epoch yields?</h3><p>Deterministic fuel and lower-overhead epoch time-slicing have different cost and fairness properties. The next chapter simulates both concepts.</p></article>
-        <article><span>persistence</span><h3>Where does audit live?</h3><p>Append ordering, evidence canonicalization, key management, rollback defense, retention, and incident workflows still need design.</p></article>
+      <div class="run-mode-cards">
+        <article class="run-mode-current">
+          <div>{{ status("current", "Per record") }}<span>owner-only JSONL</span></div>
+          <h3>Hash-linked append</h3>
+          <p>The file is opened without following symlinks, exclusively writer-locked, bounded, verified before append, and synchronized after each decision and outcome.</p>
+          <ul><li>partial records fail startup</li><li>content or link mutation fails verification</li><li>accepted invocation IDs rebuild replay state</li></ul>
+        </article>
+        <article class="run-mode-future">
+          <div>{{ status("current", "Per append") }}<span>separate local file</span></div>
+          <h3>Atomic count/head checkpoint</h3>
+          <p>After audit sync, the service synchronizes and atomically replaces a separately locked checkpoint, then synchronizes its parent directory.</p>
+          <ul><li>startup requires an exact verified prefix</li><li>one-record audit-ahead crash window is recoverable</li><li>larger gaps or rollback fail closed</li></ul>
+        </article>
+      </div>
+
+      <p>The checkpoint makes valid-prefix truncation detectable relative to retained local state. It does not make the host tamper-proof: an attacker who can coordinate rollback or deletion of both files can defeat local comparison. Independent retention, signing, or remote anchoring is the next explicit milestone.</p>
+    </section>
+
+    <section id="failures" class="article-section">
+      <div class="article-heading">
+        <span>03.5 · retry contract</span>
+        <h2>The failure code tells the operator whether work may have happened.</h2>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Code / outcome</th><th scope="col">Meaning</th><th scope="col">Retry posture</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>unauthenticated</code></th><td>Connected UID has no trusted mapping.</td><td>Do not retry until mapping changes.</td></tr>
+            <tr><th scope="row"><code>invalid-request</code></th><td>Strict bounded frame did not decode.</td><td>Correct it; use a fresh invocation ID.</td></tr>
+            <tr><th scope="row"><code>broker-unavailable</code></th><td>No provider work began.</td><td>Safe to resubmit with a fresh invocation ID.</td></tr>
+            <tr><th scope="row"><code>outcome-unaudited</code></th><td>Provider work may have completed but terminal audit failed.</td><td><strong>Do not resubmit.</strong> Reconcile manually.</td></tr>
+            <tr><th scope="row">Denied result</th><td>Policy decision was recorded; provider did not run.</td><td>Change policy or proposal—not the ID.</td></tr>
+            <tr><th scope="row">Failed result</th><td>Authorized provider attempt completed with failure and was audited.</td><td>Respect idempotency/effect semantics before any new proposal.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The client never retries automatically. A lost response to a non-idempotent external write is an unknown outcome; inventing a new invocation ID and trying again would bypass replay rejection rather than solve the ambiguity.</p>
+    </section>
+
+    <section id="limits" class="article-section">
+      <div class="article-heading">
+        <span>03.6 · current deployment posture</span>
+        <h2>A mature local foundation, not a production multi-tenant claim.</h2>
+      </div>
+
+      <div class="truth-label-cards">
+        <article><div>{{ status("current", "Shipped") }}</div><h3>Local Unix broker</h3><p>Secure socket lifecycle, exact peer-UID mapping, bounded concurrency and shutdown, constrained providers, evidence, audit, checkpoint reconciliation, and OTLP spans.</p></article>
+        <article><div>{{ status("direction", "Next") }}</div><h3>Credential resolver</h3><p>Provider credentials remain an architectural boundary but v0.2.0 injects none. Destination-bound secret resolution needs its own redaction and authority tests.</p></article>
+        <article><div>{{ status("direction", "Next") }}</div><h3>Stronger deployment</h3><p>Independent checkpoint anchoring, non-Unix authenticated transport, per-process identity, tenancy, key management, and incident automation remain future work.</p></article>
       </div>
 
       <div class="source-links">
-        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/architecture.md"><span>Canonical design</span><strong><code>docs/architecture.md</code> ↗</strong></a>
-        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/crates/dekopon-provider-host/src/lib.rs"><span>Current threads</span><strong><code>provider-host/src/lib.rs</code> ↗</strong></a>
-        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/security-model.md"><span>Canonical design</span><strong><code>docs/security-model.md</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/security-model.md"><span>Threat model</span><strong><code>docs/security-model.md</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/broker-http.md"><span>Wire + host contract</span><strong><code>docs/broker-http.md</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/tree/{{ almanac.source.revision }}/crates/dekopon-brokerd"><span>Service source</span><strong><code>crates/dekopon-brokerd</code> ↗</strong></a>
       </div>
     </section>
 

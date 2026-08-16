@@ -23,7 +23,7 @@
       <div class="arch-divider"><span>{{ home.architecture.boundary }}</span></div>
 
       <div class="arch-row committed-row">
-        <div class="arch-meta"><span class="status-label direction"><span></span>{{ home.architecture.committed.status }}</span><small>{{ home.architecture.committed.meta }}</small></div>
+        <div class="arch-meta"><span class="status-label current"><span></span>{{ home.architecture.committed.status }}</span><small>{{ home.architecture.committed.meta }}</small></div>
         <div class="committed-cards">
           {% for component in home.architecture.committed.components %}
             <article class="arch-card {{ component.id }}-card">

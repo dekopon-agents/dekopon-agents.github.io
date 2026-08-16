@@ -1,0 +1,55 @@
+<section class="observability-section section" id="observability">
+  <div class="observe-glow observe-glow-one" aria-hidden="true"></div>
+  <div class="observe-glow observe-glow-two" aria-hidden="true"></div>
+  <div class="shell observe-shell">
+    <div class="section-heading dark-heading observe-heading">
+      <span class="section-kicker cyan">{{ home.observability.kicker }}</span>
+      <h2>{{ home.observability.title }}</h2>
+      <p>{{ home.observability.intro }}</p>
+    </div>
+
+    <div class="signal-grid">
+      {% for signal in home.observability.signals %}
+        <article class="signal-card reveal {% if loop.index > 1 %}reveal-delay-1{% endif %}">
+          <div><span>0{{ loop.index }}</span><small>{{ signal.meta }}</small></div>
+          <h3>{{ signal.name }}</h3>
+          <strong>{{ signal.question }}</strong>
+          <p>{{ signal.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+
+    <div class="observe-detail-grid">
+      <article class="trace-map-card reveal">
+        <div class="observe-card-heading">
+          <span>one correlated trace</span>
+          <strong>runner → broker → provider</strong>
+        </div>
+        <ol class="observe-trace-list">
+          {% for span in home.observability.trace %}
+            <li><i aria-hidden="true"></i><code>{{ span.name }}</code><span>{{ span.detail }}</span></li>
+          {% endfor %}
+        </ol>
+        <div class="privacy-note">
+          <span aria-hidden="true">◒</span>
+          <div><h3>{{ home.observability.privacyTitle }}</h3><p>{{ home.observability.privacyBody }}</p></div>
+        </div>
+      </article>
+
+      <article class="footprint-proof reveal reveal-delay-1">
+        <div class="proof-topline"><span></span>{{ home.observability.measurement.label }}</div>
+        <div class="proof-value">{{ home.observability.measurement.value }}</div>
+        <h3>{{ home.observability.measurement.title }}</h3>
+        <p>{{ home.observability.measurement.body }}</p>
+        <dl>
+          {% for item in home.observability.measurement.breakdown %}
+            <div><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div>
+          {% endfor %}
+        </dl>
+        <small>{{ home.observability.measurement.note }}</small>
+      </article>
+    </div>
+
+    <a class="button button-observe" href="{{ home.observability.link.href }}">{{ home.observability.link.label }} <span aria-hidden="true">→</span></a>
+  </div>
+</section>

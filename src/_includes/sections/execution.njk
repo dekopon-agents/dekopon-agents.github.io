@@ -1,0 +1,38 @@
+<section class="execution-section section" id="tool-design">
+  <div class="shell">
+    <div class="section-heading split-heading execution-heading">
+      <div>
+        <span class="section-kicker purple">{{ home.execution.kicker }}</span>
+        <h2>{{ home.execution.title }}</h2>
+      </div>
+      <p>{{ home.execution.intro }}</p>
+    </div>
+
+    <div class="execution-grid">
+      <div class="tool-window reveal">
+        <div class="tool-window-bar">
+          <span><i aria-hidden="true"></i>{{ home.execution.toolLabel }}</span>
+          <code>{{ home.execution.toolName }}</code>
+        </div>
+        <div class="tool-schema-row">
+          <span>type</span><strong>function</strong><span>arguments</span><strong>{ script: string }</strong>
+        </div>
+        <pre><code>{{ home.execution.script }}</code></pre>
+        <div class="tool-result-row"><span aria-hidden="true">↳</span><p>{{ home.execution.result }}</p></div>
+        <div class="tool-boundary-row"><span>no exec</span><span>no fs</span><span>no env</span><span>no sockets</span></div>
+      </div>
+
+      <div class="execution-card-grid">
+        {% for card in home.execution.cards %}
+          <article class="execution-card reveal {% if loop.index % 2 == 0 %}reveal-delay-1{% endif %}">
+            <span>{{ card.number }}</span>
+            <h3>{{ card.title }}</h3>
+            <p>{{ card.body }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+
+    <a class="text-link execution-link" href="{{ home.execution.link.href }}">{{ home.execution.link.label }} <span aria-hidden="true">→</span></a>
+  </div>
+</section>

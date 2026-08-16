@@ -1,0 +1,122 @@
+{
+  "hero": {
+    "eyebrow": "What’s new · 16 August 2026",
+    "version": "v0.2.0",
+    "title": "The authority boundary is now real.",
+    "lede": "Dekopon 0.2 turns the project’s security model into a working local execution path: one sandboxed model tool proposes work, a separate broker decides whether it may happen, and audit plus telemetry explain what followed.",
+    "install": "cargo install --locked dekopon --version 0.2.0",
+    "releaseUrl": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0",
+    "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/e4e9c23",
+    "revision": "e4e9c23"
+  },
+  "metrics": [
+    { "value": "17", "label": "public crates on crates.io" },
+    { "value": "3", "label": "installable CLIs" },
+    { "value": "470+", "label": "workspace tests" },
+    { "value": "4", "label": "attested platform archives" }
+  ],
+  "highlights": [
+    {
+      "number": "01",
+      "kicker": "Tool design",
+      "title": "One tool, not tool sprawl.",
+      "body": "The model receives one stable bash-shaped tool. Its JSON-native script can discover and compose only the capabilities granted to that session.",
+      "points": ["Loops, functions, pipelines, here-docs, and real jq", "No subprocesses, filesystem, sockets, or inherited environment", "Session-wide steps, memory, output, call, recursion, and time limits"]
+    },
+    {
+      "number": "02",
+      "kicker": "Authority",
+      "title": "A separate broker fails closed.",
+      "body": "dekopon-brokerd authenticates the Unix peer, binds owner-controlled identity, evaluates exact policy, and creates authorization that never crosses back to the client.",
+      "points": ["Deny by default across principal, actor, capability, and provider", "Single-use authorization and invocation replay rejection", "Host-enforced HTTP destination, method, call, byte, and deadline limits"]
+    },
+    {
+      "number": "03",
+      "kicker": "Evidence",
+      "title": "Audit and telemetry have distinct jobs.",
+      "body": "A durable broker record answers what was authorized. Correlated traces explain the execution path. Logs retain accounting and operational facts without mirroring every span.",
+      "points": ["Hash-linked, owner-only broker audit JSONL", "Runner and broker spans joined by W3C trace context", "OTLP/HTTP and OTLP/gRPC support, exercised against OpenObserve"]
+    }
+  ],
+  "path": [
+    { "name": "Model", "detail": "one tool" },
+    { "name": "Sandbox", "detail": "bounded plan" },
+    { "name": "Proposal", "detail": "no identity" },
+    { "name": "Broker", "detail": "exact policy" },
+    { "name": "Provider", "detail": "bounded effect" },
+    { "name": "Evidence", "detail": "audit + trace" }
+  ],
+  "changes": [
+    {
+      "tag": "Fresh Wasm stores",
+      "title": "Isolation is created for every component call.",
+      "body": "Direct providers accept import-free components. Broker providers receive only narrow project-owned host imports. Every call gets a fresh Wasmtime store with independent limits for memory, fuel, deadline, input, and output.",
+      "link": { "label": "Provider execution design", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/architecture.md" }
+    },
+    {
+      "tag": "Authenticated local IPC",
+      "title": "Proposal and authority live in different processes.",
+      "body": "The runner sends a bounded ProposedInvocation over a private Unix socket. The broker derives trusted context from peer credentials; identity, policy, credentials, and authorization are not accepted from model-controlled payloads.",
+      "link": { "label": "Broker protocol", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/broker-http.md" }
+    },
+    {
+      "tag": "Durable outcomes",
+      "title": "Failure modes say whether work may have happened.",
+      "body": "The broker records decisions, sanitized effect metadata, evidence digests, and outcomes in a recoverable hash chain. The protocol distinguishes broker-unavailable from outcome-unaudited so callers do not blindly retry a possible external effect.",
+      "link": { "label": "Security model", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/security-model.md" }
+    },
+    {
+      "tag": "OpenTelemetry",
+      "title": "One run can be followed across the process boundary.",
+      "body": "Model turns, scripts, shell commands, authorization, provider execution, and sanitized HTTP calls form a correlated trace. Token accounting, refusals, errors, and opt-in transcripts are emitted as independently retained logs.",
+      "link": { "label": "Observability contract", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/observability.md" }
+    }
+  ],
+  "telemetry": {
+    "value": "200 KiB",
+    "title": "Measured Dekopon signal sample",
+    "body": "On the project’s Raspberry Pi OpenObserve deployment, the current Dekopon sample occupies 148 KiB of traces and 52 KiB of logs in physical allocated blocks. The full stream tree was 1.22 MiB, including other streams and 860 KiB of index and metadata overhead.",
+    "note": "Snapshot from 16 August 2026. This is an aggregate sample, not a guaranteed per-prompt cost; storage grows with ingestion and retention."
+  },
+  "packages": [
+    {
+      "name": "dekopon",
+      "role": "Operator CLI",
+      "command": "cargo install --locked dekopon --version 0.2.0",
+      "body": "Validate and inspect local resources, plus manage isolated model-account authentication."
+    },
+    {
+      "name": "dekopon-run",
+      "role": "Unprivileged runner",
+      "command": "cargo install --locked dekopon-run --version 0.2.0",
+      "body": "Run model turns, the one-tool shell, direct providers, and proposal-only broker calls."
+    },
+    {
+      "name": "dekopon-brokerd",
+      "role": "Authority broker",
+      "command": "cargo install --locked dekopon-brokerd --version 0.2.0",
+      "body": "Own peer identity, exact policy, privileged host I/O, evidence, and durable audit."
+    }
+  ],
+  "scope": {
+    "current": [
+      "Local same-host Unix broker boundary with peer-UID authentication",
+      "Import-free direct providers and narrowly linked broker providers",
+      "Sandboxed one-tool scripting with layered execution budgets",
+      "Exact policy, replay defense, constrained HTTP, and durable audit",
+      "Chrome traces plus correlated OTLP traces and runner logs"
+    ],
+    "next": [
+      "Broker-owned credential resolution and destination-bound secret injection",
+      "Independent or remote anchoring of audit checkpoints",
+      "A long-running agent daemon joining operator resources to execution",
+      "Multi-host or multi-tenant broker transport and operational hardening"
+    ]
+  },
+  "previous": {
+    "version": "v0.1.0",
+    "title": "The typed local foundation",
+    "body": "Version 0.1 established strict declarative resources, deterministic catalog inspection, model clients, isolated account state, and import-free immediate providers. Version 0.2 keeps that foundation and adds the execution, authority, evidence, and telemetry layers around it.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.1.0"
+  }
+}

@@ -1,10 +1,11 @@
 {
   "title": "Dekopon tech almanac",
-  "description": "An implementation-grounded field guide to Dekopon's WebAssembly components, WIT contracts, data boundaries, process model, and future Tokio scheduling.",
+  "description": "An implementation-grounded field guide to Dekopon v0.2.0 isolation, custom tools, permissioning, durable audit, and OpenTelemetry.",
   "source": {
-    "revision": "488317c45171afc3b653894fe967903eec127c73",
-    "shortRevision": "488317c",
-    "date": "2026-07-29"
+    "revision": "e4e9c23ffa370a5275fb72b279e7ada20bd3cea8",
+    "shortRevision": "e4e9c23",
+    "release": "v0.2.0",
+    "date": "2026-08-16"
   },
   "chapters": [
     {
@@ -13,44 +14,44 @@
       "label": "Atlas",
       "shortLabel": "Start",
       "href": "/almanac/",
-      "title": "Map the machine",
-      "description": "A compact map of the runtime and the vocabulary used throughout the almanac."
+      "title": "Map the v0.2 machine",
+      "description": "The working local control plane: one unprivileged runner, one privileged broker, bounded components, audit, and telemetry."
     },
     {
       "number": "01",
       "key": "components",
-      "label": "Components & linking",
-      "shortLabel": "WIT",
+      "label": "Isolation & linking",
+      "shortLabel": "Isolate",
       "href": "/almanac/components/",
-      "title": "Wasm, WIT, Wasmtime, and the linker",
-      "description": "How Rust becomes a component, how exports enter the host, and how imports would expose narrow Rust functions to a guest."
+      "title": "Two Wasm hosts, two authority profiles",
+      "description": "How the empty direct linker and broker-owned HTTP linker give custom providers exactly—and only—the powers intended for each path."
     },
     {
       "number": "02",
       "key": "boundaries",
-      "label": "Data boundaries",
-      "shortLabel": "Data",
+      "label": "One-tool design",
+      "shortLabel": "Tool",
       "href": "/almanac/boundaries/",
-      "title": "Serialization, copies, and memory",
-      "description": "Follow one tool argument through JSON, the canonical ABI, guest memory, Rust values, and back to the model."
+      "title": "One JSON-native tool, many capabilities",
+      "description": "Follow a model-authored plan through the sandboxed shell, capability dispatch, Wasm, broker fallback, and bounded results."
     },
     {
       "number": "03",
       "key": "lifecycle",
-      "label": "Run lifecycle",
-      "shortLabel": "Run",
+      "label": "Permissioned lifecycle",
+      "shortLabel": "Permit",
       "href": "/almanac/run-lifecycle/",
-      "title": "The life of an agent run",
-      "description": "Step through current immediate mode and the planned daemon-to-broker process boundary."
+      "title": "From proposal to durable outcome",
+      "description": "Trace trusted identity, exact policy, single-use authorization, constrained execution, replay defense, and failure semantics."
     },
     {
       "number": "04",
-      "key": "scheduling",
-      "label": "Scheduling & Lua",
-      "shortLabel": "Runtime",
-      "href": "/almanac/scheduling/",
-      "title": "Tokio, time-slicing, and Lua",
-      "description": "See why async I/O is not CPU fairness, how Wasmtime can yield, and where Lua offers a different trade."
+      "key": "observability",
+      "label": "Audit & OpenTelemetry",
+      "shortLabel": "Observe",
+      "href": "/almanac/observability/",
+      "title": "Three signals, one correlated run",
+      "description": "Separate authorization audit from OTLP traces and logs, follow W3C context across the socket, and inspect the measured OpenObserve footprint."
     }
   ]
 }
