@@ -9,7 +9,7 @@
     </div>
 
     <section class="flow-stage" aria-labelledby="authority-flow-title">
-      <h3 class="sr-only" id="authority-flow-title">Current v0.2.0 authority flow</h3>
+      <h3 class="sr-only" id="authority-flow-title">How Dekopon checks one agent action</h3>
       <div class="flow-status"><span></span>{{ home.authority.diagramStatus }}</div>
       <div class="flow-grid">
         {% for node in home.authority.nodes %}
@@ -33,12 +33,12 @@
 
           {% if loop.index == 1 %}
             <div class="flow-connector connector-gate" aria-hidden="true">
-              <span class="flow-line"></span><span class="connector-label">authenticated envelope</span><span class="flow-arrow">→</span>
+              <span class="flow-line"></span><span class="connector-label">verified local caller</span><span class="flow-arrow">→</span>
             </div>
           {% elif loop.index == 2 %}
             <div class="flow-fork" aria-hidden="true">
               <div class="fork-deny"><span>deny</span><i>→</i><strong>Evidence</strong></div>
-              <div class="fork-authorize"><span>authorize</span><i>→</i></div>
+              <div class="fork-authorize"><span>allow once</span><i>→</i></div>
             </div>
           {% elif loop.index == 3 %}
             <div class="flow-connector" aria-hidden="true">

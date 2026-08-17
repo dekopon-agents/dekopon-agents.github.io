@@ -3,19 +3,19 @@
   "wordmark": "dekopon",
   "version": "v0.2.0",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon v0.2.0 — Controlled authority for AI agents",
-  "description": "Dekopon is a self-hosted AI agent control plane with isolated custom tools, brokered permissions, durable audit, and correlated OpenTelemetry traces and logs.",
+  "title": "Dekopon v0.2.0 — Secure rails for AI agents",
+  "description": "Run the AI agents you know and love on secure, high-performance rails—even on a small computer like a Raspberry Pi.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",
   "releaseNotes": "/whats-new/",
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
-    { "label": "What’s New", "href": "/whats-new/" },
-    { "label": "Tool design", "href": "/#tool-design" },
-    { "label": "Authority", "href": "/#authority" },
+    { "label": "What’s new", "href": "/whats-new/" },
+    { "label": "One-tool runtime", "href": "/#tool-design" },
+    { "label": "Permissions", "href": "/#authority" },
     { "label": "Observability", "href": "/#observability" },
-    { "label": "Almanac", "href": "/almanac/" }
+    { "label": "How it works", "href": "/almanac/" }
   ],
   "footer": [
     {
@@ -26,7 +26,7 @@
         { "label": "v0.2.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0" },
         { "label": "crates.io", "href": "https://crates.io/crates/dekopon" },
         { "label": "Documentation", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
-        { "label": "Tech almanac", "href": "/almanac/" },
+        { "label": "How Dekopon works", "href": "/almanac/" },
         { "label": "Roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" }
       ]
     },
@@ -48,5 +48,5 @@
     }
   ],
   "copyright": "© 2026 Dekopon contributors.",
-  "footerNote": "Capability-oriented. Self-hosted. Open source."
+  "footerNote": "Secure rails. Small hardware. Your agents."
 }

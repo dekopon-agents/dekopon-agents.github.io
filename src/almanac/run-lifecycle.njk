@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/run-lifecycle/index.html
-pageTitle: Permissioned invocation lifecycle — Dekopon v0.2.0 tech almanac
-pageDescription: Follow a Dekopon v0.2.0 broker invocation from identity-free proposal through peer authentication, exact policy, single-use authorization, bounded execution, evidence, replay defense, and durable audit.
+pageTitle: Fine-grained permissions — Dekopon v0.2.0 tech almanac
+pageDescription: Follow one agent request through verified local identity, an exact allow/deny rule, single-use approval, limited execution, replay protection, and durable audit.
 bodyClass: almanac-page almanac-article-page almanac-lifecycle-page
 almanacPage: true
 almanacSection: lifecycle
@@ -10,19 +10,19 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
 
-{{ pageHero("03", "Permissioned lifecycle", "Propose intent.<br><span>Bind authority once.</span>", "Follow one current v0.2.0 invocation across the Unix process boundary, through exact policy and constrained provider work, into evidence and durable audit.", "current", "Current local broker path") }}
+{{ pageHero("03", "Fine-grained permissions", "Ask once.<br><span>Check once. Record the result.</span>", "Follow one agent request from the runner to the broker, through an exact permission check, into a limited provider call and durable audit record.", "current", "Shipping local broker path") }}
 {{ chapterNav("lifecycle", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
   <aside class="article-rail" aria-label="Article navigation and source">
     <nav aria-label="On this page">
       <span>On this page</span>
-      <a href="#wire">What crosses the wire</a>
-      <a href="#lifecycle">Nine current stages</a>
-      <a href="#policy">Exact permissioning</a>
-      <a href="#audit">Durable audit</a>
-      <a href="#failures">Failure semantics</a>
-      <a href="#limits">Current trust limit</a>
+      <a href="#wire">What the agent can send</a>
+      <a href="#lifecycle">Nine checks</a>
+      <a href="#policy">How access gets narrower</a>
+      <a href="#audit">How audit stays durable</a>
+      <a href="#failures">What failures mean</a>
+      <a href="#limits">Where trust ends</a>
     </nav>
     {{ sourceStamp(almanac.source) }}
   </aside>
@@ -30,122 +30,122 @@ ogType: article
   <article class="almanac-prose">
     <section id="wire" class="article-section">
       <div class="article-heading">
-        <span>03.1 · authenticated transport</span>
-        <h2>The request has nowhere to claim authority.</h2>
-        <p><code>dekopon-run</code> opens one fresh Unix connection, validates private socket metadata and the configured server UID, writes one bounded frame, reads one bounded response, and closes the connection.</p>
+        <span>03.1 · a verified local connection</span>
+        <h2>The request cannot claim its own permission.</h2>
+        <p><code>dekopon-run</code> opens a fresh local connection for each request. It checks the private socket and expected broker user, sends one size-limited message, reads one size-limited response, and closes the connection.</p>
       </div>
 
       <div class="authority-state-machine">
-        <div><span>client may send</span><strong>proposal fields</strong><small>capability · JSON input · invocation ID · trace ID · traceParent</small></div>
-        <i aria-hidden="true">private Unix socket →</i>
+        <div><span>the agent can send</span><strong>request fields</strong><small>capability · JSON input · request ID · trace IDs</small></div>
+        <i aria-hidden="true">private local socket →</i>
         <div class="authority-broker-box">
-          <span>kernel + owner-controlled mapping</span>
-          <div><strong>peer UID</strong><b>→</b><strong>principal + actor</strong><b>→</b><strong>policy context</strong></div>
+          <span>operating system + your config</span>
+          <div><strong>local user</strong><b>→</b><strong>trusted identity</strong><b>→</b><strong>permission rule</strong></div>
         </div>
-        <i aria-hidden="true">→ typed result</i>
-        <div><span>client may receive</span><strong>result + public evidence</strong><small>never a transferable grant</small></div>
+        <i aria-hidden="true">→ clear result</i>
+        <div><span>the agent receives</span><strong>result + safe evidence</strong><small>never a reusable permission</small></div>
       </div>
 
       <div class="comparison-table-wrap">
         <table class="almanac-table strategy-table">
-          <thead><tr><th scope="col">Present on the invocation wire</th><th scope="col">Deliberately impossible on the wire</th></tr></thead>
+          <thead><tr><th scope="col">The agent can send</th><th scope="col">The agent cannot send</th></tr></thead>
           <tbody>
-            <tr><td>protocol version and strict frame shape</td><td>principal or actor claim</td></tr>
-            <tr><td>unique invocation and durable trace identifiers</td><td>policy decision or revision supplied by caller</td></tr>
-            <tr><td>capability ID and bounded untrusted JSON input</td><td>HTTP destinations, methods, or execution constraints</td></tr>
-            <tr><td>optional well-formed W3C <code>traceParent</code></td><td>credentials or <code>AuthorizedInvocation</code></td></tr>
+            <tr><td>protocol version and one strict message shape</td><td>its own local or agent identity</td></tr>
+            <tr><td>unique request and durable trace IDs</td><td>an allow/deny decision or rule revision</td></tr>
+            <tr><td>capability name and size-limited untrusted JSON</td><td>approved HTTP hosts, methods, or runtime limits</td></tr>
+            <tr><td>an optional valid W3C <code>traceParent</code></td><td>credentials or the broker’s one-use approval</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Mode <code>0600</code> makes the socket one UID trust domain. Every process running as that UID can use its configured actor, so operators should give the broker/client role a dedicated UID where that distinction matters. This is a documented local boundary, not per-process attestation or multi-tenant identity.</p>
+      <p>Socket mode <code>0600</code> creates one local-user trust domain. Every process under that user can use its configured agent identity. Use a dedicated operating-system user when that separation matters. This is a local safeguard, not per-process proof or multi-tenant identity.</p>
     </section>
 
     <section id="lifecycle" class="article-section">
       <div class="article-heading">
-        <span>03.2 · current state machine</span>
-        <h2>Nine stages keep identity, permission, work, and record aligned.</h2>
+        <span>03.2 · one request from start to finish</span>
+        <h2>Nine checks keep the action and record together.</h2>
       </div>
 
       <ol class="mental-model-list">
-        <li><span>01</span><div><strong>Authenticate the connection.</strong><p>The server derives peer UID from the connected stream and resolves one exact owner-controlled mapping. Unmapped peers learn no capability inventory.</p></div></li>
-        <li><span>02</span><div><strong>Decode under hard bounds.</strong><p>A four-byte length prefix is checked before allocation; the entire read/write has one deadline; unknown JSON fields fail.</p></div></li>
-        <li><span>03</span><div><strong>Reserve the invocation ID.</strong><p>Replay IDs restored from verified audit history and accepted in the current process cannot be reused—even for a previously denied proposal.</p></div></li>
-        <li><span>04</span><div><strong>Resolve trusted metadata.</strong><p>The broker, not the manifest or model, selects the configured provider/capability metadata used by policy.</p></div></li>
-        <li><span>05</span><div><strong>Evaluate exact deny-by-default policy.</strong><p>Principal, actor, capability, provider, effect, idempotency, and bounded constraints must all match.</p></div></li>
-        <li><span>06</span><div><strong>Append the decision.</strong><p>Every decoded invocation from a mapped peer gets a decision event before provider work begins.</p></div></li>
-        <li><span>07</span><div><strong>Create and consume authorization locally.</strong><p>A private, non-cloneable <code>AuthorizedInvocation</code> binds proposal, decision, receipt, provider, and constraints inside the broker process.</p></div></li>
-        <li><span>08</span><div><strong>Execute in a fresh bounded Store.</strong><p>The host applies exact HTTP grants beneath independent ceilings and collects sanitized call evidence that guest code cannot widen or mask.</p></div></li>
-        <li><span>09</span><div><strong>Append outcome and advance checkpoint.</strong><p>The broker links outcome, digest, evidence, decision, invocation, and trace; then atomically updates the retained count/head checkpoint.</p></div></li>
+        <li><span>01</span><div><strong>Verify the connection.</strong><p>The broker gets the local user from the connection and looks up one trusted identity. Unknown users see no capability list.</p></div></li>
+        <li><span>02</span><div><strong>Read under hard limits.</strong><p>Dekopon checks the message length before allocating memory, applies one deadline, and rejects unknown JSON fields.</p></div></li>
+        <li><span>03</span><div><strong>Reserve the request ID.</strong><p>An ID found in verified audit history or accepted by the running broker cannot be reused, even after a denial.</p></div></li>
+        <li><span>04</span><div><strong>Load trusted tool details.</strong><p>The broker—not the model or provider—chooses the capability and provider details used by the permission rule.</p></div></li>
+        <li><span>05</span><div><strong>Check the exact rule.</strong><p>The local identity, agent, capability, provider, read/write behavior, retry safety, and limits must all match. Otherwise the answer is no.</p></div></li>
+        <li><span>06</span><div><strong>Record the decision.</strong><p>Every valid request from a known local user gets an audit decision before provider work begins.</p></div></li>
+        <li><span>07</span><div><strong>Create one-use approval.</strong><p>A private <code>AuthorizedInvocation</code> ties the request, decision, provider, and limits together inside the broker. It cannot be copied or returned.</p></div></li>
+        <li><span>08</span><div><strong>Run in a fresh sandbox.</strong><p>The host applies the approved HTTP limits and collects safe request evidence that provider code cannot widen or hide.</p></div></li>
+        <li><span>09</span><div><strong>Record the result.</strong><p>The broker ties the outcome, evidence, decision, request, and trace together, then updates its local audit checkpoint.</p></div></li>
       </ol>
     </section>
 
     <section id="policy" class="article-section">
       <div class="article-heading">
-        <span>03.3 · permissioning</span>
-        <h2>Permission narrows at every layer.</h2>
+        <span>03.3 · fine-grained permissions</span>
+        <h2>Every layer can only narrow access.</h2>
       </div>
 
       <div class="data-journey-map">
         <div class="journey-zone journey-zone-remote">
-          <div class="journey-zone-label"><span>untrusted</span><strong>proposal</strong></div>
-          <div class="journey-node"><small>asks for</small><strong><code>jsonplaceholder.posts.create</code></strong><code>input cannot assert actor</code></div>
+          <div class="journey-zone-label"><span>untrusted</span><strong>agent request</strong></div>
+          <div class="journey-node"><small>asks for</small><strong><code>jsonplaceholder.posts.create</code></strong><code>cannot claim an identity</code></div>
         </div>
-        <i aria-hidden="true">↓ exact context rule</i>
+        <i aria-hidden="true">↓ exact permission rule</i>
         <div class="journey-zone journey-zone-host">
-          <div class="journey-zone-label"><span>trusted broker code</span><strong>authorization</strong></div>
+          <div class="journey-zone-label"><span>trusted broker code</span><strong>one-use approval</strong></div>
           <div class="journey-node-row">
-            <div class="journey-node"><small>identity</small><strong>principal + actor</strong><code>from peer mapping</code></div>
+            <div class="journey-node"><small>identity</small><strong>local user + agent</strong><code>from the connection map</code></div>
             <b aria-hidden="true">+</b>
-            <div class="journey-node"><small>operation</small><strong>capability + provider</strong><code>external-write · non-idempotent</code></div>
+            <div class="journey-node"><small>operation</small><strong>capability + provider</strong><code>write · not safe to retry</code></div>
             <b aria-hidden="true">+</b>
-            <div class="journey-node"><small>constraints</small><strong>exact HTTP grant</strong><code>authority · POST · 1 call</code></div>
+            <div class="journey-node"><small>limits</small><strong>exact HTTP access</strong><code>host · POST · 1 call</code></div>
           </div>
         </div>
-        <i aria-hidden="true">↓ consumed, never returned</i>
+        <i aria-hidden="true">↓ used once, never returned</i>
         <div class="journey-zone journey-zone-guest">
-          <div class="journey-zone-label"><span>bounded execution</span><strong>provider + native host</strong></div>
+          <div class="journey-zone-label"><span>limited execution</span><strong>provider + Dekopon host</strong></div>
           <div class="journey-node-row">
-            <div class="journey-node"><small>guest</small><strong>build request</strong><code>cannot set auth headers</code></div>
-            <b aria-hidden="true">→ verify →</b>
-            <div class="journey-node"><small>native engine</small><strong>pin + send</strong><code>no proxy · no redirect</code></div>
+            <div class="journey-node"><small>provider</small><strong>build request</strong><code>cannot set credential headers</code></div>
+            <b aria-hidden="true">→ check →</b>
+            <div class="journey-node"><small>network client</small><strong>pin + send</strong><code>no proxy · no redirect</code></div>
             <b aria-hidden="true">→ record →</b>
-            <div class="journey-node"><small>evidence</small><strong>sanitized metadata</strong><code>no body or URL path</code></div>
+            <div class="journey-node"><small>evidence</small><strong>safe metadata</strong><code>no body or URL path</code></div>
           </div>
         </div>
       </div>
 
-      <p>Rust typestate makes accidental fabrication and reuse harder, but it is defense in depth. The real control is the separately deployed process, authenticated socket, trusted mapping, exact policy, single-use grant bound to execution, constrained linker, and durable ordering. No one layer is advertised as a substitute for the others.</p>
+      <p>Rust types make it harder to create or reuse approval by accident. The stronger protection comes from layers working together: a separate broker, verified local connection, trusted identity map, exact rule, one-use approval, narrow host access, and durable record order.</p>
     </section>
 
     <section id="audit" class="article-section">
       <div class="article-heading">
-        <span>03.4 · integrity and replay</span>
-        <h2>Audit is not a printf after the effect.</h2>
+        <span>03.4 · durable audit</span>
+        <h2>The audit record is part of the action.</h2>
       </div>
 
       <div class="run-mode-cards">
         <article class="run-mode-current">
           <div>{{ status("current", "Per record") }}<span>owner-only JSONL</span></div>
-          <h3>Hash-linked append</h3>
-          <p>The file is opened without following symlinks, exclusively writer-locked, bounded, verified before append, and synchronized after each decision and outcome.</p>
-          <ul><li>partial records fail startup</li><li>content or link mutation fails verification</li><li>accepted invocation IDs rebuild replay state</li></ul>
+          <h3>Hash-linked records</h3>
+          <p>The broker opens one owner-only file, refuses symlinks, takes the only writer lock, verifies existing records, and syncs every decision and result.</p>
+          <ul><li>partial records stop startup</li><li>changed content or hash links fail verification</li><li>accepted request IDs rebuild replay protection</li></ul>
         </article>
         <article class="run-mode-future">
           <div>{{ status("current", "Per append") }}<span>separate local file</span></div>
-          <h3>Atomic count/head checkpoint</h3>
-          <p>After audit sync, the service synchronizes and atomically replaces a separately locked checkpoint, then synchronizes its parent directory.</p>
-          <ul><li>startup requires an exact verified prefix</li><li>one-record audit-ahead crash window is recoverable</li><li>larger gaps or rollback fail closed</li></ul>
+          <h3>Separate local checkpoint</h3>
+          <p>After syncing the audit file, the broker safely replaces a second file that keeps the expected record count and final hash.</p>
+          <ul><li>startup requires the checkpoint to match verified history</li><li>one audit record written just before a crash can recover</li><li>larger gaps or rollback stop the broker</li></ul>
         </article>
       </div>
 
-      <p>The checkpoint makes valid-prefix truncation detectable relative to retained local state. It does not make the host tamper-proof: an attacker who can coordinate rollback or deletion of both files can defeat local comparison. Independent retention, signing, or remote anchoring is the next explicit milestone.</p>
+      <p>The checkpoint detects an audit file that was shortened while the checkpoint stayed in place. It does not make the machine tamper-proof. Someone who can roll back or delete both files can defeat the local comparison. Signed or remote checkpoint copies come next.</p>
     </section>
 
     <section id="failures" class="article-section">
       <div class="article-heading">
-        <span>03.5 · retry contract</span>
-        <h2>The failure code tells the operator whether work may have happened.</h2>
+        <span>03.5 · safe retries</span>
+        <h2>The error tells you whether work may have happened.</h2>
       </div>
 
       <div class="comparison-table-wrap">
@@ -153,28 +153,28 @@ ogType: article
           <thead><tr><th scope="col">Code / outcome</th><th scope="col">Meaning</th><th scope="col">Retry posture</th></tr></thead>
           <tbody>
             <tr><th scope="row"><code>unauthenticated</code></th><td>Connected UID has no trusted mapping.</td><td>Do not retry until mapping changes.</td></tr>
-            <tr><th scope="row"><code>invalid-request</code></th><td>Strict bounded frame did not decode.</td><td>Correct it; use a fresh invocation ID.</td></tr>
-            <tr><th scope="row"><code>broker-unavailable</code></th><td>No provider work began.</td><td>Safe to resubmit with a fresh invocation ID.</td></tr>
+            <tr><th scope="row"><code>invalid-request</code></th><td>The size-limited request did not decode.</td><td>Correct it; use a fresh request ID.</td></tr>
+            <tr><th scope="row"><code>broker-unavailable</code></th><td>No provider work began.</td><td>Safe to resubmit with a fresh request ID.</td></tr>
             <tr><th scope="row"><code>outcome-unaudited</code></th><td>Provider work may have completed but terminal audit failed.</td><td><strong>Do not resubmit.</strong> Reconcile manually.</td></tr>
-            <tr><th scope="row">Denied result</th><td>Policy decision was recorded; provider did not run.</td><td>Change policy or proposal—not the ID.</td></tr>
-            <tr><th scope="row">Failed result</th><td>Authorized provider attempt completed with failure and was audited.</td><td>Respect idempotency/effect semantics before any new proposal.</td></tr>
+            <tr><th scope="row">Denied result</th><td>The decision was recorded; the provider did not run.</td><td>Change the rule or request—not the ID.</td></tr>
+            <tr><th scope="row">Failed result</th><td>An approved provider attempt failed and was audited.</td><td>Check whether the action can write or safely retry before sending a new request.</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>The client never retries automatically. A lost response to a non-idempotent external write is an unknown outcome; inventing a new invocation ID and trying again would bypass replay rejection rather than solve the ambiguity.</p>
+      <p>The client never retries on its own. If a response to a non-repeatable write is lost, the result is unknown. Creating a new request ID and trying again would bypass replay protection and could repeat the action.</p>
     </section>
 
     <section id="limits" class="article-section">
       <div class="article-heading">
-        <span>03.6 · current deployment posture</span>
-        <h2>A mature local foundation, not a production multi-tenant claim.</h2>
+        <span>03.6 · where trust ends</span>
+        <h2>Strong local safeguards. Not multi-tenant production yet.</h2>
       </div>
 
       <div class="truth-label-cards">
-        <article><div>{{ status("current", "Shipped") }}</div><h3>Local Unix broker</h3><p>Secure socket lifecycle, exact peer-UID mapping, bounded concurrency and shutdown, constrained providers, evidence, audit, checkpoint reconciliation, and OTLP spans.</p></article>
-        <article><div>{{ status("direction", "Next") }}</div><h3>Credential resolver</h3><p>Provider credentials remain an architectural boundary but v0.2.0 injects none. Destination-bound secret resolution needs its own redaction and authority tests.</p></article>
-        <article><div>{{ status("direction", "Next") }}</div><h3>Stronger deployment</h3><p>Independent checkpoint anchoring, non-Unix authenticated transport, per-process identity, tenancy, key management, and incident automation remain future work.</p></article>
+        <article><div>{{ status("current", "Shipped") }}</div><h3>Local permission broker</h3><p>Private socket setup, exact local-user mapping, limited concurrency, clean shutdown, limited providers, audit, checkpoint recovery, and OpenTelemetry spans.</p></article>
+        <article><div>{{ status("direction", "Next") }}</div><h3>Broker-managed credentials</h3><p>Version 0.2.0 does not inject provider secrets. Destination-bound credential handling needs its own permission and redaction tests.</p></article>
+        <article><div>{{ status("direction", "Next") }}</div><h3>Production hardening</h3><p>Remote audit anchors, non-Unix transport, per-process identity, tenancy, key management, and incident automation remain future work.</p></article>
       </div>
 
       <div class="source-links">

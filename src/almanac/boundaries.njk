@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/boundaries/index.html
-pageTitle: One-tool custom design — Dekopon v0.2.0 tech almanac
-pageDescription: How Dekopon's single model-facing scripting tool composes JSON-native capabilities without exposing an operating-system shell, ambient environment, filesystem, or sockets.
+pageTitle: One-tool runtime — Dekopon v0.2.0 tech almanac
+pageDescription: See how one safe scripting tool lets agents combine structured capabilities without access to processes, files, environment variables, or sockets.
 bodyClass: almanac-page almanac-article-page almanac-boundaries-page
 almanacPage: true
 almanacSection: boundaries
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
 
-{{ pageHero("02", "One-tool design", "A whole plan.<br><span>One bounded call.</span>", "The model sees one stable bash-shaped tool. A pure Rust interpreter turns its script into structured, budgeted capability calls—not operating-system processes.", "current", "Current in v0.2.0") }}
+{{ pageHero("02", "One-tool runtime", "A complete plan.<br><span>One safe tool.</span>", "The model gets one familiar scripting tool. Dekopon runs the script in Rust and turns it into structured, limited capability calls—not operating-system processes.", "current", "Shipping in v0.2.0") }}
 {{ chapterNav("boundaries", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -18,11 +18,11 @@ ogType: article
     <nav aria-label="On this page">
       <span>On this page</span>
       <a href="#why-one">Why one tool</a>
-      <a href="#data-path">The data path</a>
-      <a href="#language">The language</a>
-      <a href="#dispatch">Capability dispatch</a>
-      <a href="#budgets">Layered budgets</a>
-      <a href="#telemetry">Trace without leakage</a>
+      <a href="#data-path">How data moves</a>
+      <a href="#language">What the language can do</a>
+      <a href="#dispatch">How tools run</a>
+      <a href="#budgets">Hard limits</a>
+      <a href="#telemetry">Safe tracing</a>
     </nav>
     {{ sourceStamp(almanac.source) }}
   </aside>
@@ -30,9 +30,9 @@ ogType: article
   <article class="almanac-prose">
     <section id="why-one" class="article-section">
       <div class="article-heading">
-        <span>02.1 · fixed model surface</span>
-        <h2>Capability count does not become prompt size.</h2>
-        <p>Many agent systems expose one function schema per operation. Dekopon exposes exactly one function—<code>bash</code> with one string field, <code>script</code>—whether the operator grants two capabilities or two hundred.</p>
+        <span>02.1 · one stable tool</span>
+        <h2>One tool keeps prompts small.</h2>
+        <p>Many agent systems add one function definition for every action. Dekopon always exposes the same function: <code>bash</code> with one <code>script</code> string. That stays true whether you grant two capabilities or two hundred.</p>
       </div>
 
       <div class="authority-state-machine">
@@ -42,22 +42,22 @@ ogType: article
           <span>inside the sandboxed interpreter</span>
           <div><strong><code>cap --list</code></strong><b>→</b><strong>loops + jq</strong><b>→</b><strong>capability calls</strong></div>
         </div>
-        <i aria-hidden="true">→ bounded result</i>
+        <i aria-hidden="true">→ limited result</i>
         <div><span>model receives</span><strong>output + exit code</strong><small>replayable by an operator</small></div>
       </div>
 
-      <p>A correct model turn can express a multi-step plan in one tool call: discover the available vocabulary, fetch several values, filter structured output, branch on a result, and invoke another capability. That removes repeated model round trips without turning the model into a local shell user.</p>
+      <p>One tool call can discover available actions, fetch several values, filter the results, make a choice, and call another capability. That saves model round trips without turning the agent into a local shell user.</p>
 
       <div class="article-callout callout-decision">
-        <strong>“bash” describes the familiar syntax, not the authority.</strong>
-        <p><code>dekopon-shell</code> is a native tree-walking interpreter. It never calls <code>/bin/bash</code>, starts a process, opens a file, reads the host environment, or creates a socket.</p>
+        <strong>The name “bash” describes the syntax, not the access.</strong>
+        <p><code>dekopon-shell</code> is a Rust interpreter. It never launches <code>/bin/bash</code>, starts a process, opens a file, reads your environment, or creates a socket.</p>
       </div>
     </section>
 
     <section id="data-path" class="article-section">
       <div class="article-heading">
-        <span>02.2 · representation map</span>
-        <h2>Structure survives the whole plan.</h2>
+        <span>02.2 · structured data</span>
+        <h2>JSON stays JSON.</h2>
       </div>
 
       <div class="data-journey-map">
@@ -65,37 +65,37 @@ ogType: article
           <div class="journey-zone-label"><span>untrusted model output</span><strong>one tool call</strong></div>
           <div class="journey-node"><small>model protocol</small><strong><code>{"script":"..."}</code></strong><code>JSON object required</code></div>
         </div>
-        <i aria-hidden="true">↓ validate exact tool + string argument</i>
+        <i aria-hidden="true">↓ check the tool name and script</i>
         <div class="journey-zone journey-zone-host">
           <div class="journey-zone-label"><span><code>dekopon-run</code></span><strong>pure Rust interpreter</strong></div>
           <div class="journey-node-row">
-            <div class="journey-node"><small>parser</small><strong>syntax tree</strong><code>rejected forms fail loudly</code></div>
-            <b aria-hidden="true">→ evaluate →</b>
-            <div class="journey-node"><small>value model</small><strong><code>serde_json::Value</code></strong><code>arrays + maps + scalars</code></div>
-            <b aria-hidden="true">→ dispatch →</b>
-            <div class="journey-node"><small>capability seam</small><strong>direct or broker</strong><code>same outcome enum</code></div>
+            <div class="journey-node"><small>parser</small><strong>script structure</strong><code>unsupported syntax fails clearly</code></div>
+            <b aria-hidden="true">→ run →</b>
+            <div class="journey-node"><small>data</small><strong><code>serde_json::Value</code></strong><code>arrays + maps + simple values</code></div>
+            <b aria-hidden="true">→ call →</b>
+            <div class="journey-node"><small>tool gate</small><strong>local or broker</strong><code>same result shape</code></div>
           </div>
         </div>
-        <i aria-hidden="true">↓ object input · bounded object/value output</i>
+        <i aria-hidden="true">↓ structured input · limited structured output</i>
         <div class="journey-zone journey-zone-guest">
-          <div class="journey-zone-label"><span>fresh execution boundary</span><strong>Wasm provider or broker proposal</strong></div>
+          <div class="journey-zone-label"><span>fresh sandbox</span><strong>Wasm provider or broker request</strong></div>
           <div class="journey-node-row">
-            <div class="journey-node"><small>input</small><strong>JSON object</strong><code>provider validates fields</code></div>
-            <b aria-hidden="true">→ operation →</b>
-            <div class="journey-node"><small>outcome</small><strong>succeeded / failed / denied</strong><code>not flattened</code></div>
+            <div class="journey-node"><small>input</small><strong>JSON object</strong><code>provider checks its fields</code></div>
+            <b aria-hidden="true">→ run →</b>
+            <div class="journey-node"><small>result</small><strong>succeeded / failed / denied</strong><code>keeps its meaning</code></div>
             <b aria-hidden="true">→ return →</b>
-            <div class="journey-node"><small>pipeline</small><strong>structured value</strong><code>no text remarshal needed</code></div>
+            <div class="journey-node"><small>pipeline</small><strong>structured value</strong><code>no extra text parsing</code></div>
           </div>
         </div>
       </div>
 
-      <p>A pipeline passes one JSON value to the next command, closer to <code>jq</code> than to a Unix byte pipe. A whole-right-hand-side command substitution preserves structure. Capability flags such as <code>--post-id 7</code> become <code>{"postId":7}</code>; repeated flags become arrays. Provider inputs and outputs therefore do not need ad-hoc string parsing between every step.</p>
+      <p>Pipelines pass JSON values instead of raw bytes, much like <code>jq</code>. Command substitution can preserve a whole structured value. A flag such as <code>--post-id 7</code> becomes <code>{"postId":7}</code>, and repeated flags become arrays. Providers do not have to parse custom text between every step.</p>
     </section>
 
     <section id="language" class="article-section">
       <div class="article-heading">
-        <span>02.3 · useful subset</span>
-        <h2>Keep the planning power. Remove the escape hatches.</h2>
+        <span>02.3 · a useful subset</span>
+        <h2>Keep useful shell ideas. Leave the OS behind.</h2>
       </div>
 
       <div class="comparison-table-wrap">
@@ -107,18 +107,18 @@ ogType: article
             <tr><th scope="row">Text utilities</th><td><code>grep</code>, <code>sed</code>, <code>cut</code>, <code>sort</code>, <code>uniq</code>, <code>wc</code>, base64, <code>xargs</code></td><td>unbounded regex/glob behavior or silently ignored flags</td></tr>
             <tr><th scope="row">Named buffers</th><td><code>&gt;</code>/<code>&gt;&gt;</code> write in-memory values read only by <code>cat</code></td><td>filesystem paths, descriptors, devices, pipes</td></tr>
             <tr><th scope="row">Capability access</th><td>bare capability names, <code>cap</code>, optionally capability-backed <code>curl</code></td><td>raw sockets, DNS, subprocess commands, arbitrary host calls</td></tr>
-            <tr><th scope="row">Clock</th><td><code>date</code> only after explicit <code>--shell-allow-clock</code>, UTC only</td><td>ambient time by default, timezone environment, setting the clock</td></tr>
+            <tr><th scope="row">Clock</th><td><code>date</code> only after explicit <code>--shell-allow-clock</code>, UTC only</td><td>clock access by default, timezone environment, setting the clock</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Unsupported dangerous constructs fail by their own name rather than being approximated. <code>eval</code>, <code>exec</code>, <code>source</code>, backticks, arrays pretending to be bash arrays, file-descriptor redirection, and glob-like case patterns cannot make a model believe work happened when it did not. Ordinary glob characters stay inert because there is no filesystem to expand them against.</p>
+      <p>Dangerous or unsupported syntax fails clearly. Dekopon does not pretend to run <code>eval</code>, <code>exec</code>, <code>source</code>, backticks, file-descriptor redirects, or unsupported array and pattern features. Wildcards stay plain characters because there is no filesystem to search.</p>
     </section>
 
     <section id="dispatch" class="article-section">
       <div class="article-heading">
-        <span>02.4 · one abstract seam</span>
-        <h2>Every outside effect becomes a capability decision.</h2>
+        <span>02.4 · one tool gate</span>
+        <h2>Every outside action goes through one gate.</h2>
       </div>
 
       <pre><code><span class="code-purple">pub trait</span> CapabilityInvoker {
@@ -134,49 +134,49 @@ ogType: article
       <div class="future-topology">
         <article>
           <div><span>FIRST LEG</span>{{ status("current", "Direct") }}</div>
-          <h3>Import-free registry</h3>
-          <p>If an operator-loaded pure capability exists locally, the runner invokes it in a fresh bounded Store. No authorization or broker audit is implied.</p>
-          <strong>Can do</strong><ul><li>pure transforms</li><li>schema-driven computation</li><li>read-only effect label only</li></ul>
+          <h3>Pure local tools</h3>
+          <p>If a pure capability is loaded locally, the runner starts it in a fresh Wasm sandbox. It does not get network permission or a broker audit record.</p>
+          <strong>Good for</strong><ul><li>pure transforms</li><li>structured computation</li><li>read-only capabilities</li></ul>
         </article>
-        <div class="topology-crossing"><span>only when absent locally</span><strong>proposal →</strong><small>no identity fields</small></div>
+        <div class="topology-crossing"><span>when the tool needs broker access</span><strong>request →</strong><small>no identity claim</small></div>
         <article>
           <div><span>SECOND LEG</span>{{ status("current", "Broker") }}</div>
-          <h3>Policy-authorized registry</h3>
-          <p>With <code>prompt --broker</code>, capabilities outside direct mode fall through to the separate broker. A denial remains exit code <code>126</code>, not a generic provider error.</p>
-          <strong>Can do</strong><ul><li>constrained HTTP</li><li>read or explicit write</li><li>evidence + durable audit</li></ul>
+          <h3>Permissioned network tools</h3>
+          <p>With <code>prompt --broker</code>, tools that are not local go to the separate broker. A denied request returns exit code <code>126</code> instead of looking like a provider bug.</p>
+          <strong>Good for</strong><ul><li>limited HTTP</li><li>separate read and write actions</li><li>safe evidence + durable audit</li></ul>
         </article>
       </div>
 
-      <p><code>curl</code> follows the same rule. The builtin only parses familiar flags into <code>{uri, method, headers, body}</code> and submits them to one operator-selected capability. In direct mode that capability cannot load if it imports HTTP. In broker mode, the broker—not the builtin—decides whether any request is allowed.</p>
+      <p>The built-in <code>curl</code> command follows the same rule. It turns familiar flags into <code>{uri, method, headers, body}</code> and sends them to one capability you selected. A pure local tool cannot load an HTTP interface. A networked tool still needs broker approval for the request.</p>
     </section>
 
     <section id="budgets" class="article-section">
       <div class="article-heading">
-        <span>02.5 · resource model</span>
-        <h2>No single counter pretends to bound everything.</h2>
+        <span>02.5 · hard limits</span>
+        <h2>Different risks get different limits.</h2>
       </div>
 
       <div class="invariant-notes">
-        <article><span>script</span><h3>Plan bounds</h3><p>Steps, parser nesting, recursion, cumulative value bytes, output bytes/lines, wall time, and capability-call count.</p></article>
-        <article><span>session</span><h3>Fan-out bounds</h3><p>At most four tool calls per model turn and one capability-call budget shared across every script in the prompt session.</p></article>
-        <article><span>Wasm</span><h3>Guest bounds</h3><p>Fresh Store memory, fuel, input/output bytes, and deadline independently constrain each component operation.</p></article>
-        <article><span>broker</span><h3>Effect bounds</h3><p>Concurrency, frame size, I/O deadline, host calls, HTTP bytes, destination, method, and provider output.</p></article>
+        <article><span>script</span><h3>Plan limits</h3><p>Steps, nesting, recursion, data size, output size, wall time, and capability calls.</p></article>
+        <article><span>session</span><h3>Session limits</h3><p>At most four tool calls per model turn, with one capability-call budget shared across every script in the prompt session.</p></article>
+        <article><span>Wasm</span><h3>Provider limits</h3><p>A fresh Store limits memory, fuel, input, output, and time for every provider operation.</p></article>
+        <article><span>broker</span><h3>I/O limits</h3><p>Concurrency, message size, time, network calls, HTTP bytes, destination, method, and provider output.</p></article>
       </div>
 
-      <p>The separate counters matter. A cheap loop can exhaust steps. Repeated capability calls can stay low in parser steps. Doubling a string can be cheap in operations and expensive in memory. A fast script can invoke a slow provider. Each attack shape has a bound at the layer that actually owns it.</p>
+      <p>Separate limits matter because different workloads fail in different ways. A loop uses steps. Repeated tools use calls. Growing a string uses memory. A fast script can still call a slow provider. Each layer limits the resource it owns.</p>
     </section>
 
     <section id="telemetry" class="article-section">
       <div class="article-heading">
-        <span>02.6 · trace shape</span>
-        <h2>Observe commands without exporting their arguments.</h2>
+        <span>02.6 · safe tracing</span>
+        <h2>Trace the command, not its secrets.</h2>
       </div>
 
-      <p>Every command word that actually executes becomes one <code>shell.command</code> span beneath <code>prompt.script</code>. It records the owned vocabulary name when safe, resolution kind, argument <em>count</em>, exit code, and outcome. Function names and unknown model-authored words become <code>&lt;withheld&gt;</code>; argument values never become attributes.</p>
+      <p>Every executed command becomes a <code>shell.command</code> span under <code>prompt.script</code>. The span keeps a safe built-in name, command type, argument <em>count</em>, exit code, and result. Custom function names and unknown words become <code>&lt;withheld&gt;</code>. Argument values never become trace fields.</p>
 
       <div class="article-callout callout-plain">
-        <strong>Why counts, not argv?</strong>
-        <p><code>curl -d '{"apiKey":"..."}'</code> and <code>cap some.id '{"token":"..."}'</code> carry provider input wearing command-line syntax. Recording argv would create a second data-egress path around the broker’s redaction discipline.</p>
+        <strong>Why count arguments instead of recording them?</strong>
+        <p><code>curl -d '{"apiKey":"..."}'</code> and <code>cap some.id '{"token":"..."}'</code> can carry sensitive provider input. Recording every argument would create a new path for that data to leave the sandbox.</p>
       </div>
 
       <div class="source-links">

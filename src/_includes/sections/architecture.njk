@@ -30,7 +30,7 @@
               <div class="arch-icon"><span>{% if component.id == "daemon" %}◇{% elif component.id == "broker" %}◆{% else %}W{% endif %}</span></div>
               <div><code>{{ component.code }}</code><h3>{{ component.title }}</h3><p>{{ component.body }}</p></div>
             </article>
-            {% if not loop.last %}<div class="arch-arrow"><span>{% if loop.index == 1 %}proposal{% else %}constrained{% endif %}</span><i aria-hidden="true">→</i></div>{% endif %}
+            {% if not loop.last %}<div class="arch-arrow"><span>{% if loop.index == 1 %}request{% else %}limited I/O{% endif %}</span><i aria-hidden="true">→</i></div>{% endif %}
           {% endfor %}
         </div>
       </div>

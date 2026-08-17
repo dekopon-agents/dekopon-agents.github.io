@@ -20,7 +20,7 @@
           {% for point in home.status.current.points %}<li>{{ point }}</li>{% endfor %}
         </ul>
         <div class="path-strip">
-          <span class="sr-only">Current CLI processing path:</span>
+          <span class="sr-only">How one agent request moves through Dekopon:</span>
           {% for step in home.status.current.path %}<span>{{ step }}</span>{% if not loop.last %}<i aria-hidden="true">→</i>{% endif %}{% endfor %}
         </div>
       </article>

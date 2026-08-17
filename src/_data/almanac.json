@@ -1,6 +1,6 @@
 {
   "title": "Dekopon tech almanac",
-  "description": "An implementation-grounded field guide to Dekopon v0.2.0 isolation, custom tools, permissioning, durable audit, and OpenTelemetry.",
+  "description": "A code-backed guide to Dekopon v0.2.0: sandboxes, custom tools, fine-grained permissions, auditing, and OpenTelemetry.",
   "source": {
     "revision": "e4e9c23ffa370a5275fb72b279e7ada20bd3cea8",
     "shortRevision": "e4e9c23",
@@ -14,44 +14,44 @@
       "label": "Atlas",
       "shortLabel": "Start",
       "href": "/almanac/",
-      "title": "Map the v0.2 machine",
-      "description": "The working local control plane: one unprivileged runner, one privileged broker, bounded components, audit, and telemetry."
+      "title": "See the whole system",
+      "description": "Meet the agent runner, permission broker, sandboxed providers, audit trail, and telemetry in one clear map."
     },
     {
       "number": "01",
       "key": "components",
-      "label": "Isolation & linking",
+      "label": "Wasm isolation",
       "shortLabel": "Isolate",
       "href": "/almanac/components/",
-      "title": "Two Wasm hosts, two authority profiles",
-      "description": "How the empty direct linker and broker-owned HTTP linker give custom providers exactly—and only—the powers intended for each path."
+      "title": "What can a provider reach?",
+      "description": "See how pure local tools get no host access while networked tools receive one narrow, permissioned HTTP interface."
     },
     {
       "number": "02",
       "key": "boundaries",
-      "label": "One-tool design",
+      "label": "One-tool runtime",
       "shortLabel": "Tool",
       "href": "/almanac/boundaries/",
-      "title": "One JSON-native tool, many capabilities",
-      "description": "Follow a model-authored plan through the sandboxed shell, capability dispatch, Wasm, broker fallback, and bounded results."
+      "title": "How one tool does more",
+      "description": "Follow one agent plan through the safe scripting language, structured data, custom providers, and hard runtime limits."
     },
     {
       "number": "03",
       "key": "lifecycle",
-      "label": "Permissioned lifecycle",
+      "label": "Permissions",
       "shortLabel": "Permit",
       "href": "/almanac/run-lifecycle/",
-      "title": "From proposal to durable outcome",
-      "description": "Trace trusted identity, exact policy, single-use authorization, constrained execution, replay defense, and failure semantics."
+      "title": "How every action gets checked",
+      "description": "Follow one request through verified identity, an exact allow/deny rule, single-use approval, replay protection, and audit."
     },
     {
       "number": "04",
       "key": "observability",
-      "label": "Audit & OpenTelemetry",
+      "label": "Audit & telemetry",
       "shortLabel": "Observe",
       "href": "/almanac/observability/",
-      "title": "Three signals, one correlated run",
-      "description": "Separate authorization audit from OTLP traces and logs, follow W3C context across the socket, and inspect the measured OpenObserve footprint."
+      "title": "How to see what happened",
+      "description": "Learn when to use audit, traces, or logs. Then follow one run into OpenObserve and see its measured Raspberry Pi footprint."
     }
   ]
 }

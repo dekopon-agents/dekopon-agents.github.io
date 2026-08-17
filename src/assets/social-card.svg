@@ -30,16 +30,16 @@
     </g>
     <text x="61" y="38" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="-1.5">dekopon</text>
   </g>
-  <text x="96" y="238" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="-4">Big taste for a</text>
-  <text x="96" y="320" fill="url(#type)" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="-4">small footprint.</text>
-  <text x="100" y="385" fill="#425466" font-family="Arial, Helvetica, sans-serif" font-size="23">Isolated tools, brokered permissions, durable audit, and OTel.</text>
+  <text x="96" y="238" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="-4">Secure rails for</text>
+  <text x="96" y="320" fill="url(#type)" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="-4">AI agents.</text>
+  <text x="100" y="385" fill="#425466" font-family="Arial, Helvetica, sans-serif" font-size="23">Run safely on hardware as small as a Raspberry Pi.</text>
   <g transform="translate(101 432)">
-    <rect width="157" height="40" rx="20" fill="#0a2540"/>
-    <text x="20" y="26" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">V0.2.0 RELEASED</text>
-    <rect x="170" width="158" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>
-    <text x="190" y="26" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">ISOLATED TOOLS</text>
-    <rect x="341" width="147" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>
-    <text x="361" y="26" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">AUDIT + OTEL</text>
+    <rect width="126" height="40" rx="20" fill="#0a2540"/>
+    <text x="20" y="26" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">V0.2.0</text>
+    <rect x="139" width="183" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>
+    <text x="159" y="26" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">FINE-GRAINED I/O</text>
+    <rect x="335" width="147" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>
+    <text x="355" y="26" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">AUDIT + OTEL</text>
   </g>
   <g transform="translate(882 160)" filter="url(#shadow)">
     <path d="M94 23C112-9 146-22 175-9c-4 35-35 56-74 53" fill="#74e9bd" stroke="#0a2540" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>

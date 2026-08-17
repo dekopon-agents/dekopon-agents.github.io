@@ -3,7 +3,7 @@ layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
 pageTitle: What’s new in Dekopon v0.2.0
-pageDescription: Dekopon v0.2.0 adds a sandboxed one-tool runtime, a deny-by-default authority broker, durable audit, and correlated OpenTelemetry traces and logs.
+pageDescription: Version 0.2.0 brings secure agent tools, fine-grained permissions, auditing, and OpenTelemetry to hardware as small as a Raspberry Pi.
 ogType: article
 ---
 <section class="release-hero">
@@ -14,7 +14,7 @@ ogType: article
       <h1 class="reveal reveal-delay-1"><span>{{ whatsNew.hero.version }}</span>{{ whatsNew.hero.title }}</h1>
       <p class="release-lede reveal reveal-delay-2">{{ whatsNew.hero.lede }}</p>
       <div class="release-actions reveal reveal-delay-3">
-        <a class="button button-primary" href="#get-v020">Install v0.2.0 <span aria-hidden="true">↓</span></a>
+        <a class="button button-primary" href="#get-v020">Get v0.2.0 <span aria-hidden="true">↓</span></a>
         <a class="button button-secondary" href="{{ whatsNew.hero.releaseUrl }}">GitHub release <span aria-hidden="true">↗</span></a>
       </div>
     </div>
@@ -33,7 +33,7 @@ ogType: article
           <span class="copy-label">Copy</span>
         </button>
       </div>
-      <a href="{{ whatsNew.hero.sourceUrl }}">Browse the tagged source <span aria-hidden="true">→</span></a>
+      <a href="{{ whatsNew.hero.sourceUrl }}">See the code for this release <span aria-hidden="true">→</span></a>
     </aside>
   </div>
 
@@ -49,9 +49,9 @@ ogType: article
     <div class="release-section-heading">
       <div>
         <span class="section-kicker purple">The short version</span>
-        <h2 id="release-summary-title">Three hard seams shipped together.</h2>
+        <h2 id="release-summary-title">The release in three points.</h2>
       </div>
-      <p>Version 0.2.0 is the point where Dekopon moves beyond a typed local catalog. It now executes model-authored plans while keeping identity and effect authority outside the model process.</p>
+      <p>Your agents can now run multi-step tools, ask for tightly limited network access, and show you what happened from prompt to provider.</p>
     </div>
 
     <div class="release-highlight-grid">
@@ -72,10 +72,10 @@ ogType: article
 <section class="release-path-section" aria-labelledby="release-path-title">
   <div class="shell">
     <div class="release-path-heading">
-      <div><span class="section-kicker mint">Implemented path</span><h2 id="release-path-title">Proposal is not authority.</h2></div>
-      <p>The model-facing process can reach the broker only with a bounded proposal. Trusted identity and authorization are created after the authenticated process boundary.</p>
+      <div><span class="section-kicker mint">One secure path</span><h2 id="release-path-title">The agent asks. The broker decides.</h2></div>
+      <p>The request contains the action, not the permission. The broker verifies the local caller and checks your rule before one limited provider call can run.</p>
     </div>
-    <ol class="release-path" aria-label="Dekopon v0.2 authority path">
+    <ol class="release-path" aria-label="How Dekopon checks one agent request">
       {% for step in whatsNew.path %}
         <li><span>0{{ loop.index }}</span><strong>{{ step.name }}</strong><small>{{ step.detail }}</small></li>
       {% endfor %}
@@ -88,9 +88,9 @@ ogType: article
     <div class="release-section-heading release-details-heading">
       <div>
         <span class="section-kicker orange">Under the hood</span>
-        <h2 id="release-details-title">What changed in 0.2.</h2>
+        <h2 id="release-details-title">What v0.2.0 brings.</h2>
       </div>
-      <p>Each layer narrows the next. The shell cannot reach the operating system; the runner cannot mint authority; guest components cannot exceed the host interfaces and budgets linked for their role.</p>
+      <p>The safe scripting tool cannot reach your operating system. The runner cannot approve an action. Providers cannot exceed the host access and limits you give them.</p>
     </div>
 
     <div class="release-change-list">
@@ -119,9 +119,9 @@ ogType: article
     <div class="release-section-heading release-install-heading">
       <div>
         <span class="section-kicker mint">Published on crates.io</span>
-        <h2 id="release-install-title">Install the role you need.</h2>
+        <h2 id="release-install-title">Pick your starting point.</h2>
       </div>
-      <p>The three command-line packages are independently installable. Platform archives for the operator CLI are also available from the provenance-attested GitHub release.</p>
+      <p>Install any of the three command-line tools on its own. You can also download an attested build of the main CLI from GitHub.</p>
     </div>
 
     <div class="release-package-grid">
@@ -143,10 +143,10 @@ ogType: article
   <div class="shell">
     <div class="release-section-heading">
       <div>
-        <span class="section-kicker purple">Maturity, stated plainly</span>
-        <h2 id="release-scope-title">A substantial foundation. Still pre-production.</h2>
+        <span class="section-kicker purple">Where v0.2.0 stands</span>
+        <h2 id="release-scope-title">Ready to explore. Not production-ready yet.</h2>
       </div>
-      <p>Dekopon 0.2 proves the local authority path and its observability. It does not claim that credential brokering, rollback-resistant audit anchoring, or multi-tenant operations are finished.</p>
+      <p>The local permission path works today. Broker-managed provider credentials, stronger audit anchoring, multi-tenant networking, and production hardening still come next.</p>
     </div>
 
     <div class="release-scope-grid">
@@ -155,7 +155,7 @@ ogType: article
         <ul>{% for item in whatsNew.scope.current %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
       <article class="release-scope-card next reveal reveal-delay-1">
-        <span><i aria-hidden="true"></i> Deliberately next</span>
+        <span><i aria-hidden="true"></i> Coming next</span>
         <ul>{% for item in whatsNew.scope.next %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
     </div>
@@ -170,7 +170,7 @@ ogType: article
 
 <section class="release-closing">
   <div class="shell release-closing-inner">
-    <div><span class="section-kicker mint">v0.2.0 is available now</span><h2>See the boundary.<br>Try the release.</h2></div>
-    <div><p>Read the complete change history on GitHub or go deeper into the implementation-grounded Tech Almanac.</p><div class="release-actions"><a class="button button-white" href="{{ whatsNew.hero.releaseUrl }}">Full release notes <span aria-hidden="true">↗</span></a><a class="button button-ghost" href="/almanac/">Open the almanac <span aria-hidden="true">→</span></a></div></div>
+    <div><span class="section-kicker mint">v0.2.0 is available now</span><h2>Install it.<br>Take it for a spin.</h2></div>
+    <div><p>See every change on GitHub, or open the Tech Almanac for a clear tour of the code that ships.</p><div class="release-actions"><a class="button button-white" href="{{ whatsNew.hero.releaseUrl }}">Full release notes <span aria-hidden="true">↗</span></a><a class="button button-ghost" href="/almanac/">See how it works <span aria-hidden="true">→</span></a></div></div>
   </div>
 </section>

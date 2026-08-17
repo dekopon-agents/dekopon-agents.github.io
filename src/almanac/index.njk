@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/index.html
 pageTitle: Dekopon v0.2.0 tech almanac
-pageDescription: An implementation-grounded guide to Dekopon isolation, one-tool scripting, brokered permissions, durable audit, and OpenTelemetry.
+pageDescription: A clear, code-backed guide to Dekopon sandboxes, one-tool scripting, fine-grained permissions, auditing, and OpenTelemetry.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
 almanacSection: atlas
@@ -14,60 +14,60 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>Field notes / v0.2.0 anatomy</span><code>edition 02</code></div>
-      <h1>The boundaries<br><span>under the agent.</span></h1>
-      <p class="almanac-home-lede">A source-linked field guide to the machinery Dekopon now ships: an isolated one-tool runner, two Wasm authority profiles, a separate policy broker, durable audit, and cross-process OpenTelemetry.</p>
+      <div class="almanac-overline"><span>How it works / v0.2.0</span><code>edition 02</code></div>
+      <h1>How Dekopon<br><span>keeps agents in bounds.</span></h1>
+      <p class="almanac-home-lede">A code-backed tour of the release: one safe scripting tool, fresh Wasm sandboxes, a separate permission broker, durable audit, and OpenTelemetry from end to end.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status legend">
-        {{ status("current", "Current in v0.2.0") }}
-        {{ status("direction", "Next milestone") }}
+        {{ status("current", "Shipping now") }}
+        {{ status("direction", "Coming next") }}
       </div>
       {{ sourceStamp(almanac.source) }}
     </div>
 
     <div class="runtime-cutaway">
       <div class="cutaway-topline">
-        <span>Broker-backed prompt · current</span>
-        <span class="cutaway-live"><i aria-hidden="true"></i> two processes</span>
+        <span>One permissioned agent run</span>
+        <span class="cutaway-live"><i aria-hidden="true"></i> two local programs</span>
       </div>
       <div class="cutaway-machine">
         <div class="cutaway-outside">
           <div class="cutaway-node cutaway-model">
-            <span>outside the authority boundary</span>
-            <strong>LLM endpoint</strong>
-            <small>returns one bash({ script }) call</small>
+            <span>your chosen model service</span>
+            <strong>AI model</strong>
+            <small>returns one bash({ script }) tool call</small>
           </div>
-          <span class="cutaway-packet" aria-hidden="true">model protocol ↕</span>
+          <span class="cutaway-packet" aria-hidden="true">prompt and response ↕</span>
         </div>
         <div class="cutaway-process">
-          <div class="cutaway-process-label"><span>UNPRIVILEGED PROCESS</span><strong>dekopon-run</strong></div>
+          <div class="cutaway-process-label"><span>AGENT PROCESS</span><strong>dekopon-run</strong></div>
           <div class="cutaway-node">
-            <span>bounded interpreter</span>
+            <span>safe scripting</span>
             <strong>dekopon-shell</strong>
-            <small>JSON values · no OS shell · proposal client</small>
+            <small>structured data · no OS access · limited requests</small>
           </div>
-          <span class="cutaway-arrow" aria-hidden="true">identity-free proposal ↓</span>
+          <span class="cutaway-arrow" aria-hidden="true">request without an identity claim ↓</span>
           <div class="cutaway-node cutaway-runtime">
-            <span>PRIVILEGED PROCESS</span>
+            <span>PERMISSION PROCESS</span>
             <strong>dekopon-brokerd</strong>
-            <small>peer UID · exact policy · replay defense · audit</small>
+            <small>verified identity · allow/deny rules · replay protection · audit</small>
           </div>
           <div class="cutaway-thread-row">
             <div class="cutaway-node cutaway-helper">
-              <span>fresh bounded Store</span>
-              <strong>Wasm provider</strong>
-              <small>one authorized operation</small>
+              <span>fresh Wasm sandbox</span>
+              <strong>Custom provider</strong>
+              <small>one approved operation</small>
             </div>
             <div class="cutaway-node cutaway-empty">
-              <span>only linked host import</span>
+              <span>only available host feature</span>
               <strong>dekopon:http@1.0.0</strong>
-              <small>exact authority + method + bytes</small>
+              <small>approved host + method + byte limits</small>
             </div>
           </div>
         </div>
       </div>
       <div class="cutaway-readout">
-        <span>v0.2.0 authority rule</span>
-        <p>The runner can ask. Only the broker can turn that request into constrained execution, evidence, and durable audit.</p>
+        <span>One simple rule</span>
+        <p>Your agent can ask. Only the broker can approve one limited action and tie the result to an audit record.</p>
       </div>
     </div>
   </div>
@@ -79,8 +79,8 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">00—04</span>
-      <div><p class="almanac-kicker">Choose a boundary</p><h2>Four deep dives, one released system.</h2></div>
-      <p>Each chapter follows code at <code>v0.2.0</code>, distinguishes direct from broker-backed execution, and names the remaining pre-production limits instead of hand-waving them away.</p>
+      <div><p class="almanac-kicker">Choose a tour</p><h2>Four guides. One working system.</h2></div>
+      <p>Every chapter follows the code in <code>v0.2.0</code>. You will see what runs locally, what needs broker approval, and what still comes next.</p>
     </div>
 
     <div class="atlas-card-grid">
@@ -89,14 +89,14 @@ ogType: article
         <a class="atlas-card atlas-card-{{ chapter.key }} reveal" href="{{ chapter.href }}">
           <div class="atlas-card-top"><span>{{ chapter.number }}</span><span aria-hidden="true">↗</span></div>
           <div class="atlas-card-glyph" aria-hidden="true">
-            {% if chapter.key == "components" %}<span>{ link }</span>
-            {% elif chapter.key == "boundaries" %}<span>1 tool → N caps</span>
-            {% elif chapter.key == "lifecycle" %}<span>proposal ≠ grant</span>
+            {% if chapter.key == "components" %}<span>{ sandbox }</span>
+            {% elif chapter.key == "boundaries" %}<span>1 tool → many skills</span>
+            {% elif chapter.key == "lifecycle" %}<span>request ≠ permission</span>
             {% else %}<span>audit · trace · log</span>{% endif %}
           </div>
           <h2>{{ chapter.title }}</h2>
           <p>{{ chapter.description }}</p>
-          <strong>Open chapter <span aria-hidden="true">→</span></strong>
+          <strong>Read this guide <span aria-hidden="true">→</span></strong>
         </a>
         {% endif %}
       {% endfor %}
@@ -107,17 +107,17 @@ ogType: article
 <section class="almanac-section mental-model-section">
   <div class="shell mental-model-grid">
     <div class="mental-model-copy">
-      <p class="almanac-kicker">The 90-second model</p>
-      <h2>Six facts explain the architecture.</h2>
-      <p>Dekopon’s maturity is in its seams. Keep these distinctions straight and the codebase becomes much easier to reason about.</p>
+      <p class="almanac-kicker">The 90-second tour</p>
+      <h2>Six facts explain Dekopon.</h2>
+      <p>Start here if you want the big picture before reading the code.</p>
     </div>
     <ol class="mental-model-list">
-      <li><span>01</span><div><strong>The model gets one tool, not one tool per capability.</strong><p>Its script composes only session-granted operations through a pure Rust interpreter.</p></div></li>
-      <li><span>02</span><div><strong>Direct mode and broker mode are intentionally different.</strong><p>The direct linker is empty and read-only; the broker linker exposes one project-owned HTTP contract after authorization.</p></div></li>
-      <li><span>03</span><div><strong>A component import is a requirement, not a permission.</strong><p>The broker still binds exact destination, method, calls, bytes, and deadline to one invocation.</p></div></li>
-      <li><span>04</span><div><strong>A proposal is not authority.</strong><p>Identity and policy never arrive as client fields. The broker derives context from Unix peer credentials and trusted configuration.</p></div></li>
-      <li><span>05</span><div><strong>Every operation starts fresh.</strong><p>Compiled components are reused, but each describe or invoke receives a new bounded Store and instance.</p></div></li>
-      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization is hash-linked; timing is traced; accounting and exceptional facts are logged.</p></div></li>
+      <li><span>01</span><div><strong>The model gets one tool.</strong><p>Its safe script combines only the capabilities you grant for that session.</p></div></li>
+      <li><span>02</span><div><strong>Pure work and networked work take different paths.</strong><p>Local providers get no host access. Networked providers run only after broker approval.</p></div></li>
+      <li><span>03</span><div><strong>Asking for HTTP does not grant HTTP.</strong><p>The broker still limits the host, method, calls, bytes, and time for one action.</p></div></li>
+      <li><span>04</span><div><strong>The agent cannot approve itself.</strong><p>The broker gets identity from the local connection and checks your configuration.</p></div></li>
+      <li><span>05</span><div><strong>Every provider call starts clean.</strong><p>Dekopon reuses compiled code, but starts each operation in a fresh Wasm sandbox.</p></div></li>
+      <li><span>06</span><div><strong>Audit, traces, and logs have different jobs.</strong><p>Audit records permissions. Traces explain flow and timing. Logs keep costs and important events.</p></div></li>
     </ol>
   </div>
 </section>
@@ -125,21 +125,21 @@ ogType: article
 <section class="almanac-section truth-labels-section">
   <div class="shell truth-labels-grid">
     <div>
-      <p class="almanac-kicker">Release posture</p>
-      <h2>Substantial does not mean overclaimed.</h2>
+      <p class="almanac-kicker">Where the release stands</p>
+      <h2>Capable today. Honest about tomorrow.</h2>
     </div>
     <div class="truth-label-cards">
-      <article><div>{{ status("current", "Released") }}</div><h3>v0.2.0 is implemented and testable</h3><p>Seventeen public crates, three CLIs, four attested platform archives, 470+ workspace tests, and an OpenObserve delivery smoke test.</p></article>
-      <article><div>{{ status("current", "Enforced") }}</div><h3>The local authority path is real</h3><p>Peer authentication, exact policy, replay rejection, constrained async provider HTTP, evidence, hash-linked files, checkpoints, and trace propagation all ship.</p></article>
-      <article><div>{{ status("direction", "Still next") }}</div><h3>Production gaps remain explicit</h3><p>Broker-owned credential resolution, independent checkpoint anchoring, a long-running agent daemon, non-Unix transport, and multi-tenant isolation are not claimed.</p></article>
+      <article><div>{{ status("current", "Released") }}</div><h3>You can install and test v0.2.0 today</h3><p>It ships as 17 public crates, three CLIs, four attested downloads, and a workspace with more than 470 tests.</p></article>
+      <article><div>{{ status("current", "Enforced") }}</div><h3>The local permission path works</h3><p>Verified identity, exact rules, replay protection, limited network access, audit records, checkpoints, and trace handoff all ship.</p></article>
+      <article><div>{{ status("direction", "Coming next") }}</div><h3>Production work remains</h3><p>Broker-managed provider credentials, stronger audit anchoring, a long-running agent service, non-Unix transport, and multi-tenant isolation are not in v0.2.0.</p></article>
     </div>
   </div>
 </section>
 
 <section class="almanac-closing-band">
   <div class="shell">
-    <span>Begin at the executable sandbox</span>
-    <h2>What can a provider actually reach?</h2>
-    <a class="button button-primary" href="/almanac/components/">Open Isolation &amp; linking <span aria-hidden="true">→</span></a>
+    <span>Start with the sandbox</span>
+    <h2>What can a provider reach?</h2>
+    <a class="button button-primary" href="/almanac/components/">Explore Wasm isolation <span aria-hidden="true">→</span></a>
   </div>
 </section>

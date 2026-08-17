@@ -8,8 +8,11 @@ The site is compiled with [Eleventy](https://www.11ty.dev/) and ships plain HTML
 
 ## Content and presentation stay separate
 
+Read [`AGENTS.md`](AGENTS.md) before changing public copy. It defines Dekopon’s plainspoken, outcome-first voice and the accuracy limits that keep confident writing honest.
+
 | Change | Edit |
 |---|---|
+| Writing voice and terminology | `AGENTS.md` |
 | Homepage copy, labels, milestones, or links | `src/_data/home.json` |
 | “What’s New” release copy | `src/_data/whatsNew.json` and `src/whats-new.njk` |
 | Site metadata, navigation, or footer links | `src/_data/site.json` |
