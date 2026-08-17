@@ -199,31 +199,16 @@ pre {
 }
 
 .brand-mark {
-  width: 31px;
-  height: 31px;
-  overflow: visible;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(10, 37, 64, 0.16));
+  transition: transform 180ms ease;
 }
 
-.brand-fruit {
-  fill: var(--orange);
-  stroke: var(--navy);
-  stroke-width: 1.7;
-  stroke-linejoin: round;
-}
-
-.brand-leaf {
-  fill: var(--mint);
-  stroke: var(--navy);
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.brand-segment {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.88);
-  stroke-width: 1.35;
-  stroke-linecap: round;
+.brand:hover .brand-mark {
+  transform: translateY(-1px) rotate(-3deg);
 }
 
 .desktop-nav {
@@ -3249,28 +3234,11 @@ pre {
 }
 
 .closing-mark {
-  width: 70px;
+  width: 136px;
+  height: 136px;
   margin: 0 auto 25px;
-  overflow: visible;
-}
-
-.closing-mark path:first-child {
-  fill: var(--mint);
-  stroke: #fff;
-  stroke-width: 2;
-}
-
-.closing-mark path:nth-child(2) {
-  fill: url("#none");
-  fill: var(--orange);
-  stroke: #fff;
-  stroke-width: 2;
-}
-
-.closing-mark path:last-child {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.84);
-  stroke-width: 2;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.24));
 }
 
 .closing-content .section-kicker {
@@ -3338,9 +3306,8 @@ pre {
   color: #fff;
 }
 
-.footer-brand .brand-fruit,
-.footer-brand .brand-leaf {
-  stroke: rgba(255, 255, 255, 0.85);
+.footer-brand .brand-mark {
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.32));
 }
 
 .footer-links {
@@ -3389,11 +3356,6 @@ pre {
   color: #fff;
 }
 
-.not-found-page .brand-fruit,
-.not-found-page .brand-leaf {
-  stroke: #fff;
-}
-
 .not-found-page .desktop-nav a,
 .not-found-page .version-link {
   color: rgba(255, 255, 255, 0.7);
@@ -3402,13 +3364,6 @@ pre {
 .not-found-page .site-header.is-scrolled,
 .not-found-page .site-header.menu-active {
   color: var(--navy);
-}
-
-.not-found-page .site-header.is-scrolled .brand-fruit,
-.not-found-page .site-header.is-scrolled .brand-leaf,
-.not-found-page .site-header.menu-active .brand-fruit,
-.not-found-page .site-header.menu-active .brand-leaf {
-  stroke: var(--navy);
 }
 
 .not-found-page .site-header.is-scrolled .desktop-nav a,

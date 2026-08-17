@@ -20,6 +20,7 @@ Read [`AGENTS.md`](AGENTS.md) before changing public copy. It defines Dekopon’
 | Almanac articles | `src/almanac/*.njk` |
 | Section structure | `src/_includes/sections/` |
 | Shared page chrome | `src/_includes/layouts/base.njk` |
+| Logo markup and optimized mascot assets | `src/_includes/components/logo.njk` and `src/assets/dekopon-surf-logo-*` |
 | Homepage visual design and interaction | `src/assets/styles.css` and `src/assets/site.js` |
 | Almanac visual design | `src/assets/almanac.css` |
 
@@ -44,6 +45,10 @@ npm audit --audit-level=high
 ```
 
 `npm test` performs a clean production build, validates generated HTML, checks browser JavaScript syntax, and verifies local files and fragment links.
+
+## Brand assets
+
+The surfing Dekopon mascot is stored as a transparent 1024 px WebP plus 64, 128, 256, and 512 px derivatives. Header and footer markup use 1x/2x `srcset` pairs; `favicon-32.png` and `apple-touch-icon.png` cover browser icons. The social-card SVG references the 512 px PNG, while `social-card.png` is the flattened sharing image used by page metadata.
 
 ## Deployment
 
