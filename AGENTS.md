@@ -51,25 +51,28 @@ Avoid:
 | OTLP exporter | sends standard OpenTelemetry data |
 | implementation-grounded | based on the code that ships |
 
-Use the precise internal term when it matters in the Tech Almanac, but define it in plain language first.
+Use the precise internal term when it matters in a “How it works” guide, but define it in plain language first.
 
 ## Detail by page
 
 - **Homepage:** outcomes first. Keep paragraphs short. Avoid Rust type names, protocol field names, and process topology unless a diagram needs them.
 - **What’s New:** name the feature, the benefit, and one level of implementation detail. It should read like release notes, not a design document.
-- **Tech Almanac:** technical detail is welcome, but every section must open with a plain-language claim. Define unfamiliar terms on first use and keep sentences focused on one idea.
+- **How it works:** technical detail is welcome, but every section must open with a plain-language claim. Define unfamiliar terms on first use and keep sentences focused on one idea.
 - **Metadata, navigation, CTAs, and alt text:** brief, literal, and useful. Do not stuff them with keywords.
 
 ## Accuracy and security guardrails
 
 Natural writing must remain true.
 
-- Never claim Dekopon is production-ready unless the canonical project docs say so.
+- Never claim Dekopon is production-ready unless the pinned implementation and current project docs say so.
 - Never use absolutes such as “impossible to leak,” “unhackable,” or “perfectly secure.” Name the safeguard and its scope instead.
-- Do not claim Cedar powers permissioning unless Cedar is present in the pinned implementation and canonical docs. Dekopon v0.2.0 uses its own exact deny-by-default rules.
-- Do not claim v0.2.0 injects provider secrets. Broker-owned credential resolution is later work in the v0.2.0 snapshot.
+- Dekopon v0.4.0 uses Cedar for authorization. Keep Cedar’s decision separate from owner-authored execution constraints: policy decides who may act and cannot widen hosts, methods, credentials, byte ceilings, or timeouts.
+- Broker-owned destination-bound credentials and optional per-agent selection are current. Say where the value terminates and never imply the gateway, model, shell, or Wasm guest receives it.
+- The gateway supplies a canonical subject attestation and agent name; it never supplies a trusted principal. The broker authenticates the peer, checks the attestor grant, and alone maps subject to principal.
 - Keep **current**, **next**, and **not claimed** work visibly separate.
-- Preserve important limits: one local Unix UID trust domain, no independent audit anchor, no multi-tenant transport, and no production-hardening claim in v0.2.0.
+- Preserve important limits: one local Unix UID trust domain, no independent audit anchor, no multi-tenant transport, and no production-hardening claim in v0.4.0.
+- Version 0.4.0 adds distribution rather than authority. Distinguish the application release from independently tagged chart publication, and verify publication or deployment status before claiming either occurred.
+- Version 0.4.0 is not on crates.io. Lead install copy with Homebrew, release archives, or the container image unless publication status changes and is verified.
 - Prefer scoped claims: “keeps credentials out of prompts and guest code” is better than “secrets cannot leak.”
 - Measurements need a date, units, and scope. The 200 KiB OpenObserve figure is an aggregate physical-allocation sample, not a per-prompt guarantee.
 
@@ -80,7 +83,7 @@ Natural writing must remain true.
 - Use contractions sparingly and naturally.
 - Use sentence case for headings and labels.
 - Use “fine-grained,” not “fine-grain.”
-- Use “Raspberry Pi,” “OpenTelemetry,” “OpenObserve,” “Wasm,” and “v0.2.0” consistently.
+- Use “Raspberry Pi,” “OpenTelemetry,” “OpenObserve,” “Wasm,” “Cedar,” and “v0.4.0” consistently.
 - Avoid stacked adjectives and noun chains such as “bounded broker-backed provider execution path.”
 - Avoid throat-clearing: “It is important to note,” “In order to,” “This is the point where,” and similar phrases can usually be deleted.
 - Avoid architecture metaphors like “seams,” “membranes,” and “typestate” in marketing copy. Use them only when the technical explanation needs them.
@@ -89,15 +92,17 @@ Natural writing must remain true.
 
 Aim for lines like:
 
-- “Version 0.2.0 brings isolation, exact authorization, pluggable I/O, auditing, and telemetry.”
-- “Stay in control with permissioned I/O and hard runtime limits.”
+- “The gateway can vouch. The broker decides what that identity may do.”
+- “Cedar permits. Constraint sets keep every action inside hard limits.”
 - “Your agent can ask. The broker decides.”
-- “See every approved action and follow a run from prompt to provider.”
-- “Get running in less than five minutes.”
+- “One familiar tool gives the model room to explore without an operating-system shell.”
+- “Follow one chat message from model turn to authorized HTTP request.”
 
 ## Source of truth and checks
 
-The canonical implementation lives in `../dekopon`. Almanac copy is pinned to the revision in `src/_data/almanac.json`; do not move that snapshot without rechecking the tagged code and docs.
+The canonical implementation lives in `../dekopon`. “How it works” copy is pinned to the revision in `src/_data/almanac.json`; do not move that snapshot without rechecking the tagged code and docs.
+
+Public concept pages must explain their subject completely before linking away. Repository Markdown is supplemental and should appear through a closing “Read the latest in the Dekopon docs” bridge for exact evolving fields and limits—not as the page’s substitute for explanation.
 
 Before publishing copy changes, run:
 

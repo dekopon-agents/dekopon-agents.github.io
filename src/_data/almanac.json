@@ -1,57 +1,66 @@
 {
-  "title": "Dekopon tech almanac",
-  "description": "A code-backed guide to Dekopon v0.2.0: sandboxes, custom tools, fine-grained permissions, auditing, and OpenTelemetry.",
+  "title": "How Dekopon works",
+  "description": "A clear, release-backed guide to Dekopon v0.4.0: trusted identity, Cedar policy, one-tool scripting, Wasm providers, audit, and OpenTelemetry.",
   "source": {
-    "revision": "e4e9c23ffa370a5275fb72b279e7ada20bd3cea8",
-    "shortRevision": "e4e9c23",
-    "release": "v0.2.0",
-    "date": "2026-08-16"
+    "revision": "918e1a2b43c54956acc499f920041cf376245276",
+    "shortRevision": "918e1a2",
+    "release": "v0.4.0",
+    "date": "18 August 2026"
   },
   "chapters": [
     {
       "number": "00",
       "key": "atlas",
-      "label": "Atlas",
+      "label": "System map",
       "shortLabel": "Start",
       "href": "/almanac/",
       "title": "See the whole system",
-      "description": "Meet the agent runner, permission broker, sandboxed providers, audit trail, and telemetry in one clear map."
+      "description": "Meet the gateway, model workspace, broker, Cedar policy, Wasm providers, audit trail, and telemetry in one map."
     },
     {
       "number": "01",
-      "key": "components",
-      "label": "Wasm isolation",
-      "shortLabel": "Isolate",
-      "href": "/almanac/components/",
-      "title": "What can a provider reach?",
-      "description": "See how pure local tools get no host access while networked tools receive one narrow, permissioned HTTP interface."
+      "key": "identity",
+      "label": "Trusted identity",
+      "shortLabel": "Identify",
+      "href": "/almanac/identity/",
+      "title": "Where does identity come from?",
+      "description": "Follow an authenticated chat sender through gateway attestation, broker mapping, Cedar context, and durable audit."
     },
     {
       "number": "02",
-      "key": "boundaries",
-      "label": "One-tool runtime",
-      "shortLabel": "Tool",
-      "href": "/almanac/boundaries/",
-      "title": "How one tool does more",
-      "description": "Follow one agent plan through the safe scripting language, structured data, custom providers, and hard runtime limits."
+      "key": "permissions",
+      "label": "Cedar permissions",
+      "shortLabel": "Permit",
+      "href": "/almanac/permissions/",
+      "title": "How does Cedar decide?",
+      "description": "Build a complete PR-commenter example from principal, action, resource, context, constraints, and a redacted credential."
     },
     {
       "number": "03",
-      "key": "lifecycle",
-      "label": "Permissions",
-      "shortLabel": "Permit",
-      "href": "/almanac/run-lifecycle/",
-      "title": "How every action gets checked",
-      "description": "Follow one request through verified identity, an exact allow/deny rule, single-use approval, replay protection, and audit."
+      "key": "runtime",
+      "label": "One-tool runtime",
+      "shortLabel": "Explore",
+      "href": "/almanac/one-tool-runtime/",
+      "title": "Why give the model homemade bash?",
+      "description": "Use the shell habits frontier models already know while keeping processes, files, environment variables, and sockets absent."
     },
     {
       "number": "04",
+      "key": "providers",
+      "label": "Wasm providers",
+      "shortLabel": "Isolate",
+      "href": "/almanac/providers/",
+      "title": "What can a provider reach?",
+      "description": "See how each provider starts in a fresh sandbox and receives only the broker-owned host access approved for one action."
+    },
+    {
+      "number": "05",
       "key": "observability",
       "label": "Audit & telemetry",
       "shortLabel": "Observe",
       "href": "/almanac/observability/",
-      "title": "How to see what happened",
-      "description": "Learn when to use audit, traces, or logs. Then follow one run into OpenObserve and see its measured Raspberry Pi footprint."
+      "title": "How do you see the whole run?",
+      "description": "Read a CSS waterfall from chat message to HTTP request, then give audit, traces, and logs their separate jobs."
     }
   ]
 }

@@ -1,0 +1,22 @@
+<section class="home-concepts section" aria-labelledby="home-concepts-title">
+  <div class="shell">
+    <div class="section-heading split-heading home-concepts-heading">
+      <div>
+        <span class="section-kicker purple">{{ home.concepts.kicker }}</span>
+        <h2 id="home-concepts-title">{{ home.concepts.title }}</h2>
+      </div>
+      <p>{{ home.concepts.intro }}</p>
+    </div>
+
+    <div class="home-concept-grid">
+      {% for concept in home.concepts.items %}
+        <a class="home-concept-card concept-accent-{{ concept.accent }} reveal{% if loop.index % 2 == 0 %} reveal-delay-1{% endif %}" href="{{ concept.href }}">
+          <div><span>{{ concept.number }}</span><small>{{ concept.label }}</small><i aria-hidden="true">↗</i></div>
+          <h3>{{ concept.title }}</h3>
+          <p>{{ concept.body }}</p>
+          <strong>Read the guide <span aria-hidden="true">→</span></strong>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>

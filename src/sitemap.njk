@@ -18,4 +18,10 @@ eleventyExcludeFromCollections: true
     <changefreq>monthly</changefreq>
   </url>
   {% endfor %}
+  {% for guide in deploy.pages %}
+  <url>
+    <loc>{{ site.url }}{{ guide.href }}</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  {% endfor %}
 </urlset>

@@ -1,48 +1,49 @@
 {
   "name": "Dekopon",
   "wordmark": "dekopon",
-  "version": "v0.2.0",
+  "version": "v0.4.0",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon v0.2.0 — Secure rails for AI agents",
-  "description": "Run the AI agents you know and love on secure, high-performance rails—even on a small computer like a Raspberry Pi.",
+  "title": "Dekopon v0.4.0 — Secure rails for self-hosted AI agents",
+  "description": "Run capable AI agents on hardware you own while a separate broker controls identity, permissions, credentials, provider I/O, and audit.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",
   "releaseNotes": "/whats-new/",
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
-    { "label": "What’s new", "href": "/whats-new/" },
-    { "label": "One-tool runtime", "href": "/#tool-design" },
-    { "label": "Permissions", "href": "/#authority" },
-    { "label": "Observability", "href": "/#observability" },
-    { "label": "How it works", "href": "/almanac/" }
+    { "label": "How it works", "href": "/almanac/" },
+    { "label": "Identity", "href": "/almanac/identity/" },
+    { "label": "Permissions", "href": "/almanac/permissions/" },
+    { "label": "Deploy", "href": "/deploy/" },
+    { "label": "What’s new", "href": "/whats-new/" }
   ],
   "footer": [
     {
       "heading": "Project",
       "links": [
         { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
-        { "label": "What’s new in v0.2.0", "href": "/whats-new/" },
-        { "label": "v0.2.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0" },
-        { "label": "crates.io", "href": "https://crates.io/crates/dekopon" },
-        { "label": "Documentation", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
+        { "label": "What’s new in v0.4.0", "href": "/whats-new/" },
+        { "label": "v0.4.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0" },
         { "label": "How Dekopon works", "href": "/almanac/" },
-        { "label": "Roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" }
+        { "label": "Deployment guides", "href": "/deploy/" }
+      ]
+    },
+    {
+      "heading": "Learn",
+      "links": [
+        { "label": "Trusted identity", "href": "/almanac/identity/" },
+        { "label": "Cedar permissions", "href": "/almanac/permissions/" },
+        { "label": "One-tool runtime", "href": "/almanac/one-tool-runtime/" },
+        { "label": "Wasm providers", "href": "/almanac/providers/" },
+        { "label": "OpenTelemetry", "href": "/almanac/observability/" }
       ]
     },
     {
       "heading": "Community",
       "links": [
+        { "label": "Latest technical docs", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
         { "label": "Contributing", "href": "https://github.com/dekopon-agents/dekopon/blob/main/CONTRIBUTING.md" },
         { "label": "Issues", "href": "https://github.com/dekopon-agents/dekopon/issues" },
-        { "label": "Code of conduct", "href": "https://github.com/dekopon-agents/dekopon/blob/main/CODE_OF_CONDUCT.md" }
-      ]
-    },
-    {
-      "heading": "Security",
-      "links": [
-        { "label": "System design", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/design.md" },
-        { "label": "Security model", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md" },
         { "label": "Report a vulnerability", "href": "https://github.com/dekopon-agents/dekopon/blob/main/SECURITY.md" }
       ]
     }

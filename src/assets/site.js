@@ -105,7 +105,14 @@ if ("IntersectionObserver" in window) {
         { rootMargin: "0px 0px -8%", threshold: 0.08 },
     );
 
-    revealItems.forEach((item) => observer.observe(item));
+    revealItems.forEach((item) => {
+        const bounds = item.getBoundingClientRect();
+        if (bounds.top < window.innerHeight && bounds.bottom > 0) {
+            item.classList.add("is-visible");
+        } else {
+            observer.observe(item);
+        }
+    });
 } else {
     revealItems.forEach((item) => item.classList.add("is-visible"));
 }

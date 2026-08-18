@@ -1,313 +1,143 @@
 {
   "hero": {
-    "eyebrow": "v0.2.0 · open source · runs on your hardware",
-    "title": "Run the agents you love.",
-    "titleAccent": "Keep control.",
-    "lede": "AI agents you know and love on secure, high-performance rails. Run everything you need on a small computer like the Raspberry Pi.",
-    "primaryCta": { "label": "See what’s new in v0.2.0", "href": "/whats-new/" },
-    "secondaryCta": { "label": "View the release", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0" },
-    "installCommand": "cargo install --locked dekopon --version 0.2.0",
-    "caveatLabel": "In v0.2.0:",
-    "caveat": "17 public Rust crates, three CLIs, a separate permission broker, sandboxed agent tools, and OpenTelemetry built in.",
+    "eyebrow": "v0.4.0 · open source · packaged for Kubernetes",
+    "title": "Give agents useful reach.",
+    "titleAccent": "Keep the authority.",
+    "lede": "Run self-hosted AI agents on hardware you own. Dekopon gives models a capable workspace while a separate broker controls identity, permissions, credentials, outside I/O, and audit.",
+    "primaryCta": { "label": "See how it works", "href": "/almanac/" },
+    "secondaryCta": { "label": "Explore v0.4.0", "href": "/whats-new/" },
+    "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.4.0",
+    "caveatLabel": "Current scope:",
+    "caveat": "A substantial, testable local foundation for small hardware. Dekopon is still pre-production and its Kubernetes deployment uses one Unix UID trust domain.",
     "visual": {
-      "title": "one secure request",
-      "badge": "running",
+      "title": "one permissioned comment",
+      "badge": "audited",
       "stage": "Agent request",
-      "trust": "untrusted input",
-      "capability": "jsonplaceholder.posts.create",
-      "actorLabel": "identity",
-      "actor": "verified by the OS",
-      "effect": "write access",
-      "boundary": "permission broker",
-      "deniedLabel": "not allowed",
+      "trust": "untrusted intent",
+      "capability": "gh.pull-request.comment",
+      "actorLabel": "subject",
+      "actor": "attested by the gateway",
+      "effect": "external write",
+      "boundary": "Cedar + broker limits",
+      "deniedLabel": "rule does not match",
       "denied": "Denied",
-      "authorizedLabel": "allowed once",
-      "authorized": "Approved",
-      "outcomeLabel": "recorded result",
-      "outcome": "audited",
+      "authorizedLabel": "one bounded use",
+      "authorized": "Allowed",
+      "outcomeLabel": "identity + result",
+      "outcome": "hash-linked",
       "trace": "same trace",
-      "chips": ["runs on a Pi", "fresh Wasm sandbox", "telemetry built in"]
+      "chips": ["runs on a Pi", "broker-held secrets", "OpenTelemetry built in"]
     }
   },
   "principles": [
-    "Runs on small hardware",
-    "Fine-grained permissions",
-    "Bring your own tools",
-    "See every action"
+    "Identity comes from transport",
+    "Cedar decides who may act",
+    "Limits stay outside policy",
+    "Every effect stays visible"
   ],
   "pillars": {
-    "kicker": "Small computer. Serious safeguards.",
-    "title": ["Everything you need.", "Nothing running wild."],
-    "intro": "Version 0.2.0 brings isolation, exact authorization, pluggable I/O, auditing, and telemetry—all in a stack small enough to run beside your agents on a Raspberry Pi.",
+    "kicker": "Small computer. Deliberate authority.",
+    "title": ["Useful agents.", "No ambient power."],
+    "intro": "Dekopon combines a familiar model workspace with strict process boundaries. The model can plan and ask; owner-controlled infrastructure decides and executes.",
     "items": [
       {
         "id": "footprint",
         "number": "01",
-        "status": "Ships in v0.2.0",
+        "status": "Kubernetes in v0.4.0",
         "statusClass": "current",
-        "title": "Built for your hardware.",
-        "body": "Run Dekopon with Rust binaries, plain files, Unix sockets, and Wasm. There is no required cloud service. The project already runs beside OpenObserve on a Raspberry Pi."
+        "title": "Deploy on hardware you own.",
+        "body": "Run four compact executables on Linux or macOS. The v0.4.0 image supports arm64 and amd64, and the Helm chart is designed for a single-node Raspberry Pi-class cluster."
       },
       {
         "id": "capability",
         "number": "02",
-        "status": "Enforced now",
+        "status": "Cedar enforced",
         "statusClass": "current",
-        "title": "Fine-grained capabilities.",
-        "body": "Stay in control with permissioned I/O, hard runtime limits, and deny-by-default rules. Read and write access stay separate, and each approval is tied to one action."
+        "title": "Say exactly who may act.",
+        "body": "Cedar matches a trusted principal, one action, one resource, and broker-derived context. Separate constraint sets cap the destination, method, calls, bytes, credential, and time."
       },
       {
         "id": "custom",
         "number": "03",
-        "status": "One agent tool",
+        "status": "One model tool",
         "statusClass": "current",
-        "title": "Bring your own tools.",
-        "body": "Add custom Rust providers without filling the prompt with tool definitions. Your agent gets one familiar scripting tool and sees only the capabilities you grant."
+        "title": "Use shell fluency without a shell account.",
+        "body": "The model receives one homemade bash-flavored tool. It can inspect and combine granted capabilities, but cannot start a process, read a file, inherit an environment, or open a socket."
       },
       {
         "id": "observe",
         "number": "04",
-        "status": "OpenTelemetry built in",
+        "status": "OTel end to end",
         "statusClass": "current",
-        "title": "Know what happened.",
-        "body": "Audit records show what the broker approved. Traces show where time went. Logs keep costs, refusals, errors, and any transcripts you explicitly choose to record."
+        "title": "Follow the whole run.",
+        "body": "One trace follows a chat message through model turns, scripts, policy, provider work, and HTTP. Durable broker audit separately records what was authorized."
       }
     ]
   },
-  "status": {
-    "kicker": "Start with v0.2.0",
-    "title": "Get running in less than 5 minutes.",
-    "intro": "Install the CLI from crates.io and start on hardware you already own. The release includes 17 crates, three command-line tools, attested binaries, and end-to-end tests.",
-    "current": {
-      "label": "Your agent runtime",
-      "title": "One tool gives the agent everything you allow.",
-      "body": "Connect an OpenAI-compatible model or an isolated ChatGPT/Codex account. The agent can then combine approved capabilities in one sandboxed script.",
-      "points": [
-        "One tool definition, no matter how many capabilities you add",
-        "Loops, functions, pipelines, and real jq for structured data",
-        "No access to processes, files, or your environment",
-        "Fresh Wasm sandboxes with memory, time, input, and output limits",
-        "Local Chrome traces or standard OpenTelemetry export"
-      ],
-      "path": ["prompt", "one tool", "sandbox", "request"]
-    },
-    "direction": {
-      "label": "Permissioned I/O",
-      "title": "Your agent asks. The broker checks.",
-      "body": "A separate local service verifies who is asking, checks an exact allow/deny rule, limits the network request, blocks replays, and records the result.",
-      "items": [
-        { "name": "Verified identity", "description": "private socket + operating-system identity" },
-        { "name": "Fine-grained rules", "description": "who, which agent, which capability, which provider" },
-        { "name": "Hard I/O limits", "description": "destination, method, calls, bytes, and time" },
-        { "name": "Durable records", "description": "hash-linked audit + local checkpoint" }
-      ],
-      "note": "Still to come: broker-managed provider credentials, independently anchored audit checkpoints, a long-running agent service, and multi-tenant networking."
-    }
-  },
-  "execution": {
-    "kicker": "Tools without tool sprawl",
-    "title": "One tool. A complete plan.",
-    "intro": "Your agent can discover, combine, and reuse the capabilities you allow in a single call. You get fewer model round trips without giving the model a real operating-system shell.",
-    "toolLabel": "the model sees",
-    "toolName": "bash({ script })",
-    "script": "items=$(cap --list)\nfor item in $items; do\n  cap --describe $item | jq -c .inputSchema\ndone",
-    "result": "structured JSON · limited output · clear exit codes",
-    "cards": [
-      {
-        "number": "01",
-        "title": "One stable interface",
-        "body": "Add or remove providers without changing the model’s tool schema. The agent discovers only the capabilities available in this session."
-      },
-      {
-        "number": "02",
-        "title": "Structured from start to finish",
-        "body": "Variables and pipelines carry JSON values. Arrays, maps, arithmetic, and jq work without repeatedly turning data into text."
-      },
-      {
-        "number": "03",
-        "title": "No access to your OS",
-        "body": "The interpreter cannot start programs, read files, open sockets, inherit environment variables, or run eval. It only reaches capabilities you grant."
-      },
-      {
-        "number": "04",
-        "title": "Limits at every layer",
-        "body": "Steps, memory, output, runtime, recursion, and tool calls are capped. Each Wasm provider and broker request has its own limits too."
-      }
-    ],
-    "link": { "label": "See how the sandbox works", "href": "https://github.com/dekopon-agents/dekopon/tree/v0.2.0/crates/dekopon-shell" }
-  },
-  "authority": {
-    "kicker": "Fine-grained capabilities",
-    "title": "Your agent can ask.",
-    "titleAccent": "The broker decides.",
-    "intro": "Every outside action crosses a separate permission boundary. The broker verifies the local caller, checks the exact rule and limits, then approves one use. The agent cannot approve itself.",
-    "diagramStatus": "Shipping in v0.2.0 · local broker",
-    "nodes": [
-      {
-        "id": "proposal",
-        "number": "01",
-        "trust": "untrusted",
-        "trustClass": "untrusted",
-        "title": "Request",
-        "body": "The agent asks for one named capability with limited JSON input. It cannot include its own identity or permission."
-      },
-      {
-        "id": "broker",
-        "number": "02",
-        "trust": "permission owner",
-        "trustClass": "privileged",
-        "title": "Permission check",
-        "body": "The broker verifies the local caller, blocks replays, checks the exact rule, and approves one use.",
-        "signals": ["identity", "rule", "limits"]
-      },
-      {
-        "id": "provider",
-        "number": "03",
-        "trust": "limited",
-        "trustClass": "bounded",
-        "title": "Limited provider",
-        "body": "The provider starts in a fresh Wasm sandbox. Dekopon limits its destination, methods, call count, bytes, memory, and time."
-      },
-      {
-        "id": "evidence",
-        "number": "04",
-        "trust": "recorded",
-        "trustClass": "recorded",
-        "title": "Audit record",
-        "body": "The final record ties the verified identity, decision, safe request details, result, and trace together."
-      }
-    ],
-    "invariants": [
-      {
-        "number": "I",
-        "class": "gradient-one",
-        "title": "Read does not mean write",
-        "body": "Every action has its own capability. Permission to fetch a post never grants permission to create one."
-      },
-      {
-        "number": "II",
-        "class": "gradient-two",
-        "title": "Identity comes from the OS",
-        "body": "The model cannot type in a different identity. The broker gets local identity from the connection and your configuration."
-      },
-      {
-        "number": "III",
-        "class": "gradient-three",
-        "title": "Power stays in the broker",
-        "body": "The runner never receives the broker’s approval object and never loads the privileged network interface."
-      },
-      {
-        "number": "IV",
-        "class": "gradient-four",
-        "title": "Failures tell you what to do",
-        "body": "Dekopon distinguishes work that never started from work that may have happened but could not be recorded."
-      }
-    ]
-  },
-  "observability": {
-    "kicker": "Auditing + OpenTelemetry",
-    "title": "See what your agent did.",
-    "intro": "Follow a run from model prompt to broker and provider. OpenTelemetry works with OpenObserve and other standard backends, while the broker keeps its own durable audit trail.",
-    "signals": [
-      {
-        "name": "Audit trail",
-        "question": "What was allowed?",
-        "body": "An owner-only, hash-linked file records each decision and result. The broker checks it again when it starts.",
-        "meta": "durable · local"
-      },
-      {
-        "name": "Traces",
-        "question": "Where did time go?",
-        "body": "See model turns, scripts, commands, permission checks, provider work, and safe HTTP details in one cross-process trace.",
-        "meta": "timing · flow"
-      },
-      {
-        "name": "Logs",
-        "question": "What should we keep?",
-        "body": "Keep token usage, costs, refusals, errors, and optional transcripts without duplicating every trace span.",
-        "meta": "search · retention"
-      }
-    ],
-    "trace": [
-      { "name": "prompt.model_turn", "detail": "tokens + duration" },
-      { "name": "prompt.script", "detail": "one agent plan" },
-      { "name": "shell.command", "detail": "command type + result" },
-      { "name": "broker.authorize", "detail": "allowed / denied / replay" },
-      { "name": "provider.invoke", "detail": "fresh Wasm sandbox" },
-      { "name": "http.request", "detail": "method + host + byte counts" }
-    ],
-    "privacyTitle": "Private by default.",
-    "privacyBody": "Prompts, answers, scripts, tool output, provider data, URL paths, headers, bodies, credentials, and raw errors stay out by default. You can opt selected transcript data into telemetry; secrets and durable audit payloads stay out.",
-    "measurement": {
-      "label": "Raspberry Pi · OpenObserve · real disk use",
-      "value": "200 KiB",
-      "title": "for the current Dekopon sample",
-      "body": "The Dekopon sample on the project Raspberry Pi uses 148 KiB for traces and 52 KiB for logs. These are physical blocks on disk, not sparse-file estimates.",
-      "breakdown": [
-        { "label": "traces", "value": "148 KiB" },
-        { "label": "logs", "value": "52 KiB" },
-        { "label": "total", "value": "200 KiB" }
-      ],
-      "note": "Measured 16 Aug 2026. This is an aggregate sample, not a fixed cost per prompt. The full OpenObserve stream tree used 1.22 MiB, including indexes and metadata."
-    },
-    "link": { "label": "Learn how telemetry works", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/observability.md" }
-  },
-  "resources": {
-    "kicker": "Config you can read",
-    "title": "Permissions live in plain files.",
-    "intro": "Describe agents, capabilities, and providers in compact YAML or JSON. Dekopon rejects unknown fields and broken references before your agent runs.",
-    "points": [
-      { "label": "api", "title": "Clear versions", "body": "make every file’s format explicit." },
-      { "label": "key", "title": "Credential names", "body": "stand in for secret values in shared config." },
-      { "label": "sort", "title": "Predictable output", "body": "stays easy to read and automate." }
-    ],
-    "link": { "label": "See the resource format", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.2.0/docs/design.md" },
-    "yaml": "apiVersion: dekopon.dev/v1alpha1\nkind: Agent\nmetadata:\n  name: reviewer\nspec:\n  description: Reviews pull requests\n  capabilities:\n    - github.pull-request.read\n    - github.pull-request.comment\nstatus: Ready",
-    "terminal": "$ dekopon get agents -o wide\n\nNAME       ENABLED   CAPABILITIES   STATUS\nreviewer   true      2              Ready\nsnooper    false     1              Disabled\n\n$ dekopon validate\n✓ configuration is valid"
-  },
-  "architecture": {
-    "kicker": "Clear separation",
-    "title": "Each part has one job.",
-    "intro": "Pure local tools run without network access. Outside actions go through a separate broker that owns permissions, limits, and audit. The agent never inherits that power.",
-    "current": {
-      "status": "Shipping",
-      "meta": "operator tools",
-      "code": "dekopon",
-      "title": "Simple local control",
-      "body": "Check configuration, inspect agents, and manage model login from one predictable CLI.",
-      "sideLabel": "no outside actions"
-    },
-    "boundary": "private local permission boundary",
-    "committed": {
-      "status": "Shipping in v0.2.0",
-      "meta": "separate roles",
-      "components": [
-        { "id": "daemon", "code": "dekopon-run", "title": "Agent runner", "body": "Talks to the model, runs the one-tool sandbox, and asks the broker for outside actions." },
-        { "id": "broker", "code": "dekopon-brokerd", "title": "Permission broker", "body": "Verifies identity, checks rules, limits I/O, and records every decision and result." },
-        { "id": "wasm", "code": "Wasm component", "title": "Custom provider", "body": "Runs one approved operation in a fresh sandbox with only the host features it needs." }
-      ]
-    },
-    "limits": ["memory", "time", "output", "destinations", "methods", "network calls", "replays", "concurrency"]
-  },
-  "roadmap": {
-    "kicker": "What comes next",
-    "title": "Built honestly, one layer at a time.",
-    "intro": "Version 0.2.0 proves the local permission path. Next comes safer credential handling, stronger audit retention, and a smoother path from agent config to execution.",
-    "link": { "label": "See the full roadmap", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/roadmap.md" },
+  "concepts": {
+    "kicker": "Core concepts",
+    "title": "The homepage is the map. These guides are the territory.",
+    "intro": "Each guide stands on its own, uses the code that ships in v0.4.0, and ends with a link to the latest implementation contract.",
     "items": [
-      { "complete": true, "meta": "0.1 · shipped", "title": "Local agent configuration", "body": "Strict resources, predictable CLI output, model clients, and pure Wasm providers." },
-      { "complete": true, "meta": "0.2 · shipped", "title": "Secure local execution", "body": "One-tool scripting, permissioned HTTP, replay protection, durable audit, and cross-process telemetry." },
-      { "meta": "next", "title": "Stronger audit anchoring", "body": "Keep signed or remote checkpoint copies outside the broker host." },
-      { "meta": "then", "title": "Broker-managed credentials", "body": "Inject destination-bound secrets without exposing them to agents or provider code." },
-      { "meta": "integrate", "title": "Long-running agent service", "body": "Connect agent configuration to continuous execution without moving permissions into the runner." }
+      {
+        "number": "01",
+        "label": "Trusted identity",
+        "title": "A gateway can vouch. It cannot mint authority.",
+        "body": "See how an authenticated chat sender becomes a canonical subject, then a broker-mapped principal and Cedar context.",
+        "href": "/almanac/identity/",
+        "accent": "mint"
+      },
+      {
+        "number": "02",
+        "label": "Cedar permissions",
+        "title": "Principal. Action. Resource. Context.",
+        "body": "Build a complete PR-commenter policy and keep execution limits and credentials beyond policy’s reach.",
+        "href": "/almanac/permissions/",
+        "accent": "purple"
+      },
+      {
+        "number": "03",
+        "label": "One-tool runtime",
+        "title": "A familiar dark room with locked doors.",
+        "body": "Learn how models use shell habits, capability discovery, jq, loops, and exit codes inside a homemade interpreter.",
+        "href": "/almanac/one-tool-runtime/",
+        "accent": "orange"
+      },
+      {
+        "number": "04",
+        "label": "OpenTelemetry",
+        "title": "One message. Three processes. One waterfall.",
+        "body": "Read a trace from gateway to model to broker and understand why audit, traces, and logs remain separate.",
+        "href": "/almanac/observability/",
+        "accent": "cyan"
+      }
     ]
+  },
+  "deployment": {
+    "kicker": "New in v0.4.0",
+    "title": "From release archive to a Kubernetes pod.",
+    "intro": "Version 0.4.0 changes distribution, not authority. The same separated gateway and broker now ship in a verified multi-architecture image and a security-conscious Helm chart.",
+    "facts": [
+      { "value": "1", "label": "pod" },
+      { "value": "2", "label": "daemon containers" },
+      { "value": "0", "label": "Services or Ingresses" },
+      { "value": "0600", "label": "shared Unix socket" }
+    ],
+    "points": [
+      "A native broker sidecar becomes ready before the gateway starts",
+      "An init container creates real owner-only files from Kubernetes projections",
+      "Audit and checkpoint state stay together on one persistent volume",
+      "Provider and model credentials never enter the image"
+    ],
+    "primaryCta": { "label": "Explore Kubernetes deployment", "href": "/deploy/kubernetes/" },
+    "secondaryCta": { "label": "Choose an install path", "href": "/deploy/" }
   },
   "closing": {
-    "kicker": "v0.2.0 · open source",
-    "title": "Run agents on your terms.",
-    "titleAccent": "Start small. Stay in control.",
-    "body": "Install Dekopon, bring a model and your own tools, and see how far secure self-hosted agents can go on hardware you already own.",
-    "primaryCta": { "label": "Get v0.2.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.2.0" },
-    "secondaryCta": { "label": "Join the project", "href": "https://github.com/dekopon-agents/dekopon/blob/main/CONTRIBUTING.md" }
+    "kicker": "v0.4.0 · open source",
+    "title": "Let the model explore.",
+    "titleAccent": "Keep every door explicit.",
+    "body": "Bring a model, narrow capabilities, and hardware you own. Dekopon gives agents a useful place to work without handing them the keys to the host.",
+    "primaryCta": { "label": "Get v0.4.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0" },
+    "secondaryCta": { "label": "See how it works", "href": "/almanac/" }
   }
 }
