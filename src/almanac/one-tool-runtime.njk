@@ -1,0 +1,177 @@
+---
+layout: layouts/base.njk
+permalink: almanac/one-tool-runtime/index.html
+pageTitle: One-tool runtime — How Dekopon v0.4.0 works
+pageDescription: See how Dekopon gives frontier models a familiar bash-flavored workspace without processes, files, inherited environment variables, or sockets.
+bodyClass: almanac-page almanac-article-page almanac-runtime-page
+almanacPage: true
+almanacSection: runtime
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
+
+{{ pageHero("03", "One-tool runtime", "A shell-shaped dark room.<br><span>Only approved doors.</span>", "Frontier models already know how to inspect an unfamiliar shell, combine small commands, read exit codes, and try another path. Dekopon keeps that fluency and replaces the operating system underneath it.", "current", "Shipping in v0.4.0") }}
+{{ chapterNav("runtime", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and release">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#one-tool">What the model sees</a>
+      <a href="#explore">How it explores</a>
+      <a href="#commenter">A complete plan</a>
+      <a href="#not-bash">Why it is not bash</a>
+      <a href="#data">Structured data</a>
+      <a href="#bounds">Hard limits</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="one-tool" class="article-section">
+      <div class="article-heading">
+        <span>03.1 · one fixed schema</span>
+        <h2>The model sees exactly one tool.</h2>
+        <p>Whether a session has three capabilities or three hundred, the model-facing schema remains one function named <code>bash</code> with one string argument named <code>script</code>.</p>
+      </div>
+
+      <div class="one-tool-contract">
+        <div><small>tool</small><strong><code>bash</code></strong></div>
+        <div><small>input</small><strong><code>{ script: string }</code></strong></div>
+        <div><small>result</small><strong>bounded output + exit code</strong></div>
+      </div>
+
+      <p>One script can discover capabilities, inspect schemas, loop over results, filter JSON, and make several calls. Adding a provider does not paste another large function definition into every model turn.</p>
+
+      <div class="article-callout callout-decision">
+        <strong>“bash” names a language the model recognizes.</strong>
+        <p>It does not launch <code>/bin/bash</code>. <code>dekopon-shell</code> is a native Rust parser and interpreter with its own value model, builtins, limits, and one abstract capability seam.</p>
+      </div>
+    </section>
+
+    <section id="explore" class="article-section">
+      <div class="article-heading">
+        <span>03.2 · trained exploration</span>
+        <h2>Let a capable model feel around safely.</h2>
+        <p>State-of-the-art models have extensive training on shell sessions where the environment is initially unknown. They know the rhythm: list what exists, inspect one command, try a narrow operation, read the result, and adapt.</p>
+      </div>
+
+      <div class="shell-discovery">
+        <div><span>$</span><code>cap --list</code><small>What commands exist?</small></div>
+        <i aria-hidden="true">↓</i>
+        <div><span>$</span><code>cap --describe gh.pull-request.comment</code><small>What JSON does this one accept?</small></div>
+        <i aria-hidden="true">↓</i>
+        <div><span>$</span><code>gh pr view 42 -R example/widgets</code><small>Read before writing.</small></div>
+        <i aria-hidden="true">↓</i>
+        <div><span>$?</span><code>0, 1, 2, 126, or 127</code><small>Did it succeed, fail, get denied, or not exist?</small></div>
+      </div>
+
+      <p>The room is intentionally dark but not deceptive. Unsupported constructs fail by name. Ungranted capabilities are absent. Policy denial has a distinct exit code. The model can search for a valid path without discovering a hidden path to the host.</p>
+    </section>
+
+    <section id="commenter" class="article-section">
+      <div class="article-heading">
+        <span>03.3 · several operations, one tool call</span>
+        <h2>A PR review becomes one replayable script.</h2>
+        <p>The PR commenter can inspect the request, list changed files, build a concise summary, and leave a comment without another model round trip for every capability.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># Model-authored Dekopon script</span>
+pr=$(gh pr view 42 -R example/widgets)
+
+if test "${pr[state]}" != "open"; then
+  echo "PR 42 is not open; no comment left."
+  exit 1
+fi
+
+count=$(gh pr files 42 -R example/widgets | jq '.files | length')
+
+body=$(printf "Reviewed PR 42 at %s. It changes %s files." \
+  "${pr[headSha]}" "$count")
+
+gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
+
+      <div class="script-legends">
+        <span><i></i><strong>familiar</strong> variables, <code>if</code>, command substitution, pipes</span>
+        <span><i></i><strong>structured</strong> JSON values remain values between commands</span>
+        <span><i></i><strong>permissioned</strong> each <code>gh</code> subcommand maps to one capability</span>
+      </div>
+
+      <p>An operator can copy the same script into <code>dekopon-run shell</code> and replay it without a model. The <code>gh</code> vocabulary is ergonomic routing, not a bundled GitHub CLI: <code>gh api</code> is refused because raw passthrough would collapse the capability boundary.</p>
+    </section>
+
+    <section id="not-bash" class="article-section">
+      <div class="article-heading">
+        <span>03.4 · no operating-system shell</span>
+        <h2>Familiar syntax. Radically smaller authority.</h2>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">The language keeps</th><th scope="col">The runtime deliberately lacks</th></tr></thead>
+          <tbody>
+            <tr><td><code>if</code>, loops, functions, case, break, continue</td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
+            <tr><td>variables, command substitution, arithmetic, here-documents</td><td>host environment variables, <code>export</code>, <code>source</code></td></tr>
+            <tr><td><code>jq</code>, grep, sed, cut, sort, base64, xargs</td><td>filesystem paths, descriptors, devices, real byte pipes</td></tr>
+            <tr><td>capability-backed <code>gh</code> and optional <code>curl</code></td><td>raw sockets, DNS, ambient HTTP, a general API escape hatch</td></tr>
+            <tr><td>optional UTC <code>date</code> after an explicit grant</td><td>clock access by default, timezone environment, setting time</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The interpreter crate links no Wasmtime, broker, HTTP client, or filesystem code. Every external action reaches one <code>CapabilityInvoker</code>. The embedding process decides whether that capability is a pure local provider or a proposal to the separate broker.</p>
+    </section>
+
+    <section id="data" class="article-section">
+      <div class="article-heading">
+        <span>03.5 · JSON-native values</span>
+        <h2>Structured data survives the whole plan.</h2>
+      </div>
+
+      <div class="data-journey-map">
+        <div class="journey-zone journey-zone-remote">
+          <div class="journey-zone-label"><span>untrusted model output</span><strong>one script string</strong></div>
+          <div class="journey-node"><small>tool argument</small><strong><code>{"script":"..."}</code></strong><code>strict object shape</code></div>
+        </div>
+        <i aria-hidden="true">↓ parse supported grammar</i>
+        <div class="journey-zone journey-zone-host">
+          <div class="journey-zone-label"><span><code>dekopon-shell</code></span><strong>JSON-native interpreter</strong></div>
+          <div class="journey-node-row">
+            <div class="journey-node"><small>variables</small><strong>arrays + objects</strong><code>not flattened to strings</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>pipeline</small><strong>structured value</strong><code>jq-style handoff</code></div>
+            <b aria-hidden="true">→</b>
+            <div class="journey-node"><small>flags</small><strong>camelCase JSON</strong><code>--head-sha → headSha</code></div>
+          </div>
+        </div>
+        <i aria-hidden="true">↓ one capability proposal</i>
+        <div class="journey-zone journey-zone-guest">
+          <div class="journey-zone-label"><span>provider boundary</span><strong>strict typed operation</strong></div>
+          <div class="journey-node"><small>result</small><strong>succeeded / failed / denied</strong><code>meaning preserved for the next command</code></div>
+        </div>
+      </div>
+
+      <p>Provider schemas help the model discover input, while providers still validate operation-specific values. A schema shown to an untrusted model is useful metadata; it is not an authorization mechanism.</p>
+    </section>
+
+    <section id="bounds" class="article-section">
+      <div class="article-heading">
+        <span>03.6 · a budget at every layer</span>
+        <h2>Exploration is useful only when it ends.</h2>
+      </div>
+
+      <div class="invariant-notes">
+        <article><span>script</span><h3>Interpreter budget</h3><p>Steps, recursion, value bytes, output bytes and lines, deadline, and capability calls.</p></article>
+        <article><span>session</span><h3>Model budget</h3><p>Model turns, tool calls per turn, and one capability-call budget shared across every script.</p></article>
+        <article><span>Wasm</span><h3>Provider budget</h3><p>Fresh memory, fuel, input, output, and wall-clock bounds for each component call.</p></article>
+        <article><span>broker</span><h3>Effect budget</h3><p>Policy, destination, method, HTTP calls, bytes, timeout, credential, and replay ID.</p></article>
+      </div>
+
+      <p>OpenTelemetry records each command word as a <code>shell.command</code> span with its known name, kind, argument count, exit code, and outcome. Argument values stay out because command arguments can be provider payloads wearing shell syntax.</p>
+
+      {{ docsCta("Open the current shell language contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-shell/README.md", "See the complete grammar, builtin behavior, rejected constructs, value semantics, residual limits, and observability fields.") }}
+    </section>
+
+    {{ chapterPager(almanac.chapters[2], almanac.chapters[4]) }}
+  </article>
+</div>

@@ -1,0 +1,367 @@
+---
+layout: layouts/base.njk
+permalink: almanac/permissions/index.html
+pageTitle: Cedar permissions — How Dekopon v0.4.0 works
+pageDescription: Build a complete, redacted PR-commenter example with Dekopon identities, capabilities, Cedar resources, execution constraints, and broker-held credentials.
+bodyClass: almanac-page almanac-article-page almanac-permissions-page
+almanacPage: true
+almanacSection: permissions
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
+
+{{ pageHero("02", "Cedar permissions", "Who may do what?<br><span>How far may it reach?</span>", "Cedar answers the first question. Broker-owned constraint sets answer the second. This complete PR-commenter example shows why Dekopon keeps them apart.", "current", "Cedar enforced in v0.4.0") }}
+{{ chapterNav("permissions", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and release">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#model">The Cedar model</a>
+      <a href="#story">The commenter story</a>
+      <a href="#catalog">Agent and capabilities</a>
+      <a href="#broker">Identity and constraints</a>
+      <a href="#policy">The Cedar policies</a>
+      <a href="#decision">One comment decision</a>
+      <a href="#limits">What policy cannot widen</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="model" class="article-section">
+      <div class="article-heading">
+        <span>02.1 · four inputs</span>
+        <h2>Principal. Action. Resource. Context.</h2>
+        <p>Every Cedar request has the same grammar. Dekopon supplies each value from authenticated transport state, owner-controlled configuration, and the loaded provider manifest—not from message text or provider input.</p>
+      </div>
+
+      <div class="cedar-equation" role="group" aria-label="Cedar authorization inputs">
+        <div><span>who</span><strong>principal</strong><code>maintainer</code></div>
+        <i aria-hidden="true">×</i>
+        <div><span>does what</span><strong>action</strong><code>gh.pull-request.comment</code></div>
+        <i aria-hidden="true">×</i>
+        <div><span>to which surface</span><strong>resource</strong><code>Provider::"gh"</code></div>
+        <i aria-hidden="true">+</i>
+        <div><span>under which route</span><strong>context</strong><code>via + agent</code></div>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Cedar term</th><th scope="col">Dekopon value</th><th scope="col">Trusted source</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Principal</th><td>The human or service asking</td><td>peer identity or subject mapping</td></tr>
+            <tr><th scope="row">Action</th><td><code>agent.prompt</code> or one capability ID</td><td>fixed action plus loaded manifests</td></tr>
+            <tr><th scope="row">Resource</th><td>An Agent for prompting; a Provider for capabilities</td><td>route agent or loaded provider</td></tr>
+            <tr><th scope="row">Context</th><td><code>via</code>, subject, agent, effect, risk, idempotency</td><td>broker-derived identity and trusted classification</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="article-callout callout-decision">
+        <strong>A capability is an action, not ambient access.</strong>
+        <p>The agent catalog says what a model may propose. Cedar says whether this principal may request that action on this resource. The broker still applies a separate execution envelope before anything runs.</p>
+      </div>
+    </section>
+
+    <section id="story" class="article-section">
+      <div class="article-heading">
+        <span>02.2 · the running example</span>
+        <h2>A PR commenter, not an approver.</h2>
+        <p>A maintainer sends a Slack message: “Read PR 42 and leave a concise review comment.” The agent may read the pull request and changed files, then submit a <code>COMMENT</code> review. It has no approval, merge, request-changes, issue, or raw API capability.</p>
+      </div>
+
+      <div class="commenter-story">
+        <div><small>identity</small><strong>maintainer</strong><span>through <code>chat-gateway</code></span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>agent</small><strong>pr-commenter</strong><span>three proposed actions</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>provider</small><strong>gh</strong><span>GET, then bounded POST</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>result</small><strong>COMMENTED</strong><span>identity + policy + digest audited</span></div>
+      </div>
+
+      <p>The identifiers below are fictional. Deployment paths and unrelated server limits are omitted. The credential value is visibly redacted. Every permission-bearing relationship remains.</p>
+    </section>
+
+    <section id="catalog" class="article-section">
+      <div class="article-heading">
+        <span>02.3 · proposal surface</span>
+        <h2>The catalog tells the agent what it may ask for.</h2>
+      </div>
+
+      <pre><code><span class="code-comment"># dekopon.yaml — public catalog, no secret values</span>
+apiVersion: dekopon.dev/v1alpha1
+kind: Provider
+metadata:
+  name: gh
+spec:
+  description: Narrow GitHub pull-request operations
+  type: github
+  credentialRef: github-comment-token
+status: Unknown
+---
+apiVersion: dekopon.dev/v1alpha1
+kind: Capability
+metadata:
+  name: gh.pull-request.read
+spec:
+  description: Reads one pull request
+  provider: gh
+  effect: read-only
+  risk: Low
+  idempotency: idempotent
+  permissions:
+    - operation: pull_requests:read
+status: Unknown
+---
+apiVersion: dekopon.dev/v1alpha1
+kind: Capability
+metadata:
+  name: gh.pull-request.files
+spec:
+  description: Lists changed files with bounded patches
+  provider: gh
+  effect: read-only
+  risk: Low
+  idempotency: idempotent
+  permissions:
+    - operation: pull_requests:read
+      resource: files
+status: Unknown
+---
+apiVersion: dekopon.dev/v1alpha1
+kind: Capability
+metadata:
+  name: gh.pull-request.comment
+spec:
+  description: Submits a COMMENT review pinned to the observed head SHA
+  provider: gh
+  effect: external-write
+  risk: Medium
+  idempotency: conditional
+  permissions:
+    - operation: pull_requests:write
+      resource: reviews
+status: Unknown
+---
+apiVersion: dekopon.dev/v1alpha1
+kind: Agent
+metadata:
+  name: pr-commenter
+spec:
+  description: Reads pull requests and leaves review comments
+  enabled: true
+  modelClass: reasoning
+  capabilities:
+    - gh.pull-request.read
+    - gh.pull-request.files
+    - gh.pull-request.comment
+  providers:
+    - gh
+status: Ready</code></pre>
+
+      <p>This file narrows the model-facing surface. It grants no provider credential and creates no Cedar permission. Removing a capability stops the model from reaching it through this agent; adding one still requires broker configuration and policy.</p>
+    </section>
+
+    <section id="broker" class="article-section">
+      <div class="article-heading">
+        <span>02.4 · identity and execution</span>
+        <h2>The broker owns everything that carries authority.</h2>
+        <p>The same configuration establishes the gateway’s attestor lane and the hard envelope for each capability. The secret value lives in a separate stricter file.</p>
+      </div>
+
+      <pre><code><span class="code-comment"># broker.yaml — relevant fields, deployment paths omitted</span>
+apiVersion: dekopon.dev/brokerd/v1alpha1
+brokerPrincipal: local-broker
+policyRevision: pr-commenter-2026-08
+policiesPath: policies.cedar
+credentialsPath: broker-credentials.yaml
+providers:
+  - gh-provider.wasm
+
+identities:
+  - uid: 65532
+    principal: chat-gateway
+    actor:
+      type: service
+      principal: chat-gateway
+    attestor:
+      namespaces: [slack.t0example]
+
+identityMappings:
+  - subject: slack.t0example.u0example
+    principal: maintainer
+
+constraintSets:
+  gh.pull-request.read:
+    provider: gh
+    effect: read-only
+    risk: Low
+    idempotency: idempotent
+    credential: github-comment-token
+    constraints:
+      timeoutMs: 10000
+      maxOutputBytes: 32768
+      http:
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET]
+        maxRequests: 1
+        maxRequestBytes: 16384
+        maxResponseBytes: 262144
+        allowPlaintextLoopback: false
+
+  gh.pull-request.files:
+    provider: gh
+    effect: read-only
+    risk: Low
+    idempotency: idempotent
+    credential: github-comment-token
+    constraints:
+      timeoutMs: 10000
+      maxOutputBytes: 131072
+      http:
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET]
+        maxRequests: 1
+        maxRequestBytes: 16384
+        maxResponseBytes: 1048576
+        allowPlaintextLoopback: false
+
+  gh.pull-request.comment:
+    provider: gh
+    effect: external-write
+    risk: Medium
+    idempotency: conditional
+    credential: github-comment-token
+    constraints:
+      timeoutMs: 15000
+      maxOutputBytes: 8192
+      http:
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET, POST]
+        maxRequests: 2
+        maxRequestBytes: 16384
+        maxResponseBytes: 262144
+        allowPlaintextLoopback: false</code></pre>
+
+      <pre><code><span class="code-comment"># broker-credentials.yaml — separate owner-only file</span>
+apiVersion: dekopon.dev/broker-credentials/v1alpha1
+credentials:
+  - name: github-comment-token
+    kind: bearerToken
+    scheme: Bearer
+    destinations: [api.github.com]
+    secret: [REDACTED]</code></pre>
+
+      <div class="invariant-notes">
+        <article><span>pre-read</span><h3>Why GET and POST?</h3><p>The comment capability reads the pull request first, pins the observed head SHA, then writes the review. A moved head refuses before the write.</p></article>
+        <article><span>destination</span><h3>Why repeat the host?</h3><p>The constraint set and credential binding must both cover <code>api.github.com</code>. Startup proves they agree.</p></article>
+        <article><span>secret</span><h3>Who sees the value?</h3><p>Only the native broker HTTP engine. It injects the header after guest headers are validated.</p></article>
+      </div>
+    </section>
+
+    <section id="policy" class="article-section">
+      <div class="article-heading">
+        <span>02.5 · two independent grants</span>
+        <h2>Driving the agent does not imply using its capabilities.</h2>
+        <p>The first statement opens the session. The second describes the GitHub surface available inside it. Both require the attested gateway path.</p>
+      </div>
+
+      <pre><code><span class="code-comment">// policies.cedar — complete policy set for this example</span>
+@id("maintainer-may-prompt-pr-commenter")
+permit(
+  principal == Dekopon::Principal::"maintainer",
+  action == Dekopon::Action::"agent.prompt",
+  resource == Dekopon::Agent::"pr-commenter"
+)
+when {
+  context has via &amp;&amp;
+  context.via == "chat-gateway"
+};
+
+@id("pr-commenter-github-surface")
+permit(
+  principal == Dekopon::Principal::"maintainer",
+  action in [
+    Dekopon::Action::"gh.pull-request.read",
+    Dekopon::Action::"gh.pull-request.files",
+    Dekopon::Action::"gh.pull-request.comment"
+  ],
+  resource == Dekopon::Provider::"gh"
+)
+when {
+  context has agent &amp;&amp;
+  context.agent == "pr-commenter" &amp;&amp;
+  context has via &amp;&amp;
+  context.via == "chat-gateway"
+};</code></pre>
+
+      <p>An empty policy set permits nothing. An unknown principal, provider, action, entity type, or ill-typed expression refuses broker startup under strict validation. The <code>@id</code> values become stable <code>policy_ids</code> in audit.</p>
+    </section>
+
+    <section id="decision" class="article-section">
+      <div class="article-heading">
+        <span>02.6 · one decision</span>
+        <h2>A comment passes through two different gates.</h2>
+      </div>
+
+      <div class="permission-gates">
+        <article>
+          <span>Gate A · Cedar</span>
+          <h3>May this identity request it?</h3>
+          <dl>
+            <div><dt>principal</dt><dd><code>maintainer</code></dd></div>
+            <div><dt>action</dt><dd><code>gh.pull-request.comment</code></dd></div>
+            <div><dt>resource</dt><dd><code>Provider::"gh"</code></dd></div>
+            <div><dt>context</dt><dd><code>pr-commenter</code> via <code>chat-gateway</code></dd></div>
+          </dl>
+          <strong class="gate-result">Allowed by <code>pr-commenter-github-surface</code></strong>
+        </article>
+        <i aria-hidden="true">then →</i>
+        <article>
+          <span>Gate B · constraints</span>
+          <h3>How narrowly may it execute?</h3>
+          <dl>
+            <div><dt>destination</dt><dd><code>api.github.com</code></dd></div>
+            <div><dt>methods</dt><dd><code>GET</code> + <code>POST</code></dd></div>
+            <div><dt>calls</dt><dd>at most 2</dd></div>
+            <div><dt>credential</dt><dd><code>github-comment-token</code></dd></div>
+          </dl>
+          <strong class="gate-result">Bound to one invocation</strong>
+        </article>
+      </div>
+
+      <p>The resulting authorization is created and consumed inside the broker. The gateway and model receive the result, never a reusable grant.</p>
+    </section>
+
+    <section id="limits" class="article-section">
+      <div class="article-heading">
+        <span>02.7 · the separation that matters</span>
+        <h2>A policy edit cannot move the hard walls.</h2>
+      </div>
+
+      <div class="comparison-table-wrap">
+        <table class="almanac-table strategy-table">
+          <thead><tr><th scope="col">Cedar may change</th><th scope="col">Cedar cannot change</th></tr></thead>
+          <tbody>
+            <tr><td>which principal may act</td><td>the destination host or port</td></tr>
+            <tr><td>which capability action it may request</td><td>HTTP methods, calls, or byte ceilings</td></tr>
+            <tr><td>which provider resource it may target</td><td>timeout, provider output, or host ceilings</td></tr>
+            <tr><td>which gateway and agent context must be present</td><td>which broker-held credential is selected</td></tr>
+            <tr><td>whether trusted effect/risk/idempotency context matches</td><td>provider input, URL path, headers, or message text</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="article-callout callout-warning">
+        <strong>Policy does not currently bind a repository path.</strong>
+        <p>Cedar does not receive provider input, so it cannot say “only repositories under this organization.” Use a GitHub token scoped to the intended repositories; credential scope remains that boundary.</p>
+      </div>
+
+      {{ docsCta("Open the current Cedar adapter contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-policy/README.md", "See the generated schema, strict validation, context fields, policy bounds, explanations, and digest rules used by the latest code.") }}
+    </section>
+
+    {{ chapterPager(almanac.chapters[1], almanac.chapters[3]) }}
+  </article>
+</div>

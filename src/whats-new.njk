@@ -2,8 +2,8 @@
 layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
-pageTitle: What’s new in Dekopon v0.2.0
-pageDescription: Version 0.2.0 brings secure agent tools, fine-grained permissions, auditing, and OpenTelemetry to hardware as small as a Raspberry Pi.
+pageTitle: What’s new in Dekopon v0.4.0
+pageDescription: Version 0.4.0 packages Dekopon for real deployment with verified container images, a one-pod Helm design, credential delivery, and Homebrew.
 ogType: article
 ---
 <section class="release-hero">
@@ -14,18 +14,18 @@ ogType: article
       <h1 class="reveal reveal-delay-1"><span>{{ whatsNew.hero.version }}</span>{{ whatsNew.hero.title }}</h1>
       <p class="release-lede reveal reveal-delay-2">{{ whatsNew.hero.lede }}</p>
       <div class="release-actions reveal reveal-delay-3">
-        <a class="button button-primary" href="#get-v020">Get v0.2.0 <span aria-hidden="true">↓</span></a>
+        <a class="button button-primary" href="#get-v040">Get v0.4.0 <span aria-hidden="true">↓</span></a>
         <a class="button button-secondary" href="{{ whatsNew.hero.releaseUrl }}">GitHub release <span aria-hidden="true">↗</span></a>
       </div>
     </div>
 
-    <aside class="release-card reveal reveal-delay-2" aria-label="v0.2.0 release details">
+    <aside class="release-card reveal reveal-delay-2" aria-label="v0.4.0 release details">
       <div class="release-card-top">
         <span><i aria-hidden="true"></i> Current release</span>
         <code>{{ whatsNew.hero.revision }}</code>
       </div>
       <strong>{{ whatsNew.hero.version }}</strong>
-      <p>Released <time datetime="2026-08-16">16 August 2026</time></p>
+      <p>Released <time datetime="{{ whatsNew.hero.dateIso }}">{{ whatsNew.hero.date }}</time></p>
       <div class="release-command" data-copy-group>
         <span aria-hidden="true">$</span>
         <code>{{ whatsNew.hero.install }}</code>
@@ -51,7 +51,7 @@ ogType: article
         <span class="section-kicker purple">The short version</span>
         <h2 id="release-summary-title">The release in three points.</h2>
       </div>
-      <p>Your agents can now run multi-step tools, ask for tightly limited network access, and show you what happened from prompt to provider.</p>
+      <p>The authority model is unchanged. What is new is a verified path from release archive to image, private files, ordered daemons, and durable state.</p>
     </div>
 
     <div class="release-highlight-grid">
@@ -72,8 +72,8 @@ ogType: article
 <section class="release-path-section" aria-labelledby="release-path-title">
   <div class="shell">
     <div class="release-path-heading">
-      <div><span class="section-kicker mint">One secure path</span><h2 id="release-path-title">The agent asks. The broker decides.</h2></div>
-      <p>The request contains the action, not the permission. The broker verifies the local caller and checks your rule before one limited provider call can run.</p>
+      <div><span class="section-kicker mint">One verified path</span><h2 id="release-path-title">Build once. Verify. Deploy deliberately.</h2></div>
+      <p>Release binaries become the image’s binaries. Kubernetes then supplies owner-controlled configuration, policy, credentials, and state without baking any of them into the image.</p>
     </div>
     <ol class="release-path" aria-label="How Dekopon checks one agent request">
       {% for step in whatsNew.path %}
@@ -88,9 +88,9 @@ ogType: article
     <div class="release-section-heading release-details-heading">
       <div>
         <span class="section-kicker orange">Under the hood</span>
-        <h2 id="release-details-title">What v0.2.0 brings.</h2>
+        <h2 id="release-details-title">What v0.4.0 brings.</h2>
       </div>
-      <p>The safe scripting tool cannot reach your operating system. The runner cannot approve an action. Providers cannot exceed the host access and limits you give them.</p>
+      <p>The gateway, broker, provider, and audit responsibilities remain separated. Version 0.4.0 packages those boundaries instead of flattening them for deployment convenience.</p>
     </div>
 
     <div class="release-change-list">
@@ -107,21 +107,21 @@ ogType: article
       {% endfor %}
     </div>
 
-    <aside class="release-telemetry reveal" aria-label="Measured OpenObserve storage">
+    <aside class="release-telemetry reveal" aria-label="Version 0.4.0 authority change">
       <div><span>OpenObserve · physical allocation</span><strong>{{ whatsNew.telemetry.value }}</strong><small>{{ whatsNew.telemetry.title }}</small></div>
       <div><p>{{ whatsNew.telemetry.body }}</p><small>{{ whatsNew.telemetry.note }}</small></div>
     </aside>
   </div>
 </section>
 
-<section class="release-install section" id="get-v020" aria-labelledby="release-install-title">
+<section class="release-install section" id="get-v040" aria-labelledby="release-install-title">
   <div class="shell">
     <div class="release-section-heading release-install-heading">
       <div>
-        <span class="section-kicker mint">Published on crates.io</span>
+        <span class="section-kicker mint">Available now</span>
         <h2 id="release-install-title">Pick your starting point.</h2>
       </div>
-      <p>Install any of the three command-line tools on its own. You can also download an attested build of the main CLI from GitHub.</p>
+      <p>Version 0.4.0 is distributed through Homebrew, attested GitHub archives, and the multi-architecture container image. It is not published to crates.io.</p>
     </div>
 
     <div class="release-package-grid">
@@ -143,15 +143,15 @@ ogType: article
   <div class="shell">
     <div class="release-section-heading">
       <div>
-        <span class="section-kicker purple">Where v0.2.0 stands</span>
-        <h2 id="release-scope-title">Ready to explore. Not production-ready yet.</h2>
+        <span class="section-kicker purple">Where v0.4.0 stands</span>
+        <h2 id="release-scope-title">Deployable foundation. Still pre-production.</h2>
       </div>
-      <p>The local permission path works today. Broker-managed provider credentials, stronger audit anchoring, multi-tenant networking, and production hardening still come next.</p>
+      <p>The full local path includes gateway attestation, Cedar, broker-managed credentials, Wasm providers, audit, and telemetry. Stronger process isolation and audit anchoring remain.</p>
     </div>
 
     <div class="release-scope-grid">
       <article class="release-scope-card current reveal">
-        <span><i aria-hidden="true"></i> Current in v0.2.0</span>
+        <span><i aria-hidden="true"></i> Current in v0.4.0</span>
         <ul>{% for item in whatsNew.scope.current %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
       <article class="release-scope-card next reveal reveal-delay-1">
@@ -163,14 +163,14 @@ ogType: article
     <article class="previous-release reveal">
       <div><span>Previous release</span><strong>{{ whatsNew.previous.version }}</strong></div>
       <div><h3>{{ whatsNew.previous.title }}</h3><p>{{ whatsNew.previous.body }}</p></div>
-      <a href="{{ whatsNew.previous.url }}" aria-label="View the v0.1.0 release">View 0.1 <span aria-hidden="true">↗</span></a>
+      <a href="{{ whatsNew.previous.url }}" aria-label="View the v0.3.0 release">View 0.3 <span aria-hidden="true">↗</span></a>
     </article>
   </div>
 </section>
 
 <section class="release-closing">
   <div class="shell release-closing-inner">
-    <div><span class="section-kicker mint">v0.2.0 is available now</span><h2>Install it.<br>Take it for a spin.</h2></div>
-    <div><p>See every change on GitHub, or open the Tech Almanac for a clear tour of the code that ships.</p><div class="release-actions"><a class="button button-white" href="{{ whatsNew.hero.releaseUrl }}">Full release notes <span aria-hidden="true">↗</span></a><a class="button button-ghost" href="/almanac/">See how it works <span aria-hidden="true">→</span></a></div></div>
+    <div><span class="section-kicker mint">v0.4.0 is available now</span><h2>Pull it.<br>See every boundary.</h2></div>
+    <div><p>Choose a deployment path, or open the system guide for a clear tour from authenticated message to audited effect.</p><div class="release-actions"><a class="button button-white" href="/deploy/">Deploy v0.4.0 <span aria-hidden="true">→</span></a><a class="button button-ghost" href="/almanac/">See how it works <span aria-hidden="true">→</span></a></div></div>
   </div>
 </section>

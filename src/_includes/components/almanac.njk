@@ -1,5 +1,5 @@
 {% macro chapterNav(activeKey, chapters) %}
-<nav class="almanac-chapter-nav" aria-label="Tech almanac chapters">
+<nav class="almanac-chapter-nav" aria-label="How Dekopon works chapters">
   <div class="shell almanac-chapter-nav-inner">
     {% for chapter in chapters %}
       <a class="almanac-chapter-link{% if chapter.key == activeKey %} is-active{% endif %}" href="{{ chapter.href }}"{% if chapter.key == activeKey %} aria-current="page"{% endif %}>
@@ -19,14 +19,25 @@
 <div class="source-stamp">
   <span class="source-stamp-mark" aria-hidden="true">⌁</span>
   <div>
-    <strong>Code checked for this guide</strong>
-    <p>Based on <a href="https://github.com/dekopon-agents/dekopon/tree/{{ source.revision }}">Dekopon <code>{{ source.release }}@{{ source.shortRevision }}</code></a>, {{ source.date }}. Anything that did not ship in this release is labeled “next.”</p>
+    <strong>Release covered by this guide</strong>
+    <p>Checked against <a href="https://github.com/dekopon-agents/dekopon/tree/{{ source.revision }}">Dekopon <code>{{ source.release }}@{{ source.shortRevision }}</code></a>, {{ source.date }}. Current limits are named plainly.</p>
   </div>
 </div>
 {% endmacro %}
 
+{% macro docsCta(label, href, note) %}
+<aside class="docs-cta" aria-label="Latest Dekopon documentation">
+  <span aria-hidden="true">↗</span>
+  <div>
+    <strong>Read the latest in the Dekopon docs</strong>
+    <p>{{ note }}</p>
+  </div>
+  <a href="{{ href }}">{{ label }} <span aria-hidden="true">→</span></a>
+</aside>
+{% endmacro %}
+
 {% macro chapterPager(previous, next) %}
-<nav class="chapter-pager" aria-label="Adjacent almanac chapters">
+<nav class="chapter-pager" aria-label="Adjacent chapters">
   {% if previous %}
     <a class="chapter-pager-link chapter-pager-previous" href="{{ previous.href }}">
       <span>← Previous · {{ previous.number }}</span>

@@ -1,0 +1,169 @@
+---
+layout: layouts/base.njk
+permalink: almanac/providers/index.html
+pageTitle: Wasm providers — How Dekopon v0.4.0 works
+pageDescription: See how Dekopon runs each provider operation in a fresh Wasm sandbox and gives networked providers only one broker-owned, constrained HTTP interface.
+bodyClass: almanac-page almanac-article-page almanac-providers-page
+almanacPage: true
+almanacSection: providers
+ogType: article
+---
+{% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
+
+{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps provider credentials beyond guest reach.", "current", "Shipping in v0.4.0") }}
+{{ chapterNav("providers", almanac.chapters) }}
+
+<div class="almanac-article-shell shell">
+  <aside class="article-rail" aria-label="Article navigation and release">
+    <nav aria-label="On this page">
+      <span>On this page</span>
+      <a href="#contract">The provider contract</a>
+      <a href="#hosts">Two execution paths</a>
+      <a href="#fresh">A fresh store</a>
+      <a href="#http">Permissioned HTTP</a>
+      <a href="#credential">Credential injection</a>
+      <a href="#scope">What this protects</a>
+    </nav>
+    {{ sourceStamp(almanac.source) }}
+  </aside>
+
+  <article class="almanac-prose">
+    <section id="contract" class="article-section">
+      <div class="article-heading">
+        <span>04.1 · a small portable boundary</span>
+        <h2>Describe capabilities. Invoke exactly one.</h2>
+        <p>A provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure.</p>
+      </div>
+
+      <pre><code><span class="code-purple">world</span> provider {
+  <span class="code-purple">export</span> describe: func() -&gt; string;
+  <span class="code-purple">export</span> invoke: func(
+    capability: string,
+    input-json: string
+  ) -&gt; string;
+}</code></pre>
+
+      <div class="build-pipeline">
+        <div class="build-step"><span>1</span><strong>Implement</strong><small>typed Rust provider</small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step"><span>2</span><strong>Compile</strong><small><code>wasm32-unknown-unknown</code></small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step"><span>3</span><strong>Inspect</strong><small>declared WIT imports</small></div>
+        <i aria-hidden="true">→</i>
+        <div class="build-step build-step-final"><span>4</span><strong>Load</strong><small>operator-owned host</small></div>
+      </div>
+
+      <p>A component cannot download a native runtime extension or invent a host import. Its requirements are visible before execution, and the host either supplies exactly those interfaces or rejects it.</p>
+    </section>
+
+    <section id="hosts" class="article-section">
+      <div class="article-heading">
+        <span>04.2 · two deliberately different hosts</span>
+        <h2>The linker is the first permission boundary.</h2>
+      </div>
+
+      <div class="run-mode-cards">
+        <article class="run-mode-current">
+          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Direct</span><span><code>dekopon-run</code></span></div>
+          <h3>Import-free local computation</h3>
+          <p>The linker supplies nothing. Components declaring network imports fail to load, and manifests may contain only read-only effects.</p>
+          <ul>
+            <li>no filesystem, network, environment, clock, random source, or credential</li>
+            <li>pure transforms and provider development</li>
+            <li>raw untrusted output, not authorization evidence</li>
+          </ul>
+        </article>
+        <article class="run-mode-future">
+          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker</span><span><code>dekopon-brokerd</code></span></div>
+          <h3>Permissioned provider effects</h3>
+          <p>The privileged host links one project-owned buffered HTTP interface after Cedar allows an invocation and the broker attaches constraints.</p>
+          <ul>
+            <li>no WASI, raw sockets, files, environment, or guest-visible secrets</li>
+            <li>exact host, method, calls, bytes, and deadline</li>
+            <li>sanitized evidence and durable audit linkage</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="article-callout callout-decision">
+        <strong>Declaring an import is not receiving authority.</strong>
+        <p>The GitHub component can say it needs <code>dekopon:http@1.0.0</code>. Only the broker can connect that import to a constrained native client for one authorized invocation.</p>
+      </div>
+    </section>
+
+    <section id="fresh" class="article-section">
+      <div class="article-heading">
+        <span>04.3 · clean state per operation</span>
+        <h2>Reuse compiled code. Reset the dangerous state.</h2>
+      </div>
+
+      <div class="store-lifecycle">
+        <div class="store-shared">
+          <span>retained for speed</span>
+          <div><strong>Wasmtime engine</strong><small>shared runtime configuration</small></div>
+          <div><strong>compiled component</strong><small>machine code cache in process</small></div>
+          <div><strong>capability routes</strong><small>trusted provider map</small></div>
+        </div>
+        <i aria-hidden="true">each invoke ↓</i>
+        <div class="store-fresh-row">
+          <div><span>fresh</span><strong>Store</strong><small>fuel + limits + host state</small></div>
+          <div><span>fresh</span><strong>instance</strong><small>new guest globals</small></div>
+          <div><span>fresh</span><strong>memory</strong><small>dies with the call</small></div>
+          <div><span>single use</span><strong>grant</strong><small>consumed by execution</small></div>
+        </div>
+      </div>
+
+      <p>Description runs with HTTP disabled, even in the broker host. Provider code cannot make a network call while merely advertising what it can do.</p>
+    </section>
+
+    <section id="http" class="article-section">
+      <div class="article-heading">
+        <span>04.4 · network access one call at a time</span>
+        <h2>The provider builds a request inside a smaller envelope.</h2>
+      </div>
+
+      <div class="provider-envelope">
+        <div><small>provider asks</small><strong><code>POST api.github.com</code></strong><span>path + bounded body</span></div>
+        <div><small>authorization binds</small><strong>host · method · 2 calls</strong><span>request/response bytes + deadline</span></div>
+        <div><small>native engine enforces</small><strong>pinned DNS · no redirects</strong><span>no proxy · no decompression</span></div>
+        <div><small>evidence keeps</small><strong>method · host · status</strong><span>byte counts, never bodies</span></div>
+      </div>
+
+      <p>Constraints can narrow the native host ceilings and never widen them. Plain HTTP is rejected except for explicitly authorized literal loopback tests. DNS results are validated and pinned before connection.</p>
+    </section>
+
+    <section id="credential" class="article-section">
+      <div class="article-heading">
+        <span>04.5 · broker-held secrets</span>
+        <h2>The component uses a credential it never sees.</h2>
+      </div>
+
+      <div class="credential-injection-flow">
+        <div><span>owner-only store</span><strong><code>github-comment-token</code></strong><small>destination: api.github.com</small></div>
+        <i aria-hidden="true">selected by trusted agent context →</i>
+        <div><span>guest request</span><strong>headers validated</strong><small>guest authorization header refused</small></div>
+        <i aria-hidden="true">then →</i>
+        <div><span>native HTTP engine</span><strong>injects Authorization</strong><small>only at the bound destination</small></div>
+      </div>
+
+      <p>The value stays out of prompts, agent config, provider memory, evidence, spans, and logs. Audit records the credential’s owner-authored symbolic name so two organizations’ effects remain distinguishable without recording either token.</p>
+    </section>
+
+    <section id="scope" class="article-section">
+      <div class="article-heading">
+        <span>04.6 · honest isolation claims</span>
+        <h2>Strong provider containment. Not a protected host.</h2>
+      </div>
+
+      <div class="truth-label-cards">
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Enforced</span></div><h3>Guest boundaries</h3><p>Declared imports, fresh stores, memory, fuel, input, output, deadlines, and narrow host services are checked in code.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway and direct runner exclude privileged broker crates. Only the separate broker owns policy, credentials, and effect execution.</p></article>
+        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm does not protect a broker machine, owner UID, binary, toolchain, or dependency set that is already compromised.</p></article>
+      </div>
+
+      {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "See the exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
+    </section>
+
+    {{ chapterPager(almanac.chapters[3], almanac.chapters[5]) }}
+  </article>
+</div>

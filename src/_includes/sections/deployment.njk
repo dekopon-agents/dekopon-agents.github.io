@@ -1,0 +1,33 @@
+<section class="home-deployment section" aria-labelledby="home-deployment-title">
+  <div class="home-deployment-gridlines" aria-hidden="true"></div>
+  <div class="shell home-deployment-grid">
+    <div class="home-deployment-copy">
+      <span class="section-kicker mint">{{ home.deployment.kicker }}</span>
+      <h2 id="home-deployment-title">{{ home.deployment.title }}</h2>
+      <p>{{ home.deployment.intro }}</p>
+      <ul>
+        {% for point in home.deployment.points %}<li><span aria-hidden="true">✓</span>{{ point }}</li>{% endfor %}
+      </ul>
+      <div class="home-deployment-actions">
+        <a class="button button-white" href="{{ home.deployment.primaryCta.href }}">{{ home.deployment.primaryCta.label }} <span aria-hidden="true">→</span></a>
+        <a class="button button-ghost" href="{{ home.deployment.secondaryCta.href }}">{{ home.deployment.secondaryCta.label }} <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+
+    <div class="pod-cutaway reveal" role="group" aria-label="Kubernetes pod with a gateway and broker sharing a Unix socket">
+      <div class="pod-cutaway-top"><span>Kubernetes pod</span><code>v0.4.0</code></div>
+      <div class="pod-cutaway-init"><small>starts first</small><strong>prepare-files</strong><span>owner-only config</span></div>
+      <div class="pod-cutaway-processes">
+        <article><small>unprivileged orchestration</small><strong>dekopond</strong><span>chat + model</span></article>
+        <div class="pod-socket"><span>0600</span><strong>Unix socket</strong><i aria-hidden="true">↔</i></div>
+        <article><small>privileged authority</small><strong>dekopon-brokerd</strong><span>policy + credentials</span></article>
+      </div>
+      <div class="pod-cutaway-state"><span>persistent volume</span><strong>audit.jsonl + checkpoint</strong></div>
+      <div class="pod-cutaway-none"><span>no Service</span><span>no Ingress</span><span>no TCP listener</span></div>
+    </div>
+  </div>
+
+  <div class="shell deployment-facts" role="group" aria-label="Kubernetes deployment facts">
+    {% for fact in home.deployment.facts %}<div><strong>{{ fact.value }}</strong><span>{{ fact.label }}</span></div>{% endfor %}
+  </div>
+</section>

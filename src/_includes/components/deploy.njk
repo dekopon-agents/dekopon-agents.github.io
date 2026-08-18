@@ -1,0 +1,9 @@
+{% macro deployNav(activeKey, pages) %}
+<nav class="deploy-nav" aria-label="Deployment guides">
+  <div class="shell deploy-nav-inner">
+    {% for item in pages %}
+      <a href="{{ item.href }}"{% if item.key == activeKey %} class="is-active" aria-current="page"{% endif %}><span>0{{ loop.index }}</span>{{ item.label }}</a>
+    {% endfor %}
+  </div>
+</nav>
+{% endmacro %}

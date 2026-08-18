@@ -1,0 +1,103 @@
+---
+layout: layouts/base.njk
+permalink: deploy/index.html
+pageTitle: Deploy Dekopon v0.4.0
+pageDescription: Choose Homebrew, release archives, the multi-architecture container image, or the v0.4.0 Kubernetes deployment shape.
+bodyClass: almanac-page deploy-page deploy-overview-page
+almanacPage: true
+ogType: article
+---
+{% from "components/deploy.njk" import deployNav %}
+{% from "components/almanac.njk" import status %}
+
+<header class="deploy-hero">
+  <div class="deploy-hero-gridlines" aria-hidden="true"></div>
+  <div class="shell deploy-hero-grid">
+    <div>
+      <p class="almanac-kicker">Deploy v0.4.0</p>
+      <h1>Start on one machine.<br><span>Keep the boundary visible.</span></h1>
+      <p>Install the four executables directly or run the gateway and broker together in one Kubernetes pod. Every path preserves the same authority split.</p>
+      <div class="deploy-hero-status">{{ status("current", "Released") }}<span>Linux arm64 + amd64 · macOS arm64</span></div>
+    </div>
+    <div class="deploy-release-box">
+      <span>Current application release</span>
+      <strong>v0.4.0</strong>
+      <dl><div><dt>executables</dt><dd>4</dd></div><div><dt>Linux image platforms</dt><dd>2</dd></div><div><dt>new privileges</dt><dd>0</dd></div></dl>
+      <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0">Open the GitHub release <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</header>
+
+{{ deployNav("overview", deploy.pages) }}
+
+<section class="almanac-section deploy-options">
+  <div class="shell">
+    <div class="almanac-section-heading">
+      <span class="almanac-section-index">01—04</span>
+      <div><p class="almanac-kicker">Choose an install path</p><h2>Same binaries. Different operating shape.</h2></div>
+      <p>Version 0.4.0 focuses on distribution. It packages the authority model that already ships rather than moving power between components.</p>
+    </div>
+
+    <div class="deploy-option-grid">
+      <article class="deploy-option-card">
+        <div><span>01</span>{{ status("current", "macOS + Linux") }}</div>
+        <h2>Homebrew</h2>
+        <p>Install all four executables and the immediately runnable example provider from the organization tap.</p>
+        <pre><code>brew tap dekopon-agents/tap
+brew trust dekopon-agents/tap
+brew install dekopon</code></pre>
+        <small>Homebrew 6 requires explicit trust for a non-official tap.</small>
+      </article>
+
+      <article class="deploy-option-card">
+        <div><span>02</span>{{ status("current", "attested") }}</div>
+        <h2>Release archives</h2>
+        <p>Download one provenance-attested archive with the four executables, example component, and configuration contracts.</p>
+        <pre><code>gh release download v0.4.0 \
+  --repo dekopon-agents/dekopon</code></pre>
+        <small>Available for macOS arm64, Linux arm64, and Linux amd64.</small>
+      </article>
+
+      <article class="deploy-option-card">
+        <div><span>03</span>{{ status("current", "multi-architecture") }}</div>
+        <h2>Container image</h2>
+        <p>Run the exact Linux executable bytes from the release archives in one distroless image with the provider components.</p>
+        <pre><code>docker pull \
+  ghcr.io/dekopon-agents/dekopon:v0.4.0</code></pre>
+        <small>Runs as numeric UID 65532. No shell, config, policy, credential, or audit state is baked in.</small>
+      </article>
+
+      <article class="deploy-option-card deploy-option-featured">
+        <div><span>04</span>{{ status("current", "chart source in v0.4.0") }}</div>
+        <h2>Kubernetes</h2>
+        <p>Run <code>dekopond</code> and <code>dekopon-brokerd</code> as two containers in one pod sharing the authenticated Unix socket.</p>
+        <a class="button button-primary" href="/deploy/kubernetes/">Understand the pod <span aria-hidden="true">→</span></a>
+        <small>The chart has its own <code>dekopon-chart-*</code> release lifecycle, separate from application tags.</small>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="almanac-section deploy-invariants">
+  <div class="shell">
+    <div class="almanac-section-heading">
+      <span class="almanac-section-index">∞</span>
+      <div><p class="almanac-kicker">What never changes</p><h2>Packaging does not grant authority.</h2></div>
+      <p>Every deployment supplies its own identities, Cedar policy, constraint sets, credentials, and state.</p>
+    </div>
+    <div class="invariant-notes">
+      <article><span>gateway</span><h3>Hears and reasons</h3><p>Chat and model credentials terminate here. Provider credentials and policy do not.</p></article>
+      <article><span>broker</span><h3>Decides and executes</h3><p>Trusted identity, Cedar, execution constraints, provider credentials, evidence, and audit stay here.</p></article>
+      <article><span>provider</span><h3>Performs one operation</h3><p>A fresh Wasm instance gets only explicitly linked, authorization-bound host services.</p></article>
+      <article><span>operator</span><h3>Owns the files</h3><p>The deployment must provide safe configuration, credential, socket, and audit paths.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="almanac-closing-band deploy-closing-band">
+  <div class="shell">
+    <span>The most constrained deployment is also the most interesting</span>
+    <h2>See why Kubernetes uses one pod.</h2>
+    <a class="button button-primary" href="/deploy/kubernetes/">Open the Kubernetes guide <span aria-hidden="true">→</span></a>
+  </div>
+</section>

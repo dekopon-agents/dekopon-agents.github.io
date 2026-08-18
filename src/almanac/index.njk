@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/index.html
-pageTitle: Dekopon v0.2.0 tech almanac
-pageDescription: A clear, code-backed guide to Dekopon sandboxes, one-tool scripting, fine-grained permissions, auditing, and OpenTelemetry.
+pageTitle: How Dekopon v0.4.0 works
+pageDescription: A clear guide to Dekopon trusted identity, Cedar permissions, one-tool scripting, Wasm providers, audit, and OpenTelemetry.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
 almanacSection: atlas
@@ -14,60 +14,60 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>How it works / v0.2.0</span><code>edition 02</code></div>
-      <h1>How Dekopon<br><span>keeps agents in bounds.</span></h1>
-      <p class="almanac-home-lede">A code-backed tour of the release: one safe scripting tool, fresh Wasm sandboxes, a separate permission broker, durable audit, and OpenTelemetry from end to end.</p>
-      <div class="almanac-legend" role="group" aria-label="Feature status legend">
+      <div class="almanac-overline"><span>How it works / v0.4.0</span><code>edition 04</code></div>
+      <h1>Let the model ask.<br><span>Keep authority elsewhere.</span></h1>
+      <p class="almanac-home-lede">A release-backed tour of trusted chat identity, one homemade shell tool, Cedar policy, bounded Wasm providers, broker-held credentials, and one trace across the system.</p>
+      <div class="almanac-legend" role="group" aria-label="Feature status">
         {{ status("current", "Shipping now") }}
-        {{ status("direction", "Coming next") }}
+        {{ status("direction", "Current limit") }}
       </div>
       {{ sourceStamp(almanac.source) }}
     </div>
 
     <div class="runtime-cutaway">
       <div class="cutaway-topline">
-        <span>One permissioned agent run</span>
-        <span class="cutaway-live"><i aria-hidden="true"></i> two local programs</span>
+        <span>One message, one authority boundary</span>
+        <span class="cutaway-live"><i aria-hidden="true"></i> independent OTLP emitters</span>
       </div>
       <div class="cutaway-machine">
         <div class="cutaway-outside">
           <div class="cutaway-node cutaway-model">
-            <span>your chosen model service</span>
-            <strong>AI model</strong>
-            <small>returns one bash({ script }) tool call</small>
+            <span>authenticated transport</span>
+            <strong>Slack or Telegram</strong>
+            <small>sender + message</small>
           </div>
-          <span class="cutaway-packet" aria-hidden="true">prompt and response ↕</span>
+          <span class="cutaway-packet" aria-hidden="true">message ↓ reply ↑</span>
         </div>
         <div class="cutaway-process">
-          <div class="cutaway-process-label"><span>AGENT PROCESS</span><strong>dekopon-run</strong></div>
+          <div class="cutaway-process-label"><span>GATEWAY PROCESS</span><strong>dekopond</strong></div>
           <div class="cutaway-node">
-            <span>safe scripting</span>
-            <strong>dekopon-shell</strong>
-            <small>structured data · no OS access · limited requests</small>
+            <span>attestation + model session</span>
+            <strong>subject + agent</strong>
+            <small>one bash({ script }) tool · no provider credential</small>
           </div>
-          <span class="cutaway-arrow" aria-hidden="true">request without an identity claim ↓</span>
+          <span class="cutaway-arrow" aria-hidden="true">proposal, never permission ↓</span>
           <div class="cutaway-node cutaway-runtime">
-            <span>PERMISSION PROCESS</span>
-            <strong>dekopon-brokerd</strong>
-            <small>verified identity · allow/deny rules · replay protection · audit</small>
+            <span>BROKER PROCESS</span>
+            <strong>identity → Cedar → limits</strong>
+            <small>credential selection · replay protection · audit</small>
           </div>
           <div class="cutaway-thread-row">
             <div class="cutaway-node cutaway-helper">
               <span>fresh Wasm sandbox</span>
-              <strong>Custom provider</strong>
-              <small>one approved operation</small>
+              <strong>gh provider</strong>
+              <small>one named operation</small>
             </div>
             <div class="cutaway-node cutaway-empty">
-              <span>only available host feature</span>
-              <strong>dekopon:http@1.0.0</strong>
-              <small>approved host + method + byte limits</small>
+              <span>broker-owned host feature</span>
+              <strong>bounded HTTP</strong>
+              <small>approved host + method + bytes + credential</small>
             </div>
           </div>
         </div>
       </div>
       <div class="cutaway-readout">
-        <span>One simple rule</span>
-        <p>Your agent can ask. Only the broker can approve one limited action and tie the result to an audit record.</p>
+        <span>The core rule</span>
+        <p>The gateway may vouch for a subject. The model may propose an action. Only the broker can map identity, permit, constrain, execute, and record it.</p>
       </div>
     </div>
   </div>
@@ -78,20 +78,21 @@ ogType: article
 <section class="almanac-section atlas-chapters" id="chapters">
   <div class="shell">
     <div class="almanac-section-heading">
-      <span class="almanac-section-index">00—04</span>
-      <div><p class="almanac-kicker">Choose a tour</p><h2>Four guides. One working system.</h2></div>
-      <p>Every chapter follows the code in <code>v0.2.0</code>. You will see what runs locally, what needs broker approval, and what still comes next.</p>
+      <span class="almanac-section-index">01—05</span>
+      <div><p class="almanac-kicker">Choose a guide</p><h2>Five concepts. One working system.</h2></div>
+      <p>Each page gives you the complete public explanation first. A final link takes you to the repository for exact current fields and implementation limits.</p>
     </div>
 
-    <div class="atlas-card-grid">
+    <div class="atlas-card-grid atlas-card-grid-five">
       {% for chapter in almanac.chapters %}
         {% if chapter.key != "atlas" %}
         <a class="atlas-card atlas-card-{{ chapter.key }} reveal" href="{{ chapter.href }}">
           <div class="atlas-card-top"><span>{{ chapter.number }}</span><span aria-hidden="true">↗</span></div>
           <div class="atlas-card-glyph" aria-hidden="true">
-            {% if chapter.key == "components" %}<span>{ sandbox }</span>
-            {% elif chapter.key == "boundaries" %}<span>1 tool → many skills</span>
-            {% elif chapter.key == "lifecycle" %}<span>request ≠ permission</span>
+            {% if chapter.key == "identity" %}<span>subject → principal</span>
+            {% elif chapter.key == "permissions" %}<span>who × action × resource</span>
+            {% elif chapter.key == "runtime" %}<span>bash({ script })</span>
+            {% elif chapter.key == "providers" %}<span>{ fresh sandbox }</span>
             {% else %}<span>audit · trace · log</span>{% endif %}
           </div>
           <h2>{{ chapter.title }}</h2>
@@ -109,15 +110,15 @@ ogType: article
     <div class="mental-model-copy">
       <p class="almanac-kicker">The 90-second tour</p>
       <h2>Six facts explain Dekopon.</h2>
-      <p>Start here if you want the big picture before reading the code.</p>
+      <p>These are the boundaries every deeper detail preserves.</p>
     </div>
     <ol class="mental-model-list">
-      <li><span>01</span><div><strong>The model gets one tool.</strong><p>Its safe script combines only the capabilities you grant for that session.</p></div></li>
-      <li><span>02</span><div><strong>Pure work and networked work take different paths.</strong><p>Local providers get no host access. Networked providers run only after broker approval.</p></div></li>
-      <li><span>03</span><div><strong>Asking for HTTP does not grant HTTP.</strong><p>The broker still limits the host, method, calls, bytes, and time for one action.</p></div></li>
-      <li><span>04</span><div><strong>The agent cannot approve itself.</strong><p>The broker gets identity from the local connection and checks your configuration.</p></div></li>
-      <li><span>05</span><div><strong>Every provider call starts clean.</strong><p>Dekopon reuses compiled code, but starts each operation in a fresh Wasm sandbox.</p></div></li>
-      <li><span>06</span><div><strong>Audit, traces, and logs have different jobs.</strong><p>Audit records permissions. Traces explain flow and timing. Logs keep costs and important events.</p></div></li>
+      <li><span>01</span><div><strong>The transport knows the sender.</strong><p>The gateway turns that authenticated fact into a canonical subject, not a self-asserted principal.</p></div></li>
+      <li><span>02</span><div><strong>The broker owns identity.</strong><p>It authenticates the gateway, checks its attestor grant, and alone maps subject to principal.</p></div></li>
+      <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell can explore and combine granted capabilities but cannot reach the operating system.</p></div></li>
+      <li><span>04</span><div><strong>Cedar permits; constraint sets limit.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach.</p></div></li>
+      <li><span>05</span><div><strong>Credentials stay with the broker.</strong><p>The native HTTP engine injects a destination-bound value after provider headers are checked.</p></div></li>
+      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization history stays durable while OpenTelemetry explains flow, timing, cost, and failures.</p></div></li>
     </ol>
   </div>
 </section>
@@ -125,21 +126,21 @@ ogType: article
 <section class="almanac-section truth-labels-section">
   <div class="shell truth-labels-grid">
     <div>
-      <p class="almanac-kicker">Where the release stands</p>
-      <h2>Capable today. Honest about tomorrow.</h2>
+      <p class="almanac-kicker">Where v0.4.0 stands</p>
+      <h2>Capable now. Honest about the boundary.</h2>
     </div>
     <div class="truth-label-cards">
-      <article><div>{{ status("current", "Released") }}</div><h3>You can install and test v0.2.0 today</h3><p>It ships as 17 public crates, three CLIs, four attested downloads, and a workspace with more than 470 tests.</p></article>
-      <article><div>{{ status("current", "Enforced") }}</div><h3>The local permission path works</h3><p>Verified identity, exact rules, replay protection, limited network access, audit records, checkpoints, and trace handoff all ship.</p></article>
-      <article><div>{{ status("direction", "Coming next") }}</div><h3>Production work remains</h3><p>Broker-managed provider credentials, stronger audit anchoring, a long-running agent service, non-Unix transport, and multi-tenant isolation are not in v0.2.0.</p></article>
+      <article><div>{{ status("current", "Released") }}</div><h3>Four executables and a container image</h3><p>The release carries the operator CLI, runner, broker, gateway, and checked-in provider components for arm64 and amd64 Linux.</p></article>
+      <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation, Cedar, broker-owned credentials, bounded provider HTTP, hash-linked audit, and cross-process traces are current.</p></article>
+      <article><div>{{ status("direction", "Current limit") }}</div><h3>One Unix UID is one trust domain</h3><p>The Kubernetes gateway and broker share one UID and socket. A dedicated gateway UID and stronger audit anchoring remain future work.</p></article>
     </div>
   </div>
 </section>
 
 <section class="almanac-closing-band">
   <div class="shell">
-    <span>Start with the sandbox</span>
-    <h2>What can a provider reach?</h2>
-    <a class="button button-primary" href="/almanac/components/">Explore Wasm isolation <span aria-hidden="true">→</span></a>
+    <span>Start at the first trust decision</span>
+    <h2>Where does identity come from?</h2>
+    <a class="button button-primary" href="/almanac/identity/">Follow the identity chain <span aria-hidden="true">→</span></a>
   </div>
 </section>

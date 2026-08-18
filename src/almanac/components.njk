@@ -1,168 +1,21 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/components/index.html
-pageTitle: Wasm isolation — Dekopon v0.2.0 tech almanac
-pageDescription: See how Dekopon gives each custom provider a fresh Wasm sandbox and only the host access that one job needs.
-bodyClass: almanac-page almanac-article-page almanac-components-page
+canonical: https://dekopon-agents.github.io/almanac/providers/
+pageTitle: Guide moved — Dekopon
+pageDescription: The Wasm isolation guide now lives at the clearer Providers URL.
+bodyClass: almanac-page almanac-article-page
 almanacPage: true
-almanacSection: components
-ogType: article
+eleventyExcludeFromCollections: true
 ---
-{% from "components/almanac.njk" import chapterNav, status, sourceStamp, chapterPager, pageHero %}
-
-{{ pageHero("01", "Wasm isolation", "Fresh sandbox.<br><span>Only the access you allow.</span>", "Pure local tools get no host access. Networked tools receive one narrow HTTP interface only after the broker approves the action.", "current", "Shipping in v0.2.0") }}
-{{ chapterNav("components", almanac.chapters) }}
-
-<div class="almanac-article-shell shell">
-  <aside class="article-rail" aria-label="Article navigation and source">
-    <nav aria-label="On this page">
-      <span>On this page</span>
-      <a href="#two-hosts">Two ways to run</a>
-      <a href="#provider-contract">Build a provider</a>
-      <a href="#fresh-store">A fresh sandbox every time</a>
-      <a href="#http-boundary">Permissioned HTTP</a>
-      <a href="#limits">What the sandbox protects</a>
-    </nav>
-    {{ sourceStamp(almanac.source) }}
-  </aside>
-
-  <article class="almanac-prose">
-    <section id="two-hosts" class="article-section">
-      <div class="article-heading">
-        <span>01.1 · two ways to run</span>
-        <h2>The host decides what a provider can reach.</h2>
-        <p>A Wasm component can use only the functions Dekopon connects to it. Dekopon calls this linking, and uses it to create two simple provider modes.</p>
-      </div>
-
-      <div class="run-mode-cards">
-        <article class="run-mode-current">
-          <div>{{ status("current", "Current") }}<span><code>dekopon-run</code></span></div>
-          <h3>Pure local provider</h3>
-          <p>Dekopon connects no host functions. It also rejects any component that declares something other than a read-only capability.</p>
-          <ul>
-            <li>no files, network, clock, random source, environment, or credentials</li>
-            <li>pure computation only</li>
-            <li>a successful result is untrusted tool output, not proof of permission</li>
-          </ul>
-        </article>
-        <article class="run-mode-future">
-          <div>{{ status("current", "Current") }}<span><code>dekopon-brokerd</code></span></div>
-          <h3>Permissioned network provider</h3>
-          <p>Dekopon connects one HTTP interface: <code>dekopon:http@1.0.0</code>. The provider runs only with a one-use approval from the broker.</p>
-          <ul>
-            <li>no general OS access, raw sockets, files, environment, or raw secrets</li>
-            <li>typed requests sent by Dekopon’s own network engine</li>
-            <li>the broker’s rule stays narrower than anything provider code asks for</li>
-          </ul>
-        </article>
-      </div>
-
-      <div class="article-callout callout-decision">
-        <strong>Asking for HTTP is not permission to use it.</strong>
-        <p>A provider can require the HTTP interface, but it still cannot contact a host until the broker verifies the caller, matches an exact rule, and sets limits for this action. Missing interfaces stop startup. Disallowed requests stop at the permission check.</p>
-      </div>
-    </section>
-
-    <section id="provider-contract" class="article-section">
-      <div class="article-heading">
-        <span>01.2 · custom providers</span>
-        <h2>Write normal Rust. Ship portable Wasm.</h2>
-      </div>
-
-      <div class="build-pipeline">
-        <div class="build-step"><span>1</span><strong>Implement</strong><small><code>Provider</code> trait</small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step"><span>2</span><strong>Generate</strong><small>WIT-facing adapter</small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step"><span>3</span><strong>Compile</strong><small><code>wasm32-unknown-unknown</code></small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step build-step-final"><span>4</span><strong>Componentize</strong><small>portable <code>.wasm</code></small></div>
-      </div>
-
-      <pre><code><span class="code-purple">pub trait</span> Provider {
-    <span class="code-purple">fn</span> describe() -&gt; ProviderManifest;
-    <span class="code-purple">fn</span> invoke(
-        capability: &amp;CapabilityId,
-        input: serde_json::Value,
-    ) -&gt; Result&lt;serde_json::Value, ProviderError&gt;;
-}</code></pre>
-
-      <p>Every provider offers two operations: <code>describe</code> says what it can do, and <code>invoke</code> runs one capability. The SDK handles identifiers and JSON around your typed Rust code. Pure providers use <code>dekopon:provider@0.1.0</code>. Networked providers add the fixed <code>dekopon:http@1.0.0</code> interface through generated bindings.</p>
-
-      <div class="invariant-notes">
-        <article><span>portable</span><h3>One Wasm file</h3><p>The provider ships with typed input and output metadata. The broker never loads it as a native library.</p></article>
-        <article><span>reviewable</span><h3>Visible requirements</h3><p><code>wasm-tools component wit</code> shows every host interface the provider asks for before it runs.</p></article>
-        <article><span>operator-owned</span><h3>You choose the host</h3><p>Downloading a component cannot silently install native code or invent a new host feature.</p></article>
-      </div>
-    </section>
-
-    <section id="fresh-store" class="article-section">
-      <div class="article-heading">
-        <span>01.3 · a clean start</span>
-        <h2>Reuse compiled code. Reset everything else.</h2>
-      </div>
-
-      <div class="store-lifecycle">
-        <div class="store-shared">
-          <span>retained per registry</span>
-          <div><strong>Wasmtime Engine</strong><small>runtime configuration</small></div>
-          <div><strong>Compiled components</strong><small>machine code amortized</small></div>
-          <div><strong>route map</strong><small>capability → provider</small></div>
-        </div>
-        <i aria-hidden="true">new operation ↓</i>
-        <div class="store-fresh-row">
-          <div><span>fresh</span><strong>Store</strong><small>fuel + memory + host state</small></div>
-          <div><span>fresh</span><strong>instance</strong><small>new guest state</small></div>
-          <div><span>fresh</span><strong>linear memory</strong><small>dies with the call</small></div>
-          <div><span>limited</span><strong>result</strong><small>checked before return</small></div>
-        </div>
-      </div>
-
-      <p>Dekopon reuses the Wasmtime engine and compiled machine code for speed. It does not reuse the Store that holds memory, fuel, and host state. Pure local calls run one at a time. The broker can overlap limited calls, but each one still gets a separate Store and permission context. HTTP is off while a provider describes itself.</p>
-    </section>
-
-    <section id="http-boundary" class="article-section">
-      <div class="article-heading">
-        <span>01.4 · permissioned I/O</span>
-        <h2>Network access comes one request at a time.</h2>
-        <p>The useful permission is specific: this capability may contact this host, with these methods and limits, for this one action.</p>
-      </div>
-
-      <div class="comparison-table-wrap">
-        <table class="almanac-table strategy-table">
-          <thead><tr><th scope="col">Layer</th><th scope="col">What it limits</th><th scope="col">What cannot change it</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Permission rule</th><td>local identity, agent, capability, provider, and read/write behavior</td><td>model text, request data, or the provider’s own description</td></tr>
-            <tr><th scope="row">Limits for this action</th><td>host and port, methods, network-call count, request/response bytes, and timeout</td><td>provider URL, headers, body, or retries</td></tr>
-            <tr><th scope="row">Built-in maximums</th><td>hard upper bounds, HTTPS by default, plaintext only on loopback</td><td>configuration that asks for more</td></tr>
-            <tr><th scope="row">Network client</th><td>checked and pinned DNS, no redirects, no environment proxy, no decompression</td><td>DNS rebinding, redirect targets, proxy settings, or compressed expansion</td></tr>
-            <tr><th scope="row">Audit-safe evidence</th><td>method, approved host, status, and byte counts</td><td>paths, queries, headers, bodies, credentials, or raw errors</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p>The included JSONPlaceholder provider makes the split easy to see. Reading a post and creating a post are separate capabilities with separate rules. Tests use temporary local servers, so they never depend on the public service. Provider input checks improve correctness, but only the broker grants permission.</p>
-    </section>
-
-    <section id="limits" class="article-section">
-      <div class="article-heading">
-        <span>01.5 · what this protects</span>
-        <h2>Strong limits, clear scope.</h2>
-      </div>
-
-      <div class="truth-label-cards">
-        <article><div>{{ status("current", "Enforced") }}</div><h3>Provider limits</h3><p>Host access, rules, fresh sandboxes, fuel, memory, data size, network hosts, methods, bytes, and deadlines are limited in code and tests.</p></article>
-        <article><div>{{ status("current", "Separated") }}</div><h3>Agent limits</h3><p>The runner never receives network permission or the privileged HTTP interface. Outside writes require the separate local broker.</p></article>
-        <article><div>{{ status("direction", "Not claimed") }}</div><h3>A compromised host</h3><p>Wasm cannot protect a broker machine that is already compromised, another malicious process under the same user, the dependency toolchain, or coordinated rollback of both audit files.</p></article>
-      </div>
-
-      <div class="source-links">
-        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/architecture.md"><span>Architecture</span><strong><code>docs/architecture.md</code> ↗</strong></a>
-        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ almanac.source.revision }}/docs/broker-http.md"><span>Permission boundary</span><strong><code>docs/broker-http.md</code> ↗</strong></a>
-        <a href="https://github.com/dekopon-agents/dekopon/tree/{{ almanac.source.revision }}/examples/providers"><span>Runnable source</span><strong><code>examples/providers/</code> ↗</strong></a>
-      </div>
-    </section>
-
-    {{ chapterPager(almanac.chapters[0], almanac.chapters[2]) }}
-  </article>
-</div>
+<header class="almanac-article-hero">
+  <div class="shell almanac-article-hero-grid">
+    <div class="almanac-article-number" aria-hidden="true">04</div>
+    <div class="almanac-article-heading">
+      <div class="almanac-hero-meta"><span>How Dekopon works · v0.4.0</span></div>
+      <h1>This guide has<br><span>a clearer home.</span></h1>
+      <p>The Wasm isolation chapter is now the complete guide to providers, fresh sandboxes, permissioned HTTP, and broker-held credentials.</p>
+      <a class="button button-primary" href="/almanac/providers/">Read Wasm providers <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</header>
