@@ -99,6 +99,13 @@
   grid-column: 4 / span 2;
 }
 
+.atlas-card-grid-five .atlas-card-glyph {
+  height: 132px;
+  flex: 0 0 132px;
+  font-size: clamp(34px, 3.25vw, 46px);
+  line-height: 0.95;
+}
+
 .atlas-card-identity .atlas-card-glyph { color: #147461; background: #dff7ee; }
 .atlas-card-permissions .atlas-card-glyph { color: #554db8; background: #e9e6ff; }
 .atlas-card-runtime .atlas-card-glyph { color: #a65031; background: #ffeadf; }
@@ -1760,6 +1767,10 @@
 }
 
 @media (max-width: 700px) {
+  .atlas-card-grid-five {
+    grid-template-columns: 1fr;
+  }
+
   .home-concept-card {
     min-height: 290px;
     padding: 24px;
