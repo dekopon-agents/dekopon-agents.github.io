@@ -221,9 +221,9 @@ ogType: article
       <h3 class="subsection-title">What OpenAI documents for its public API</h3>
       <div class="public-cache-facts">
         <article><span>Exact</span><strong>Shared prefix required</strong><p>A change ends reuse at the first differing token. Put stable content before changing content.</p></article>
-        <article><span>1,024</span><strong>Input-token minimum</strong><p>Shorter prompts do not receive cached-token credit. Characters and bytes cannot prove eligibility.</p></article>
-        <article><span>5–10 min</span><strong>Typical idle retention</strong><p>The default in-memory cache generally lasts minutes after inactivity and can sometimes last up to one hour.</p></article>
-        <article><span>24h</span><strong>Explicit extended option</strong><p><code>prompt_cache_retention</code> supports 24 hours only on models where OpenAI explicitly offers it.</p></article>
+        <article><span>1,024+</span><strong>Model-specific minimum</strong><p>The current guide says 1,024 tokens for GPT-5.6 and later, and 1,024–2,048 for earlier models.</p></article>
+        <article><span>30m / 5–10m</span><strong>Retention differs by model</strong><p>GPT-5.6+ documents a 30-minute TTL. Earlier in-memory entries generally last 5–10 idle minutes, up to one hour.</p></article>
+        <article><span>Up to 24h</span><strong>Supported earlier models</strong><p><code>prompt_cache_retention</code> offers extended retention only where OpenAI explicitly supports it; 24 hours is a maximum, not a promised hit.</p></article>
       </div>
       <p>On public Responses, cached input appears at <code>usage.input_tokens_details.cached_tokens</code>. Cached tokens still count as input and use the model’s documented cached-input price.</p>
 
@@ -258,7 +258,7 @@ ogType: article
         <li><strong>Same process:</strong> keeping <code>dekopond</code> running preserves local history, not provider cache retention.</li>
         <li><strong>Same client or connection:</strong> Dekopon currently rebuilds its model client per gateway message. Reusing one would still not create a documented cache lease.</li>
         <li><strong>Same login:</strong> an OAuth token or ChatGPT account authenticates a request. It does not document cache lifetime.</li>
-        <li><strong>Same cache key:</strong> the key helps route likely shared prefixes. It does not create, refresh, delete, isolate, or guarantee a cache entry.</li>
+        <li><strong>Same cache key:</strong> the key helps route likely shared prefixes. By itself it does not create, refresh, delete, isolate, or guarantee a cache entry.</li>
         <li><strong>Response state:</strong> public API response IDs and Conversations carry context. They are separate from prompt-cache retention, and Dekopon does not use them here.</li>
       </ul>
 
@@ -325,7 +325,7 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
       <div class="source-links inference-source-links">
         <a href="https://github.com/dekopon-agents/dekopon/blob/main/docs/inference.md"><span>Canonical guide</span><strong><code>docs/inference.md</code> ↗</strong></a>
         <a href="https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopond/src/conversation.rs"><span>Conversation source</span><strong><code>conversation.rs</code> ↗</strong></a>
-        <a href="https://platform.openai.com/docs/guides/prompt-caching"><span>Provider source</span><strong>OpenAI prompt caching ↗</strong></a>
+        <a href="https://developers.openai.com/api/docs/guides/prompt-caching"><span>Provider source</span><strong>OpenAI prompt caching ↗</strong></a>
       </div>
     </section>
   </article>
