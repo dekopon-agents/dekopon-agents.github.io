@@ -4661,6 +4661,7 @@
 .inference-context-card {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .inference-eyebrow {
@@ -5525,7 +5526,7 @@
   }
 
   .inference-hero h1 {
-    font-size: clamp(49px, 13vw, 70px);
+    font-size: clamp(43px, 11vw, 64px);
   }
 
   .inference-lede {
