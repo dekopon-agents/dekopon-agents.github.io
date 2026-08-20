@@ -37,6 +37,7 @@
         { "label": "One-tool runtime", "href": "/almanac/one-tool-runtime/" },
         { "label": "Model inference & memory", "href": "/inference/" },
         { "label": "Wasm providers", "href": "/almanac/providers/" },
+        { "label": "Build a provider", "href": "/guides/provider-sdk/" },
         { "label": "OpenTelemetry", "href": "/almanac/observability/" }
       ]
     },
