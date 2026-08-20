@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps provider credentials beyond guest reach.", "current", "Shipping in v0.4.0") }}
+{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credential injection in the broker-owned HTTP engine.", "current", "Shipping in v0.4.0") }}
 {{ chapterNav("providers", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -135,7 +135,7 @@ ogType: article
     <section id="credential" class="article-section">
       <div class="article-heading">
         <span>04.5 · broker-held secrets</span>
-        <h2>The component uses a credential it never sees.</h2>
+        <h2>The broker injects the credential.</h2>
       </div>
 
       <div class="credential-injection-flow">
@@ -146,7 +146,7 @@ ogType: article
         <div><span>native HTTP engine</span><strong>injects Authorization</strong><small>only at the bound destination</small></div>
       </div>
 
-      <p>The value stays out of prompts, agent config, provider memory, evidence, spans, and logs. Audit records the credential’s owner-authored symbolic name so two organizations’ effects remain distinguishable without recording either token.</p>
+      <p>The value stays out of prompts, agent config, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request. An allowed endpoint could still return it in the response, which the component receives; destination binding is not an endpoint confidentiality guarantee. Audit records the credential’s owner-authored symbolic name so two organizations’ effects remain distinguishable without recording either token.</p>
     </section>
 
     <section id="scope" class="article-section">
@@ -160,6 +160,8 @@ ogType: article
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway and direct runner exclude privileged broker crates. Only the separate broker owns policy, credentials, and effect execution.</p></article>
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm does not protect a broker machine, owner UID, binary, toolchain, or dependency set that is already compromised.</p></article>
       </div>
+
+      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build and run an import-free provider with the pinned v0.7.0 Rust SDK</strong></a>.</p>
 
       {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "See the exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
     </section>
