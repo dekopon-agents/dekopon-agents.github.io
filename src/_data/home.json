@@ -110,6 +110,14 @@
         "body": "Read a trace from gateway to model to broker and understand why audit, traces, and logs remain separate.",
         "href": "/almanac/observability/",
         "accent": "cyan"
+      },
+      {
+        "number": "05",
+        "label": "Models & memory",
+        "title": "A conversation grows. The model starts fresh.",
+        "body": "Follow request context across model and Slack turns, then separate prompt-cache hints, bounded conversation history, and long-term memory.",
+        "href": "/inference/",
+        "accent": "purple"
       }
     ]
   },

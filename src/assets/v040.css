@@ -130,6 +130,10 @@
   gap: 18px;
 }
 
+.home-concept-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .home-concept-card {
   --concept-accent: var(--purple);
   position: relative;

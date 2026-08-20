@@ -14,6 +14,7 @@
     { "label": "How it works", "href": "/almanac/" },
     { "label": "Identity", "href": "/almanac/identity/" },
     { "label": "Permissions", "href": "/almanac/permissions/" },
+    { "label": "Models & memory", "href": "/inference/" },
     { "label": "Deploy", "href": "/deploy/" },
     { "label": "What’s new", "href": "/whats-new/" }
   ],
@@ -34,6 +35,7 @@
         { "label": "Trusted identity", "href": "/almanac/identity/" },
         { "label": "Cedar permissions", "href": "/almanac/permissions/" },
         { "label": "One-tool runtime", "href": "/almanac/one-tool-runtime/" },
+        { "label": "Model inference & memory", "href": "/inference/" },
         { "label": "Wasm providers", "href": "/almanac/providers/" },
         { "label": "OpenTelemetry", "href": "/almanac/observability/" }
       ]
