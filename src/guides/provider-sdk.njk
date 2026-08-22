@@ -33,6 +33,7 @@ ogType: article
       <a href="#create-provider">Create the provider</a>
       <a href="#build-component">Build the component</a>
       <a href="#run-provider">Inspect and invoke</a>
+      <a href="#command-words">Expose a bash command</a>
       <a href="#broker-loading">Broker loading</a>
       <a href="#broker-http">Broker HTTP</a>
       <a href="#capability-matrix">Capability matrix</a>
@@ -318,7 +319,7 @@ cargo build --locked --target wasm32-unknown-unknown --release</code></pre>
 
       <pre><code>export resolve-command: func(argv: list&lt;string&gt;) -&gt; string;</code></pre>
 
-      <p>A nonempty <code>commandWords</code> manifest requires that export, caller-generated command-world bindings, an implementation of <code>resolve_command</code>, and <code>export_provider_with_commands!</code>. Keep <code>command_words</code> empty for this guide.</p>
+      <p>A nonempty <code>commandWords</code> manifest requires that export, caller-generated command-world bindings, an implementation of <code>resolve_command</code>, and <code>export_provider_with_commands!</code>. The first build below stays on the two-export base world; <a href="#command-words"><strong>the optional command-word step</strong></a> then adds the third export.</p>
 
       <p>Create and inspect the component:</p>
 
@@ -370,9 +371,96 @@ dekopon-run invoke \
       <p>It must report <code>invalid-input</code> and exit with status <code>1</code>. <code>dekopon-run inspect</code> calls and validates the provider’s manifest; it does not replace component-interface inspection.</p>
     </section>
 
+    <section id="command-words" class="article-section">
+      <div class="article-heading">
+        <span>06 · provider commands inside bash</span>
+        <h2>Expose the provider as a shell word</h2>
+        <p>The model still receives one tool named <code>bash</code>. A provider can add a word inside that sandbox, so an agent writes <code>uppercase "Hello"</code> instead of assembling a raw capability call.</p>
+      </div>
+
+      <p>Command words use the optional <code>provider-commands</code> world. Add caller-generated bindings and fetch the exact provider WIT package:</p>
+
+      <pre><code><span class="code-comment"># Cargo.toml</span>
+wit-bindgen = { version = "=0.44.0", default-features = false, features = ["macros", "realloc"] }
+
+<span class="code-comment"># shell</span>
+cargo +1.89.0 install wkg --version 0.16.0 --locked
+mkdir -p wit/deps
+wkg get \
+  --registry dekopon-agents.github.io \
+  --format wit \
+  --output wit/deps/provider.wit \
+  dekopon:provider@0.2.0</code></pre>
+
+      <p>Define <code>wit/world.wit</code>:</p>
+
+      <pre><code>package example:text-command@0.1.0;
+
+world provider {
+    include dekopon:provider/provider-commands@0.2.0;
+}</code></pre>
+
+      <p>Generate bindings for that world. In the manifest, declare the bare word. Then implement the pure argument rewrite. Remove the earlier <code>export_provider!(TextProvider)</code> call and its <code>export_provider</code> import, then use the command-world export below:</p>
+
+      <pre><code>use dekopon_provider_sdk::CommandInvocation;
+
+<span class="code-comment">// Inside Provider::manifest()</span>
+command_words: vec!["uppercase".to_owned()],
+
+<span class="code-comment">// Inside impl Provider for TextProvider</span>
+fn resolve_command(argv: &amp;[String])
+    -&gt; Result&lt;CommandInvocation, ProviderError&gt;
+{
+    let [text] = argv else {
+        return Err(ProviderError::new(
+            "usage",
+            "usage: uppercase TEXT",
+        ));
+    };
+
+    Ok(CommandInvocation {
+        capability: "text.uppercase"
+            .parse()
+            .expect("static capability ID is valid"),
+        input: json!({"text": text}),
+    })
+}
+
+mod bindings {
+    wit_bindgen::generate!({
+        path: "wit",
+        world: "provider",
+        generate_all,
+        pub_export_macro: true,
+    });
+}
+
+dekopon_provider_sdk::export_provider_with_commands!(
+    TextProvider,
+    bindings
+);</code></pre>
+
+      <p>Regenerate <code>Cargo.lock</code>, then repeat the build, componentization, validation, and WIT inspection from step 04. The final component must export <code>describe</code>, <code>invoke</code>, and <code>resolve-command</code> with zero imports. After you install it and configure broker constraints and Cedar policy, broker capability discovery exposes <code>uppercase</code> to the agent session.</p>
+
+      <div class="provider-command-journey" role="group" aria-label="Provider command resolution and authorization">
+        <div><small>agent script</small><strong><code>uppercase "Hello"</code></strong><span>familiar command syntax</span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>provider rewrite</small><strong><code>text.uppercase</code></strong><span><code>{"text":"Hello"}</code></span></div>
+        <i aria-hidden="true">→</i>
+        <div><small>normal authority path</small><strong>Cedar + constraints</strong><span>allow or deny the proposal</span></div>
+      </div>
+
+      <p>The rewrite grants nothing. It runs before authorization and returns the same kind of proposal as <code>cap text.uppercase …</code>. A missing grant still denies. The resolver must not call a host import, and a declared word that collides with a builtin, control word, refused word, or another provider’s word aborts broker startup.</p>
+
+      <div class="article-callout callout-warning">
+        <strong>Provider command words are broker-only in v0.7.0.</strong>
+        <p>Direct <code>dekopon-run</code> execution does not expose or resolve them. Use the broker path, where command discovery, rewriting, authorization, execution, and audit stay separate.</p>
+      </div>
+    </section>
+
     <section id="broker-loading" class="article-section">
       <div class="article-heading">
-        <span>06 · startup-installed components</span>
+        <span>07 · startup-installed components</span>
         <h2>How the broker loads providers</h2>
       </div>
 
@@ -387,7 +475,7 @@ dekopon-run invoke \
 
     <section id="broker-http" class="article-section">
       <div class="article-heading">
-        <span>07 · one broker-owned host import</span>
+        <span>08 · one broker-owned host import</span>
         <h2>Add broker-mediated HTTP</h2>
         <p>This is the build delta for an HTTP provider, not a second complete tutorial.</p>
       </div>
@@ -476,7 +564,7 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
 
     <section id="capability-matrix" class="article-section">
       <div class="article-heading">
-        <span>08 · provider work versus platform work</span>
+        <span>09 · provider work versus platform work</span>
         <h2>Capability matrix</h2>
       </div>
 
@@ -506,7 +594,7 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
 
     <section id="distribution" class="article-section">
       <div class="article-heading">
-        <span>09 · operator-owned supply chain</span>
+        <span>10 · operator-owned supply chain</span>
         <h2>Package and install it yourself</h2>
       </div>
 
@@ -545,7 +633,7 @@ USER 65532:65532</code></pre>
 
     <section id="coding-agent-prompt" class="article-section">
       <div class="article-heading">
-        <span>10 · copy, adapt, verify</span>
+        <span>11 · copy, adapt, verify</span>
         <h2>Prompt a coding agent</h2>
       </div>
 
@@ -601,7 +689,7 @@ Any other import or enforcement need is a host/platform change.</code></pre>
 
     <section id="references" class="article-section">
       <div class="article-heading">
-        <span>11 · pinned technical sources</span>
+        <span>12 · pinned technical sources</span>
         <h2>References</h2>
       </div>
 

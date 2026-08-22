@@ -66,8 +66,8 @@ ogType: article
     <section id="inference" class="article-section">
       <div class="article-heading">
         <span>01 · one model turn</span>
-        <h2>The model answers what Dekopon sends now.</h2>
-        <p>Model inference is the step that produces the next assistant turn. The output can be final text or a request to run Dekopon’s sandboxed scripting tool.</p>
+        <h2>Agent loops like you know and love.</h2>
+        <p>Each turn ends one of two ways: the model answers, or it calls <code>bash</code> with a script. Dekopon appends a bounded tool result and asks again.</p>
       </div>
 
       <div class="request-loop" role="group" aria-label="A bounded model and tool loop">
@@ -80,7 +80,7 @@ ogType: article
         <div class="request-loop-tool"><span>4 · if needed</span><strong>Run one bounded script</strong><small>Append the tool call and result, then ask again.</small></div>
       </div>
 
-      <p>The prompt loop caps model turns and capability calls. Within one session, each new tool call and result is appended to the messages already sent.</p>
+      <p>Rigorous limits on how hard an agent can work. Full power of extensible tools, just like you’d expect from a modern agent system.</p>
 
       <div class="article-callout callout-plain">
         <strong>Context is explicit</strong>

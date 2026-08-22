@@ -33,6 +33,20 @@
       </div>
     </div>
 
-    <a class="text-link execution-link" href="{{ home.execution.link.href }}">{{ home.execution.link.label }} <span aria-hidden="true">→</span></a>
+    <div class="provider-command-flow" role="group" aria-label="How a provider command becomes an authorized capability request">
+      {% for step in home.execution.providerFlow %}
+        <div>
+          <small>{{ step.label }}</small>
+          <strong><code>{{ step.value }}</code></strong>
+          <span>{{ step.detail }}</span>
+        </div>
+        {% if not loop.last %}<i aria-hidden="true">→</i>{% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="execution-links">
+      <a class="text-link execution-link" href="{{ home.execution.link.href }}">{{ home.execution.link.label }} <span aria-hidden="true">→</span></a>
+      <a class="text-link execution-link" href="{{ home.execution.secondaryLink.href }}">{{ home.execution.secondaryLink.label }} <span aria-hidden="true">→</span></a>
+    </div>
   </div>
 </section>

@@ -37,7 +37,7 @@
     </div>
 
     <figure class="hero-visual reveal reveal-delay-2">
-      <figcaption class="sr-only">How Dekopon checks and records one agent request</figcaption>
+      <figcaption class="sr-only">{{ home.hero.visual.caption }}</figcaption>
       <div class="orbit orbit-one" aria-hidden="true"></div>
       <div class="orbit orbit-two" aria-hidden="true"></div>
       <div class="citrus-slice" aria-hidden="true">
@@ -57,9 +57,9 @@
             <span>{{ home.hero.visual.stage }}</span>
             <span class="untrusted-tag">{{ home.hero.visual.trust }}</span>
           </div>
-          <div class="code-line"><span>capability</span><strong>{{ home.hero.visual.capability }}</strong></div>
-          <div class="code-line"><span>{{ home.hero.visual.actorLabel }}</span><strong>{{ home.hero.visual.actor }}</strong></div>
-          <div class="code-line"><span>effect</span><strong class="effect-write">{{ home.hero.visual.effect }}</strong></div>
+          <div class="code-line"><span>{{ home.hero.visual.metric1Label }}</span><strong>{{ home.hero.visual.metric1 }}</strong></div>
+          <div class="code-line"><span>{{ home.hero.visual.metric2Label }}</span><strong>{{ home.hero.visual.metric2 }}</strong></div>
+          <div class="code-line"><span>{{ home.hero.visual.metric3Label }}</span><strong>{{ home.hero.visual.metric3 }}</strong></div>
         </div>
 
         <div class="authority-gate">
@@ -70,12 +70,12 @@
 
         <div class="decision-grid">
           <div class="decision decision-denied">
-            <span class="decision-mark">×</span>
-            <div><small>{{ home.hero.visual.deniedLabel }}</small><strong>{{ home.hero.visual.denied }}</strong></div>
+            <span class="decision-mark">◇</span>
+            <div><small>{{ home.hero.visual.leftLabel }}</small><strong>{{ home.hero.visual.left }}</strong></div>
           </div>
           <div class="decision decision-authorized">
-            <span class="decision-mark">✓</span>
-            <div><small>{{ home.hero.visual.authorizedLabel }}</small><strong>{{ home.hero.visual.authorized }}</strong></div>
+            <span class="decision-mark">◆</span>
+            <div><small>{{ home.hero.visual.rightLabel }}</small><strong>{{ home.hero.visual.right }}</strong></div>
           </div>
         </div>
 

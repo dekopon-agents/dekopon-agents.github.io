@@ -1,53 +1,43 @@
-<section class="authority-section" id="authority">
+<section class="authority-section" id="cedar-policy" aria-labelledby="cedar-policy-title">
   <div class="authority-glow authority-glow-one" aria-hidden="true"></div>
   <div class="authority-glow authority-glow-two" aria-hidden="true"></div>
   <div class="shell authority-shell">
     <div class="section-heading dark-heading">
       <span class="section-kicker cyan">{{ home.authority.kicker }}</span>
-      <h2>{{ home.authority.title }}<br><span>{{ home.authority.titleAccent }}</span></h2>
+      <h2 id="cedar-policy-title">{{ home.authority.title }}<br><span>{{ home.authority.titleAccent }}</span></h2>
       <p>{{ home.authority.intro }}</p>
     </div>
 
-    <section class="flow-stage" aria-labelledby="authority-flow-title">
-      <h3 class="sr-only" id="authority-flow-title">How Dekopon checks one agent action</h3>
-      <div class="flow-status"><span></span>{{ home.authority.diagramStatus }}</div>
-      <div class="flow-grid">
-        {% for node in home.authority.nodes %}
-          <article class="flow-node node-{{ node.id }}">
-            <div class="node-top"><span>{{ node.number }}</span><span class="node-trust {{ node.trustClass }}">{{ node.trust }}</span></div>
-            <div class="node-icon {{ node.id }}-icon" aria-hidden="true">
-              {% if node.id == "proposal" %}
-                <svg viewBox="0 0 32 32"><path d="M7 5h13l5 5v17H7z"/><path d="M20 5v6h5M11 16h10M11 21h7"/></svg>
-              {% elif node.id == "broker" %}
-                <svg viewBox="0 0 32 32"><path d="M16 3 27 7v8c0 7-4.6 11.7-11 14-6.4-2.3-11-7-11-14V7z"/><path d="m11 16 3 3 7-8"/></svg>
-              {% elif node.id == "provider" %}
-                <svg viewBox="0 0 32 32"><path d="M5 11 16 5l11 6-11 6zM5 11v11l11 6 11-6V11M16 17v11"/></svg>
-              {% else %}
-                <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="m11 16 3 3 7-7M16 1v4M16 27v4M1 16h4M27 16h4"/></svg>
-              {% endif %}
-            </div>
-            <h3>{{ node.title }}</h3>
-            <p>{{ node.body }}</p>
-            {% if node.signals %}<div class="broker-signals">{% for signal in node.signals %}<span>{{ signal }}</span>{% endfor %}</div>{% endif %}
-          </article>
+    <div class="cedar-home-example">
+      <article class="cedar-home-policy reveal">
+        <div class="cedar-home-policy-header">
+          <span>{{ home.authority.policyFile }}</span>
+          <small>complete policy set for this synthetic agent</small>
+        </div>
+        <pre><code>{{ home.authority.policy }}</code></pre>
+      </article>
 
-          {% if loop.index == 1 %}
-            <div class="flow-connector connector-gate" aria-hidden="true">
-              <span class="flow-line"></span><span class="connector-label">verified local caller</span><span class="flow-arrow">→</span>
-            </div>
-          {% elif loop.index == 2 %}
-            <div class="flow-fork" aria-hidden="true">
-              <div class="fork-deny"><span>deny</span><i>→</i><strong>Evidence</strong></div>
-              <div class="fork-authorize"><span>allow once</span><i>→</i></div>
-            </div>
-          {% elif loop.index == 3 %}
-            <div class="flow-connector" aria-hidden="true">
-              <span class="flow-line"></span><span class="connector-label">outcome</span><span class="flow-arrow">→</span>
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-    </section>
+      <article class="cedar-home-decision reveal reveal-delay-1">
+        <span class="cedar-home-label">Trusted authorization request</span>
+        <dl>
+          {% for field in home.authority.request %}
+            <div><dt>{{ field.label }}</dt><dd><code>{{ field.value }}</code></dd></div>
+          {% endfor %}
+        </dl>
+
+        <div class="cedar-home-allow">
+          <span aria-hidden="true">✓</span>
+          <div><small>{{ home.authority.decisionLabel }}</small><strong><code>{{ home.authority.decision }}</code></strong></div>
+        </div>
+        <p>{{ home.authority.decisionBody }}</p>
+
+        <h3>{{ home.authority.constraintsTitle }}</h3>
+        <ul>
+          {% for constraint in home.authority.constraints %}<li>{{ constraint }}</li>{% endfor %}
+        </ul>
+        <p class="cedar-home-denial"><strong>Deny example:</strong> {{ home.authority.denial }}</p>
+      </article>
+    </div>
 
     <div class="invariant-grid">
       {% for invariant in home.authority.invariants %}
@@ -58,5 +48,7 @@
         </article>
       {% endfor %}
     </div>
+
+    <a class="button cedar-home-link" href="{{ home.authority.link.href }}">{{ home.authority.link.label }} <span aria-hidden="true">→</span></a>
   </div>
 </section>

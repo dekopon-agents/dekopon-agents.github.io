@@ -1,130 +1,162 @@
 {
   "hero": {
-    "eyebrow": "v0.4.0 · open source · packaged for Kubernetes",
-    "title": "Give agents useful reach.",
-    "titleAccent": "Keep the authority.",
-    "lede": "Run self-hosted AI agents on hardware you own. Dekopon gives models a capable workspace while a separate broker controls identity, permissions, credentials, outside I/O, and audit.",
-    "primaryCta": { "label": "See how it works", "href": "/almanac/" },
-    "secondaryCta": { "label": "Explore v0.4.0", "href": "/whats-new/" },
+    "eyebrow": "v0.4.0 · native arm64 · open source",
+    "title": "An agent stack for",
+    "titleAccent": "one Raspberry Pi.",
+    "lede": "The published Linux arm64 broker is 18.0 MiB; the gateway is 10.3 MiB. Together they give models a host-like workspace without inherited environment variables, host files, or ambient sockets.",
+    "primaryCta": { "label": "See the broker YAML", "href": "#broker-config" },
+    "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" },
     "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.4.0",
-    "caveatLabel": "Current scope:",
-    "caveat": "A substantial, testable local foundation for small hardware. Dekopon is still pre-production and its Kubernetes deployment uses one Unix UID trust domain.",
+    "caveatLabel": "Measured scope:",
+    "caveat": "Published v0.4.0 Linux arm64 archive, 18 Aug 2026. Dekopon is pre-production; the current local deployment treats one Unix UID as a trust domain.",
     "visual": {
-      "title": "one permissioned comment",
-      "badge": "audited",
-      "stage": "Agent request",
-      "trust": "untrusted intent",
-      "capability": "gh.pull-request.comment",
-      "actorLabel": "subject",
-      "actor": "attested by the gateway",
-      "effect": "external write",
-      "boundary": "Cedar + broker limits",
-      "deniedLabel": "rule does not match",
-      "denied": "Denied",
-      "authorizedLabel": "one bounded use",
-      "authorized": "Allowed",
-      "outcomeLabel": "identity + result",
-      "outcome": "hash-linked",
-      "trace": "same trace",
-      "chips": ["runs on a Pi", "broker-held secrets", "OpenTelemetry built in"]
+      "caption": "Published Dekopon v0.4.0 Linux arm64 executable sizes and process roles",
+      "title": "v0.4.0 · Linux arm64",
+      "badge": "Pi-ready",
+      "stage": "Published executable bytes",
+      "trust": "18 Aug 2026",
+      "metric1Label": "gateway",
+      "metric1": "dekopond · 10.3 MiB",
+      "metric2Label": "broker",
+      "metric2": "dekopon-brokerd · 18.0 MiB",
+      "metric3Label": "provider",
+      "metric3": "example Wasm · 233 KiB",
+      "boundary": "native arm64 · one Pi",
+      "leftLabel": "chat + model",
+      "left": "Gateway",
+      "rightLabel": "policy + secrets",
+      "right": "Broker",
+      "outcomeLabel": "compressed release archive",
+      "outcome": "21.2 MiB",
+      "trace": "v0.4.0",
+      "chips": ["Linux arm64", "broker-held secrets", "public provider SDK"]
     }
   },
   "principles": [
-    "Identity comes from transport",
-    "Cedar decides who may act",
-    "Limits stay outside policy",
-    "Every effect stays visible"
+    "Native Linux arm64",
+    "Broker config you can read",
+    "Public Rust provider SDK",
+    "Provider secrets stop at broker"
   ],
-  "pillars": {
-    "kicker": "Small computer. Deliberate authority.",
-    "title": ["Useful agents.", "No ambient power."],
-    "intro": "Dekopon combines a familiar model workspace with strict process boundaries. The model can plan and ask; owner-controlled infrastructure decides and executes.",
-    "items": [
-      {
-        "id": "footprint",
-        "number": "01",
-        "status": "Kubernetes in v0.4.0",
-        "statusClass": "current",
-        "title": "Deploy on hardware you own.",
-        "body": "Run four compact executables on Linux or macOS. The v0.4.0 image supports arm64 and amd64, and the Helm chart is designed for a single-node Raspberry Pi-class cluster."
-      },
-      {
-        "id": "capability",
-        "number": "02",
-        "status": "Cedar enforced",
-        "statusClass": "current",
-        "title": "Say exactly who may act.",
-        "body": "Cedar matches a trusted principal, one action, one resource, and broker-derived context. Separate constraint sets cap the destination, method, calls, bytes, credential, and time."
-      },
-      {
-        "id": "custom",
-        "number": "03",
-        "status": "One model tool",
-        "statusClass": "current",
-        "title": "Use shell fluency without a shell account.",
-        "body": "The model receives one homemade bash-flavored tool. It can inspect and combine granted capabilities, but cannot start a process, read a file, inherit an environment, or open a socket."
-      },
-      {
-        "id": "observe",
-        "number": "04",
-        "status": "OTel end to end",
-        "statusClass": "current",
-        "title": "Follow the whole run.",
-        "body": "One trace follows a chat message through model turns, scripts, policy, provider work, and HTTP. Durable broker audit separately records what was authorized."
-      }
-    ]
+  "broker": {
+    "kicker": "The root configuration",
+    "title": "Start with the broker YAML.",
+    "intro": "This trimmed, synthetic configuration gives Alice one way to comment on a pull request. The identity, provider, credential name, destination, methods, call count, bytes, and timeout are all visible before the agent starts.",
+    "fileName": "broker.yaml",
+    "fileLabel": "relevant authority-bearing fields",
+    "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor: { namespaces: [slack.example] }\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    idempotency: conditional\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
+    "facts": [
+      { "label": "who", "title": "Alice comes from transport.", "body": "The prompt cannot claim her principal." },
+      { "label": "what", "title": "One named write.", "body": "Commenting does not imply approval or merge." },
+      { "label": "where", "title": "One destination.", "body": "Only GET and POST to api.github.com, at most twice." },
+      { "label": "secret", "title": "A name, not a value.", "body": "The token lives in a separate owner-only file." }
+    ],
+    "link": { "label": "Open the complete synthetic PR-commenter example", "href": "/almanac/permissions/" }
+  },
+  "status": {
+    "kicker": "Provider SDK + secret handling",
+    "title": "Write the command. Keep its credential away from it.",
+    "intro": "Providers are ordinary Rust components. They declare what they do and, optionally, the command words agents may type. The broker supplies narrowly constrained I/O without handing the component its token.",
+    "provider": {
+      "label": "Public Rust SDK · v0.7.0",
+      "number": "01",
+      "title": "A provider is a small Wasm component.",
+      "body": "Implement the public Provider trait, compile for wasm32-unknown-unknown, and inspect the final component before loading it.",
+      "points": [
+        "Describe typed capabilities in a manifest",
+        "Validate every operation-specific input in provider code",
+        "Start each description, command rewrite, and invocation in a fresh Wasm store",
+        "Expose an optional command word such as tickets to the agent’s bash sandbox"
+      ],
+      "path": ["Rust trait", "Wasm", "manifest", "bash"],
+      "link": { "label": "Build a provider with the pinned SDK", "href": "/guides/provider-sdk/" }
+    },
+    "secrets": {
+      "label": "Broker-held credentials · v0.4.0",
+      "number": "02",
+      "title": "The tool works without seeing its token.",
+      "body": "The agent calls a normal command. The Wasm guest builds a bounded request. Only the native broker HTTP engine can inject the destination-bound credential.",
+      "items": [
+        { "name": "prompt", "description": "No provider token in model context" },
+        { "name": "bash", "description": "No inherited environment or host files" },
+        { "name": "Wasm guest", "description": "No credential import or ambient socket" },
+        { "name": "broker", "description": "Loads the 0600 file and injects at the bound host" }
+      ],
+      "note": "Destination binding keeps the token out of prompts and guest code. It does not make the remote endpoint trustworthy if that endpoint reflects the value.",
+      "link": { "label": "See how credentials reach the broker", "href": "/deploy/credentials/" }
+    }
+  },
+  "authority": {
+    "kicker": "A concrete Cedar decision",
+    "title": "Alice may leave a comment.",
+    "titleAccent": "Merge is absent.",
+    "intro": "In this synthetic deployment, Slack subject slack.example.u123 maps to principal alice. She may drive pr-commenter through chat-gateway, then request one GitHub comment capability.",
+    "policyFile": "policies.cedar",
+    "policy": "@id(\"alice-may-prompt-pr-commenter\")\npermit(\n  principal == Dekopon::Principal::\"alice\",\n  action == Dekopon::Action::\"agent.prompt\",\n  resource == Dekopon::Agent::\"pr-commenter\"\n)\nwhen {\n  context has via && context.via == \"chat-gateway\"\n};\n\n@id(\"alice-may-comment\")\npermit(\n  principal == Dekopon::Principal::\"alice\",\n  action == Dekopon::Action::\"gh.pull-request.comment\",\n  resource == Dekopon::Provider::\"gh\"\n)\nwhen {\n  context has agent && context.agent == \"pr-commenter\" &&\n  context has via && context.via == \"chat-gateway\"\n};",
+    "request": [
+      { "label": "principal", "value": "alice" },
+      { "label": "action", "value": "gh.pull-request.comment" },
+      { "label": "resource", "value": "Provider::\"gh\"" },
+      { "label": "context", "value": "pr-commenter via chat-gateway" }
+    ],
+    "decisionLabel": "Allowed by Cedar",
+    "decision": "alice-may-comment",
+    "decisionBody": "The rule matches trusted identity and routing context. It never reads Alice’s message or the provider input.",
+    "constraintsTitle": "The broker then applies the YAML envelope",
+    "constraints": [
+      "api.github.com only",
+      "GET + POST only",
+      "2 HTTP calls maximum",
+      "15 second timeout",
+      "github-comment-token selected by name"
+    ],
+    "denial": "Route Alice to release-bot and Cedar denies agent.prompt before any model call: the Agent resource no longer matches.",
+    "invariants": [
+      { "number": "I", "class": "gradient-one", "title": "Text cannot become Alice", "body": "The principal comes from the gateway attestation and broker mapping, never the prompt." },
+      { "number": "II", "class": "gradient-two", "title": "Prompt is a separate grant", "body": "Permission to drive pr-commenter does not imply permission to use its GitHub capability." },
+      { "number": "III", "class": "gradient-three", "title": "Comment is not merge", "body": "Each capability is a distinct Cedar action. Missing actions stay denied." },
+      { "number": "IV", "class": "gradient-four", "title": "Policy cannot widen I/O", "body": "Cedar can allow the action. It cannot add hosts, methods, calls, time, bytes, or credentials." }
+    ],
+    "link": { "label": "Walk through every file and decision", "href": "/almanac/permissions/" }
+  },
+  "execution": {
+    "kicker": "Bash, minus the operating system · v0.7.0 provider words",
+    "title": "Use the shell training models already have.",
+    "intro": "State-of-the-art models are rigorously trained on normal shell sessions. Dekopon reuses their command discovery, jq, loops, and exit-code recovery without launching /bin/bash. The v0.7.0 broker path also lets providers contribute checked command words.",
+    "toolLabel": "the model sees one tool",
+    "toolName": "bash({ script })",
+    "script": "issue=$(tickets issue show T-42)\necho \"$issue\" | jq '{title, owner, state}'\n\nfor id in $(tickets issue list --state open | jq -r '.[].id'); do\n  tickets issue show \"$id\" | jq '{id, owner, state}'\ndone",
+    "result": "one script · bounded JSON · explicit exit codes",
+    "cards": [
+      { "number": "01", "title": "The training transfers", "body": "Variables, loops, pipes, command substitution, jq, and exit codes feel like the shell transcripts frontier models already know." },
+      { "number": "02", "title": "Providers become verbs", "body": "A provider may declare commandWords: [\"tickets\"]. Its pure resolver turns argv into one typed capability proposal." },
+      { "number": "03", "title": "A command grants nothing", "body": "Resolving tickets issue show does not authorize it. The same Cedar decision and broker constraints still run." },
+      { "number": "04", "title": "Every loop has a ceiling", "body": "Script steps, recursion, output, deadline, model turns, tool calls, provider fuel, memory, and broker I/O are all bounded." }
+    ],
+    "providerFlow": [
+      { "label": "provider manifest", "value": "commandWords: [\"tickets\"]", "detail": "one startup-checked word" },
+      { "label": "agent script", "value": "tickets issue show T-42", "detail": "normal shell-shaped syntax" },
+      { "label": "pure rewrite", "value": "resolve_command(argv)", "detail": "builds tickets.issue.read input" },
+      { "label": "authority", "value": "Cedar + broker limits", "detail": "allow or deny one proposal" }
+    ],
+    "link": { "label": "See the complete sandbox language", "href": "/almanac/one-tool-runtime/" },
+    "secondaryLink": { "label": "Expose a provider command to bash", "href": "/guides/provider-sdk/#command-words" }
   },
   "concepts": {
-    "kicker": "Core concepts",
-    "title": "The homepage is the map. These guides are the territory.",
-    "intro": "Each guide stands on its own, uses the code that ships in v0.4.0, and ends with a link to the latest implementation contract.",
+    "kicker": "Technical deep dives",
+    "title": "Take the next concrete step.",
+    "intro": "Each guide explains a complete mechanism before linking to the exact evolving implementation contract.",
     "items": [
-      {
-        "number": "01",
-        "label": "Trusted identity",
-        "title": "A gateway can vouch. It cannot mint authority.",
-        "body": "See how an authenticated chat sender becomes a canonical subject, then a broker-mapped principal and Cedar context.",
-        "href": "/almanac/identity/",
-        "accent": "mint"
-      },
-      {
-        "number": "02",
-        "label": "Cedar permissions",
-        "title": "Principal. Action. Resource. Context.",
-        "body": "Build a complete PR-commenter policy and keep execution limits and credentials beyond policy’s reach.",
-        "href": "/almanac/permissions/",
-        "accent": "purple"
-      },
-      {
-        "number": "03",
-        "label": "One-tool runtime",
-        "title": "A familiar dark room with locked doors.",
-        "body": "Learn how models use shell habits, capability discovery, jq, loops, and exit codes inside a homemade interpreter.",
-        "href": "/almanac/one-tool-runtime/",
-        "accent": "orange"
-      },
-      {
-        "number": "04",
-        "label": "OpenTelemetry",
-        "title": "One message. Three processes. One waterfall.",
-        "body": "Read a trace from gateway to model to broker and understand why audit, traces, and logs remain separate.",
-        "href": "/almanac/observability/",
-        "accent": "cyan"
-      },
-      {
-        "number": "05",
-        "label": "Models & memory",
-        "title": "A conversation grows. The model starts fresh.",
-        "body": "Follow request context across model and Slack turns, then separate prompt-cache hints, bounded conversation history, and long-term memory.",
-        "href": "/inference/",
-        "accent": "purple"
-      }
+      { "number": "01", "label": "Cedar", "title": "Build the complete PR commenter.", "body": "Put the catalog, broker constraints, credential file, Cedar policy, and one decision together.", "href": "/almanac/permissions/", "accent": "purple" },
+      { "number": "02", "label": "Provider SDK", "title": "Compile your first Wasm provider.", "body": "Follow a pinned Rust walkthrough from trait implementation to component inspection and broker loading.", "href": "/guides/provider-sdk/", "accent": "mint" },
+      { "number": "03", "label": "Sandboxed bash", "title": "See exactly what the shell keeps.", "body": "Learn the supported grammar, JSON-native values, provider commands, refusal codes, and hard budgets.", "href": "/almanac/one-tool-runtime/", "accent": "orange" },
+      { "number": "04", "label": "Secrets", "title": "Materialize owner-only broker files.", "body": "Keep provider, model, chat, and telemetry credentials in the process that actually needs each value.", "href": "/deploy/credentials/", "accent": "cyan" }
     ]
   },
   "deployment": {
-    "kicker": "New in v0.4.0",
-    "title": "From release archive to a Kubernetes pod.",
-    "intro": "Version 0.4.0 changes distribution, not authority. The same separated gateway and broker now ship in a verified multi-architecture image and a security-conscious Helm chart.",
+    "kicker": "Raspberry Pi deployment",
+    "title": "One pod. No public control plane.",
+    "intro": "The v0.4.0 arm64 image runs the gateway and broker as separate containers in one single-node pod. They share one owner-only Unix socket, not a network API.",
     "facts": [
       { "value": "1", "label": "pod" },
       { "value": "2", "label": "daemon containers" },
@@ -133,19 +165,19 @@
     ],
     "points": [
       "A native broker sidecar becomes ready before the gateway starts",
-      "An init container creates real owner-only files from Kubernetes projections",
+      "An init container turns Kubernetes projections into real owner-only files",
       "Audit and checkpoint state stay together on one persistent volume",
       "Provider and model credentials never enter the image"
     ],
-    "primaryCta": { "label": "Explore Kubernetes deployment", "href": "/deploy/kubernetes/" },
-    "secondaryCta": { "label": "Choose an install path", "href": "/deploy/" }
+    "primaryCta": { "label": "Deploy on Kubernetes", "href": "/deploy/kubernetes/" },
+    "secondaryCta": { "label": "Choose another install path", "href": "/deploy/" }
   },
   "closing": {
-    "kicker": "v0.4.0 · open source",
-    "title": "Let the model explore.",
-    "titleAccent": "Keep every door explicit.",
-    "body": "Bring a model, narrow capabilities, and hardware you own. Dekopon gives agents a useful place to work without handing them the keys to the host.",
+    "kicker": "v0.4.0 · open source · pre-production",
+    "title": "Give the agent commands.",
+    "titleAccent": "Keep the host out of reach.",
+    "body": "Start with the broker YAML above, add one provider, and let the model use the shell habits it already has. The credential stays with the broker.",
     "primaryCta": { "label": "Get v0.4.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0" },
-    "secondaryCta": { "label": "See how it works", "href": "/almanac/" }
+    "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
   }
 }

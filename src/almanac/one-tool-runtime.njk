@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("03", "One-tool runtime", "A shell-shaped dark room.<br><span>Only approved doors.</span>", "Frontier models already know how to inspect an unfamiliar shell, combine small commands, read exit codes, and try another path. Dekopon keeps that fluency and replaces the operating system underneath it.", "current", "Shipping in v0.4.0") }}
+{{ pageHero("03", "One-tool runtime", "Bash habits.<br><span>No host shell.</span>", "State-of-the-art models are rigorously trained on ordinary shell sessions. Dekopon keeps the discovery, pipes, jq, loops, and exit codes they already know, then replaces the operating system with capability calls.", "current", "Shipping in v0.4.0") }}
 {{ chapterNav("runtime", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -52,8 +52,8 @@ ogType: article
     <section id="explore" class="article-section">
       <div class="article-heading">
         <span>03.2 · trained exploration</span>
-        <h2>Let a capable model feel around safely.</h2>
-        <p>State-of-the-art models have extensive training on shell sessions where the environment is initially unknown. They know the rhythm: list what exists, inspect one command, try a narrow operation, read the result, and adapt.</p>
+        <h2>Reuse the bash training models already have.</h2>
+        <p>Models know the rhythm of an unfamiliar host: list what exists, inspect one command, try a narrow operation, read the exit code, and adapt. Dekopon gives that learned behavior a smaller world to explore.</p>
       </div>
 
       <div class="shell-discovery">

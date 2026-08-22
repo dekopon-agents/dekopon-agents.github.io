@@ -1,9 +1,9 @@
-<section class="status-section section" id="release">
+<section class="status-section section" id="provider-sdk" aria-labelledby="provider-sdk-title">
   <div class="shell">
     <div class="section-heading split-heading compact-heading">
       <div>
         <span class="section-kicker orange">{{ home.status.kicker }}</span>
-        <h2>{{ home.status.title }}</h2>
+        <h2 id="provider-sdk-title">{{ home.status.title }}</h2>
       </div>
       <p>{{ home.status.intro }}</p>
     </div>
@@ -11,31 +11,33 @@
     <div class="status-grid">
       <article class="status-panel current-panel reveal">
         <div class="status-panel-top">
-          <span class="status-label current"><span></span>{{ home.status.current.label }}</span>
-          <span class="status-number">01</span>
+          <span class="status-label current"><span></span>{{ home.status.provider.label }}</span>
+          <span class="status-number">{{ home.status.provider.number }}</span>
         </div>
-        <h3>{{ home.status.current.title }}</h3>
-        <p>{{ home.status.current.body }}</p>
+        <h3>{{ home.status.provider.title }}</h3>
+        <p>{{ home.status.provider.body }}</p>
         <ul class="check-list">
-          {% for point in home.status.current.points %}<li>{{ point }}</li>{% endfor %}
+          {% for point in home.status.provider.points %}<li>{{ point }}</li>{% endfor %}
         </ul>
         <div class="path-strip">
-          <span class="sr-only">How one agent request moves through Dekopon:</span>
-          {% for step in home.status.current.path %}<span>{{ step }}</span>{% if not loop.last %}<i aria-hidden="true">→</i>{% endif %}{% endfor %}
+          <span class="sr-only">How provider code reaches the agent sandbox:</span>
+          {% for step in home.status.provider.path %}<span>{{ step }}</span>{% if not loop.last %}<i aria-hidden="true">→</i>{% endif %}{% endfor %}
         </div>
+        <a class="text-link status-link" href="{{ home.status.provider.link.href }}">{{ home.status.provider.link.label }} <span aria-hidden="true">→</span></a>
       </article>
 
-      <article class="status-panel direction-panel reveal reveal-delay-1">
+      <article class="status-panel direction-panel secret-panel reveal reveal-delay-1">
         <div class="status-panel-top">
-          <span class="status-label direction"><span></span>{{ home.status.direction.label }}</span>
-          <span class="status-number">→</span>
+          <span class="status-label direction"><span></span>{{ home.status.secrets.label }}</span>
+          <span class="status-number">{{ home.status.secrets.number }}</span>
         </div>
-        <h3>{{ home.status.direction.title }}</h3>
-        <p>{{ home.status.direction.body }}</p>
-        <ul class="arrow-list">
-          {% for item in home.status.direction.items %}<li><strong>{{ item.name }}</strong><span>{{ item.description }}</span></li>{% endfor %}
+        <h3>{{ home.status.secrets.title }}</h3>
+        <p>{{ home.status.secrets.body }}</p>
+        <ul class="arrow-list secret-boundary-list">
+          {% for item in home.status.secrets.items %}<li><strong>{{ item.name }}</strong><span>{{ item.description }}</span></li>{% endfor %}
         </ul>
-        <p class="not-yet"><span aria-hidden="true">!</span> {{ home.status.direction.note }}</p>
+        <p class="not-yet"><span aria-hidden="true">!</span> {{ home.status.secrets.note }}</p>
+        <a class="text-link status-link" href="{{ home.status.secrets.link.href }}">{{ home.status.secrets.link.label }} <span aria-hidden="true">→</span></a>
       </article>
     </div>
   </div>

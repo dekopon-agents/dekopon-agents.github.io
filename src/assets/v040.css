@@ -1648,6 +1648,462 @@
 .eso-chain .eso-boundary strong { color: #fff; }
 .eso-chain .eso-boundary span { color: var(--alm-lime); }
 
+/* Provider command words */
+
+.provider-command-journey {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: stretch;
+  gap: 11px;
+  margin: 28px 0 32px;
+}
+
+.provider-command-journey > div {
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--alm-rule);
+  border-radius: 9px;
+}
+
+.provider-command-journey > i {
+  align-self: center;
+  color: var(--purple);
+  font-style: normal;
+}
+
+.provider-command-journey small,
+.provider-command-journey strong,
+.provider-command-journey span {
+  display: block;
+}
+
+.provider-command-journey small {
+  margin-bottom: 17px;
+  color: var(--purple);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.provider-command-journey strong {
+  color: var(--alm-ink);
+  font-size: 11px;
+}
+
+.provider-command-journey span {
+  margin-top: 7px;
+  color: var(--alm-muted);
+  font-size: 8px;
+}
+
+/* Focused homepage narrative */
+
+.broker-config-section {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0 100%, rgba(255, 106, 61, 0.08), transparent 30%),
+    #fff;
+}
+
+.broker-config-heading {
+  margin-bottom: 54px;
+}
+
+.broker-config-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(330px, 0.72fr);
+  align-items: start;
+  gap: 42px;
+}
+
+.broker-yaml-card {
+  overflow: hidden;
+  color: #dce8f4;
+  background: #0b2339;
+  border: 1px solid rgba(10, 37, 64, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 28px 70px rgba(10, 37, 64, 0.18);
+}
+
+.broker-code-header {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 19px;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.035);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.broker-code-header > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.broker-code-header strong {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 10px;
+}
+
+.broker-code-header > span {
+  text-align: right;
+}
+
+.broker-yaml-card pre {
+  max-height: 690px;
+  margin: 0;
+  padding: 27px 29px 31px;
+  overflow: auto;
+  font-size: 10px;
+  line-height: 1.72;
+  tab-size: 2;
+}
+
+.broker-fact-list {
+  display: grid;
+  gap: 11px;
+}
+
+.broker-fact-list article {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid rgba(10, 37, 64, 0.09);
+  border-radius: 11px;
+}
+
+.broker-fact-list article > span {
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--purple);
+  background: #eceaff;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.broker-fact-list h3 {
+  margin: 0 0 5px;
+  color: var(--navy);
+  font-size: 15px;
+}
+
+.broker-fact-list p {
+  margin: 0;
+  color: var(--slate);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.broker-secret-line {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 5px;
+  padding: 17px;
+  color: #fff;
+  background: var(--navy);
+  border-radius: 11px;
+}
+
+.broker-secret-line > div {
+  min-width: 0;
+}
+
+.broker-secret-line small,
+.broker-secret-line strong {
+  display: block;
+}
+
+.broker-secret-line small {
+  margin-bottom: 5px;
+  color: rgba(255, 255, 255, 0.48);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  text-transform: uppercase;
+}
+
+.broker-secret-line strong {
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.broker-secret-line i {
+  color: var(--mint);
+  font-style: normal;
+}
+
+.broker-fact-list > .text-link {
+  margin-top: 10px;
+}
+
+.status-link {
+  margin-top: 22px;
+}
+
+.secret-boundary-list strong {
+  color: var(--purple);
+}
+
+.cedar-home-example {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
+  gap: 22px;
+}
+
+.cedar-home-policy,
+.cedar-home-decision {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.17);
+}
+
+.cedar-home-policy-header {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 20px;
+  color: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.045);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+.cedar-home-policy-header > span {
+  color: var(--mint);
+  font-weight: 750;
+}
+
+.cedar-home-policy-header small {
+  font-size: 7px;
+  text-align: right;
+}
+
+.cedar-home-policy pre {
+  margin: 0;
+  padding: 28px;
+  overflow: auto;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 10px;
+  line-height: 1.75;
+  tab-size: 2;
+}
+
+.cedar-home-decision {
+  padding: 27px;
+}
+
+.cedar-home-label {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cedar-home-decision dl {
+  margin: 0;
+}
+
+.cedar-home-decision dl > div {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.cedar-home-decision dt {
+  color: rgba(255, 255, 255, 0.39);
+  font-family: var(--font-mono);
+  font-size: 7px;
+}
+
+.cedar-home-decision dd {
+  min-width: 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+
+.cedar-home-allow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 21px 0 12px;
+  padding: 14px;
+  color: var(--mint);
+  background: rgba(116, 233, 189, 0.09);
+  border: 1px solid rgba(116, 233, 189, 0.25);
+  border-radius: 9px;
+}
+
+.cedar-home-allow > span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--navy);
+  background: var(--mint);
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.cedar-home-allow small,
+.cedar-home-allow strong {
+  display: block;
+}
+
+.cedar-home-allow small {
+  margin-bottom: 3px;
+  color: rgba(255, 255, 255, 0.48);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.cedar-home-decision > p {
+  color: rgba(255, 255, 255, 0.53);
+  font-size: 10px;
+  line-height: 1.62;
+}
+
+.cedar-home-decision h3 {
+  margin: 23px 0 10px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.cedar-home-decision ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cedar-home-decision li {
+  padding: 6px 8px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+}
+
+.cedar-home-decision .cedar-home-denial {
+  margin: 20px 0 0;
+  padding: 12px 13px;
+  color: #ffb6c4;
+  background: rgba(255, 107, 158, 0.08);
+  border: 1px solid rgba(255, 107, 158, 0.18);
+  border-radius: 8px;
+}
+
+.cedar-home-link {
+  margin-top: 54px;
+  color: var(--navy);
+  background: var(--mint);
+  box-shadow: 0 14px 32px rgba(116, 233, 189, 0.16);
+}
+
+.cedar-home-link:hover {
+  background: #9bf2d2;
+}
+
+.provider-command-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 42px;
+  padding: 20px;
+  background: var(--navy);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(10, 37, 64, 0.14);
+}
+
+.provider-command-flow > div {
+  min-width: 0;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.provider-command-flow small,
+.provider-command-flow strong,
+.provider-command-flow span {
+  display: block;
+}
+
+.provider-command-flow small {
+  margin-bottom: 12px;
+  color: var(--mint);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.provider-command-flow strong {
+  color: #fff;
+  font-size: 9px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.provider-command-flow span {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.provider-command-flow > i {
+  align-self: center;
+  color: var(--cyan);
+  font-style: normal;
+}
+
+.execution-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px 30px;
+  margin-top: 25px;
+}
+
+.execution-links .execution-link {
+  margin-top: 0;
+}
+
 /* Responsive */
 
 @media (max-width: 1100px) {
@@ -1678,6 +2134,41 @@
 }
 
 @media (max-width: 900px) {
+  .home-page .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-page .hero-copy,
+  .home-page .hero-visual {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .broker-config-layout,
+  .cedar-home-example {
+    grid-template-columns: 1fr;
+  }
+
+  .broker-fact-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .broker-secret-line,
+  .broker-fact-list > .text-link {
+    grid-column: 1 / -1;
+  }
+
+  .provider-command-flow,
+  .provider-command-journey {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-command-flow > i,
+  .provider-command-journey > i {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
   .almanac-chapter-nav-inner {
     grid-template-columns: repeat(6, minmax(92px, 1fr));
     width: max-content;
@@ -1767,6 +2258,52 @@
 }
 
 @media (max-width: 700px) {
+  .broker-fact-list {
+    grid-template-columns: 1fr;
+  }
+
+  .broker-secret-line,
+  .broker-fact-list > .text-link {
+    grid-column: auto;
+  }
+
+  .broker-code-header {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 64px;
+  }
+
+  .broker-code-header > span {
+    text-align: left;
+  }
+
+  .broker-yaml-card pre,
+  .cedar-home-policy pre {
+    padding: 20px 17px 24px;
+    font-size: 8px;
+  }
+
+  .cedar-home-policy-header {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 64px;
+  }
+
+  .cedar-home-policy-header small {
+    text-align: left;
+  }
+
+  .cedar-home-decision {
+    padding: 21px;
+  }
+
+  .execution-links {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .atlas-card-grid-five {
     grid-template-columns: 1fr;
   }
@@ -1904,6 +2441,24 @@
 }
 
 @media (max-width: 520px) {
+  .broker-secret-line {
+    grid-template-columns: 1fr;
+  }
+
+  .broker-secret-line i {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .cedar-home-decision dl > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .provider-command-flow {
+    padding: 14px;
+  }
+
   .home-concept-card h3 {
     font-size: 29px;
   }

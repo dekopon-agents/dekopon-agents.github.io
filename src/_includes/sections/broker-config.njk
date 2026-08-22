@@ -1,0 +1,36 @@
+<section class="broker-config-section section" id="broker-config" aria-labelledby="broker-config-title">
+  <div class="shell">
+    <div class="section-heading split-heading broker-config-heading">
+      <div>
+        <span class="section-kicker orange">{{ home.broker.kicker }}</span>
+        <h2 id="broker-config-title">{{ home.broker.title }}</h2>
+      </div>
+      <p>{{ home.broker.intro }}</p>
+    </div>
+
+    <div class="broker-config-layout">
+      <div class="broker-yaml-card reveal">
+        <div class="broker-code-header">
+          <div><span class="file-dot yaml" aria-hidden="true"></span><strong>{{ home.broker.fileName }}</strong></div>
+          <span>{{ home.broker.fileLabel }}</span>
+        </div>
+        <pre><code>{{ home.broker.yaml | yamlHighlight | safe }}</code></pre>
+      </div>
+
+      <div class="broker-fact-list">
+        {% for fact in home.broker.facts %}
+          <article class="reveal{% if loop.index > 1 %} reveal-delay-1{% endif %}">
+            <span>{{ fact.label }}</span>
+            <div><h3>{{ fact.title }}</h3><p>{{ fact.body }}</p></div>
+          </article>
+        {% endfor %}
+        <div class="broker-secret-line" role="group" aria-label="Credential path">
+          <div><small>agent + Wasm guest</small><strong>no credential value</strong></div>
+          <i aria-hidden="true">→</i>
+          <div><small>native broker HTTP</small><strong>injects at api.github.com</strong></div>
+        </div>
+        <a class="text-link" href="{{ home.broker.link.href }}">{{ home.broker.link.label }} <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
