@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/permissions/index.html
-pageTitle: Cedar permissions — How Dekopon v0.4.0 works
+pageTitle: Cedar permissions — How Dekopon v0.10.0 works
 pageDescription: Build a complete, redacted PR-commenter example with Dekopon identities, capabilities, Cedar resources, execution constraints, and broker-held credentials.
 bodyClass: almanac-page almanac-article-page almanac-permissions-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("02", "Cedar permissions", "Who may do what?<br><span>How far may it reach?</span>", "Cedar answers the first question. Broker-owned constraint sets answer the second. This complete PR-commenter example shows why Dekopon keeps them apart.", "current", "Cedar enforced in v0.4.0") }}
+{{ pageHero("02", "Cedar permissions", "Who may do what?<br><span>How far may it reach?</span>", "Cedar answers the first question. Broker-owned constraint sets answer the second. This complete PR-commenter example shows why Dekopon keeps them apart.", "current", "Cedar enforced in v0.10.0") }}
 {{ chapterNav("permissions", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -188,6 +188,10 @@ identities:
       principal: chat-gateway
     attestor:
       namespaces: [slack.t0example]
+      chatScopes:
+        - breadth: transportWide
+          kind: slack
+          transport: workspace-slack
 
 identityMappings:
   - subject: slack.t0example.u0example

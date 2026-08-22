@@ -25,7 +25,7 @@ The homepage is deliberately short. Detailed explanations live in independent st
 | Homepage sections | `src/_includes/sections/` |
 | Shared visual design | `src/assets/styles.css` |
 | Article visual design | `src/assets/almanac.css` |
-| v0.4 diagrams and multipage additions | `src/assets/v040.css` |
+| Release, diagram, and multipage additions | `src/assets/release.css` |
 | Browser interaction | `src/assets/site.js` |
 
 Public concept pages must stand on their own. Repository Markdown is supplemental: each guide ends with **Read the latest in the Dekopon docs** for exact evolving fields and implementation limits, rather than sending a reader away to understand the core idea.

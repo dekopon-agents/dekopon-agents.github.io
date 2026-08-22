@@ -15,15 +15,15 @@
     </div>
 
     <div class="pod-cutaway reveal" role="group" aria-label="Kubernetes pod with a gateway and broker sharing a Unix socket">
-      <div class="pod-cutaway-top"><span>Kubernetes pod</span><code>v0.4.0</code></div>
+      <div class="pod-cutaway-top"><span>Kubernetes pod</span><code>v0.10.0</code></div>
       <div class="pod-cutaway-init"><small>starts first</small><strong>prepare-files</strong><span>owner-only config</span></div>
       <div class="pod-cutaway-processes">
         <article><small>unprivileged orchestration</small><strong>dekopond</strong><span>chat + model</span></article>
         <div class="pod-socket"><span>0600</span><strong>Unix socket</strong><i aria-hidden="true">↔</i></div>
         <article><small>privileged authority</small><strong>dekopon-brokerd</strong><span>policy + credentials</span></article>
       </div>
-      <div class="pod-cutaway-state"><span>persistent volume</span><strong>audit.jsonl + checkpoint</strong></div>
-      <div class="pod-cutaway-none"><span>no Service</span><span>no Ingress</span><span>no TCP listener</span></div>
+      <div class="pod-cutaway-state"><span>retained state</span><strong>audit + optional provider storage</strong></div>
+      <div class="pod-cutaway-none"><span>default: no Service</span><span>no chart Ingress</span><span>broker: Unix only</span></div>
     </div>
   </div>
 

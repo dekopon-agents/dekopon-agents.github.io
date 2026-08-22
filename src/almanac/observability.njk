@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/observability/index.html
-pageTitle: Audit and OpenTelemetry — How Dekopon v0.4.0 works
+pageTitle: Audit and OpenTelemetry — How Dekopon v0.10.0 works
 pageDescription: Read one Dekopon CSS trace waterfall from gateway message through model, shell, Cedar, Wasm provider, and HTTP, then learn how audit, traces, and logs differ.
 bodyClass: almanac-page almanac-article-page almanac-observability-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("05", "Audit & OpenTelemetry", "One message.<br><span>Every layer visible.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in v0.4.0") }}
+{{ pageHero("05", "Audit & OpenTelemetry", "One message.<br><span>Every layer visible.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in v0.10.0") }}
 {{ chapterNav("observability", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>05.1 · one real system shape</span>
         <h2>See the thinking, the tools, and the effect in one view.</h2>
-        <p>This CSS rendering follows the shape of a v0.4.0 OpenObserve trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
+        <p>This CSS rendering follows the release-backed shape of a v0.10.0 HTTP-provider trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
       </div>
 
       <figure class="otel-waterfall">
@@ -107,7 +107,7 @@ ogType: article
       </div>
 
       <div class="truth-label-cards">
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker audit</span></div><h3>What was authorized?</h3><p>An owner-only hash-linked JSONL chain records identity, decision, policy IDs and digest, credential name, effect, outcome, and bounded evidence.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker audit</span></div><h3>What was authorized?</h3><p>An owner-only hash-linked JSONL chain records decisions, outcomes, and bounded evidence. Ordinary effects include identity and policy linkage; storage records use keyed commitments instead.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel traces</span></div><h3>What ran, and where did time go?</h3><p>Spans preserve duration, parentage, safe identifiers, outcomes, and the path from chat to HTTP.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel logs</span></div><h3>What should survive a sampled trace?</h3><p>Accounting, refusals, errors, lifecycle facts, and explicitly enabled transcript payloads remain searchable under separate retention.</p></article>
       </div>
@@ -157,7 +157,7 @@ ogType: article
         </table>
       </div>
 
-      <p><code>telemetryPayloads: true</code> opts selected messages, scripts, provider input, and URLs into telemetry. It widens data, never authority or secret exposure. Durable audit remains metadata-only.</p>
+      <p><code>telemetryPayloads: true</code> opts selected messages, scripts, ordinary provider input, and URLs into telemetry. It widens data, never authority or secret exposure. Storage content remains omitted, and durable audit remains metadata-only.</p>
     </section>
 
     <section id="openobserve" class="article-section">

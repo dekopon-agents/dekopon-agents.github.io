@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/providers/index.html
-pageTitle: Wasm providers — How Dekopon v0.4.0 works
-pageDescription: See how Dekopon runs each provider operation in a fresh Wasm sandbox and gives networked providers only one broker-owned, constrained HTTP interface.
+pageTitle: Wasm providers — How Dekopon v0.10.0 works
+pageDescription: See how Dekopon runs each provider operation in a fresh Wasm sandbox and links only broker-owned, constrained HTTP or storage interfaces.
 bodyClass: almanac-page almanac-article-page almanac-providers-page
 almanacPage: true
 almanacSection: providers
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credential injection in the broker-owned HTTP engine.", "current", "Shipping in v0.4.0") }}
+{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in v0.10.0") }}
 {{ chapterNav("providers", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -21,6 +21,7 @@ ogType: article
       <a href="#hosts">Two execution paths</a>
       <a href="#fresh">A fresh store</a>
       <a href="#http">Permissioned HTTP</a>
+      <a href="#storage">Broker-owned storage</a>
       <a href="#credential">Credential injection</a>
       <a href="#scope">What this protects</a>
     </nav>
@@ -32,7 +33,7 @@ ogType: article
       <div class="article-heading">
         <span>04.1 · a small portable boundary</span>
         <h2>Describe capabilities. Invoke exactly one.</h2>
-        <p>A provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure.</p>
+        <p>Every provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure. A command-enabled provider may add the optional pure <code>resolve-command</code> export.</p>
       </div>
 
       <pre><code><span class="code-purple">world</span> provider {
@@ -76,10 +77,10 @@ ogType: article
         <article class="run-mode-future">
           <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker</span><span><code>dekopon-brokerd</code></span></div>
           <h3>Permissioned provider effects</h3>
-          <p>The privileged host links one project-owned buffered HTTP interface after Cedar allows an invocation and the broker attaches constraints.</p>
+          <p>The privileged host links an exact project-owned HTTP or storage interface after Cedar allows an invocation and the broker attaches constraints.</p>
           <ul>
-            <li>no WASI, raw sockets, files, environment, or guest-visible secrets</li>
-            <li>exact host, method, calls, bytes, and deadline</li>
+            <li>no WASI, raw sockets, host paths, environment, or guest-visible secrets</li>
+            <li>exact network or storage scope, quotas, bytes, and deadline</li>
             <li>sanitized evidence and durable audit linkage</li>
           </ul>
         </article>
@@ -87,7 +88,7 @@ ogType: article
 
       <div class="article-callout callout-decision">
         <strong>Declaring an import is not receiving authority.</strong>
-        <p>The GitHub component can say it needs <code>dekopon:http@1.0.0</code>. Only the broker can connect that import to a constrained native client for one authorized invocation.</p>
+        <p>A component can say it needs <code>dekopon:http@1.0.0</code> or <code>dekopon:storage@0.1.0</code>. Only the broker can connect that import to a constrained native service for one authorized invocation.</p>
       </div>
     </section>
 
@@ -101,7 +102,7 @@ ogType: article
         <div class="store-shared">
           <span>retained for speed</span>
           <div><strong>Wasmtime engine</strong><small>shared runtime configuration</small></div>
-          <div><strong>compiled component</strong><small>machine code cache in process</small></div>
+          <div><strong>compiled component</strong><small>in process · optional disk cache across restarts</small></div>
           <div><strong>capability routes</strong><small>trusted provider map</small></div>
         </div>
         <i aria-hidden="true">each invoke ↓</i>
@@ -113,7 +114,7 @@ ogType: article
         </div>
       </div>
 
-      <p>Description runs with HTTP disabled, even in the broker host. Provider code cannot make a network call while merely advertising what it can do.</p>
+      <p>Description and command resolution run with HTTP and storage disabled, even in the broker host. Provider code cannot use a host service while advertising or rewriting what it can do.</p>
     </section>
 
     <section id="http" class="article-section">
@@ -132,9 +133,31 @@ ogType: article
       <p>Constraints can narrow the native host ceilings and never widen them. Plain HTTP is rejected except for explicitly authorized literal loopback tests. DNS results are validated and pinned before connection.</p>
     </section>
 
+    <section id="storage" class="article-section">
+      <div class="article-heading">
+        <span>04.5 · durable state without host paths</span>
+        <h2>The broker gives storage a namespace, not a filesystem.</h2>
+        <p>Version 0.10.0 adds exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, namespace key, scope directory, or ambient filesystem access.</p>
+      </div>
+
+      <div class="provider-envelope">
+        <div><small>provider asks</small><strong>JSONL or durable files</strong><span>one declared interface</span></div>
+        <div><small>authorization binds</small><strong>provider · action · chat scope</strong><span>access mode + limits</span></div>
+        <div><small>native engine enforces</small><strong>quota · lease · transaction</strong><span>no-follow filesystem operations</span></div>
+        <div><small>commit rule</small><strong>valid successful response</strong><span>otherwise abort the overlay</span></div>
+      </div>
+
+      <p>HTTP and storage authority cannot coexist in one v1 capability. Storage mutations commit only after a valid successful provider response. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
+
+      <div class="article-callout callout-warning">
+        <strong>Durable does not mean encrypted or automatically remembered.</strong>
+        <p>Dekopon does not encrypt stored text at rest, replay it into prompts, or provide deletion and export UX. The namespace key protects derivation and commitments; it is not a content-encryption key.</p>
+      </div>
+    </section>
+
     <section id="credential" class="article-section">
       <div class="article-heading">
-        <span>04.5 · broker-held secrets</span>
+        <span>04.6 · broker-held secrets</span>
         <h2>The broker injects the credential.</h2>
       </div>
 
@@ -151,7 +174,7 @@ ogType: article
 
     <section id="scope" class="article-section">
       <div class="article-heading">
-        <span>04.6 · honest isolation claims</span>
+        <span>04.7 · honest isolation claims</span>
         <h2>Strong provider containment. Not a protected host.</h2>
       </div>
 
@@ -161,7 +184,7 @@ ogType: article
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm does not protect a broker machine, owner UID, binary, toolchain, or dependency set that is already compromised.</p></article>
       </div>
 
-      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build and run an import-free provider with the pinned v0.7.0 Rust SDK</strong></a>.</p>
+      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build and run an import-free provider with the pinned v0.10.0 Rust SDK</strong></a>.</p>
 
       {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "See the exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
     </section>

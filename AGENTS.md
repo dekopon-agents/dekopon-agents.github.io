@@ -66,13 +66,13 @@ Natural writing must remain true.
 
 - Never claim Dekopon is production-ready unless the pinned implementation and current project docs say so.
 - Never use absolutes such as “impossible to leak,” “unhackable,” or “perfectly secure.” Name the safeguard and its scope instead.
-- Dekopon v0.4.0 uses Cedar for authorization. Keep Cedar’s decision separate from owner-authored execution constraints: policy decides who may act and cannot widen hosts, methods, credentials, byte ceilings, or timeouts.
+- Dekopon v0.10.0 uses Cedar for authorization. Keep Cedar’s decision separate from owner-authored execution constraints: policy decides who may act and cannot widen hosts, methods, storage scope, credentials, byte ceilings, or timeouts.
 - Broker-owned destination-bound credentials and optional per-agent selection are current. Say where the value terminates and never imply the gateway, model, shell, or Wasm guest receives it.
 - The gateway supplies a canonical subject attestation and agent name; it never supplies a trusted principal. The broker authenticates the peer, checks the attestor grant, and alone maps subject to principal.
 - Keep **current**, **next**, and **not claimed** work visibly separate.
-- Preserve important limits: one local Unix UID trust domain, no independent audit anchor, no multi-tenant transport, and no production-hardening claim in v0.4.0.
-- Version 0.4.0 adds distribution rather than authority. Distinguish the application release from independently tagged chart publication, and verify publication or deployment status before claiming either occurred.
-- Version 0.4.0 is not on crates.io. Lead install copy with Homebrew, release archives, or the container image unless publication status changes and is verified.
+- Preserve important limits: one local Unix UID trust domain, no independent audit anchor, no multi-tenant transport, no automatic durable-memory replay, and no production-hardening claim in v0.10.0.
+- Version 0.10.0 adds provider storage, on-demand durable chat memory, WhatsApp, generated images, and a hardening pass without moving Cedar or provider authority into the gateway or model. Distinguish application v0.10.0 from independently published chart 0.2.0, and distinguish a published chart from one proven on a live cluster.
+- Version 0.10.0 publishes all public workspace crates to crates.io. Homebrew, attested release archives, the multi-architecture image, and chart 0.2.0 are also current install paths; verify publication before changing that claim.
 - Prefer scoped claims: “keeps credentials out of prompts and guest code” is better than “secrets cannot leak.”
 - Measurements need a date, units, and scope. The 200 KiB OpenObserve figure is an aggregate physical-allocation sample, not a per-prompt guarantee.
 
@@ -83,7 +83,7 @@ Natural writing must remain true.
 - Use contractions sparingly and naturally.
 - Use sentence case for headings and labels.
 - Use “fine-grained,” not “fine-grain.”
-- Use “Raspberry Pi,” “OpenTelemetry,” “OpenObserve,” “Wasm,” “Cedar,” and “v0.4.0” consistently.
+- Use “Raspberry Pi,” “OpenTelemetry,” “OpenObserve,” “Wasm,” “Cedar,” and “v0.10.0” consistently.
 - Avoid stacked adjectives and noun chains such as “bounded broker-backed provider execution path.”
 - Avoid throat-clearing: “It is important to note,” “In order to,” “This is the point where,” and similar phrases can usually be deleted.
 - Avoid architecture metaphors like “seams,” “membranes,” and “typestate” in marketing copy. Use them only when the technical explanation needs them.

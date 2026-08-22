@@ -1,131 +1,138 @@
 {
   "hero": {
-    "eyebrow": "What’s new · 18 August 2026",
-    "version": "v0.4.0",
-    "title": "Ready for the cluster.",
-    "lede": "Version 0.4.0 turns Dekopon’s local authority boundary into a distributable system: verified container images, a one-pod Helm design, safer credential delivery, and a Homebrew path for every executable.",
-    "install": "docker pull ghcr.io/dekopon-agents/dekopon:v0.4.0",
-    "releaseUrl": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0",
-    "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/918e1a2",
-    "revision": "918e1a2",
-    "date": "18 August 2026",
-    "dateIso": "2026-08-18"
+    "eyebrow": "What’s new · 22 August 2026",
+    "version": "v0.10.0",
+    "title": "Durable memory. WhatsApp. Faster starts.",
+    "lede": "Version 0.10.0 adds broker-owned provider storage, on-demand durable chat memory, a signed WhatsApp transport, generated-image replies, and a deep hardening pass across every hot path.",
+    "install": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
+    "releaseUrl": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0",
+    "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/c3c1bb4",
+    "revision": "c3c1bb4",
+    "date": "22 August 2026",
+    "dateIso": "2026-08-22"
   },
   "metrics": [
-    { "value": "4", "label": "executables in one image" },
-    { "value": "2", "label": "Linux image platforms" },
-    { "value": "1", "label": "Kubernetes pod" },
-    { "value": "0", "label": "new privileges" }
+    { "value": "3", "label": "new product surfaces" },
+    { "value": "145", "label": "verified review findings" },
+    { "value": "23", "label": "public crates published" },
+    { "value": "0", "label": "authority moved to the model" }
   ],
   "highlights": [
     {
       "number": "01",
-      "kicker": "Kubernetes",
-      "title": "Run the gateway and broker as one deliberate pod.",
-      "body": "The chart follows the current Unix transport instead of hiding it behind a fake network service.",
-      "points": ["Two daemon containers sharing one 0600 Unix socket", "Native broker sidecar gates gateway startup", "Persistent audit and checkpoint state with no Service or Ingress"]
+      "kicker": "Durable memory",
+      "title": "Let an agent recall a delivered conversation after restart.",
+      "body": "The broker now owns namespace-bound provider storage, and the optional memory provider exposes explicit recall instead of silently filling every prompt.",
+      "points": ["Transactional JSONL and durable-file interfaces with strict quotas", "memory recent and memory search commands under fresh authorization", "No automatic replay, cross-agent sharing, or secret path access"]
     },
     {
       "number": "02",
-      "kicker": "Verified distribution",
-      "title": "Use the same binaries everywhere.",
-      "body": "The container is assembled from the release archives rather than compiling an unrelated second set.",
-      "points": ["Linux arm64 and amd64 in one manifest", "Byte-for-byte checks against attested release archives", "Distroless runtime as numeric UID 65532"]
+      "kicker": "WhatsApp + images",
+      "title": "Reach the agent in more places without moving broker authority.",
+      "body": "The gateway can accept signed WhatsApp webhooks and return bounded generated PNGs on supported chat routes.",
+      "points": ["Exact raw-body HMAC before WhatsApp payload parsing", "Route-scoped OpenAI image generation with one bounded PNG", "Slack, Discord, Telegram, WhatsApp, and local development transports"]
     },
     {
       "number": "03",
-      "kicker": "Credential delivery",
-      "title": "Move secrets into a pod without weakening their lifecycle.",
-      "body": "Version 0.4.0 adds the export and deployment pieces needed by broker and ChatGPT credentials.",
-      "points": ["Owner-only broker files materialized by an init container", "ChatGPT credential exported locally and seeded once", "1Password and External Secrets provisioning guide"]
+      "kicker": "Hardening + speed",
+      "title": "Start faster and fail with a cause you can investigate.",
+      "body": "A workspace-wide review removed redundant work, bounded more failure paths, and made broker outcomes easier to diagnose without leaking payloads.",
+      "points": ["Parallel provider compilation and optional persistent compile cache", "One authorization pass and one audit serialization per invocation", "Every broker failure carries a diagnosable cause"]
     }
   ],
   "path": [
-    { "name": "Release", "detail": "attested archives" },
-    { "name": "Image", "detail": "same binary bytes" },
-    { "name": "Init", "detail": "owner-only files" },
-    { "name": "Broker", "detail": "Cedar + credentials" },
-    { "name": "Gateway", "detail": "chat + model" },
-    { "name": "State", "detail": "audit + checkpoint" }
+    { "name": "Reply", "detail": "transport accepts it" },
+    { "name": "Receipt", "detail": "gateway attests delivery" },
+    { "name": "Broker", "detail": "fresh policy check" },
+    { "name": "Grant", "detail": "scope + storage limits" },
+    { "name": "Commit", "detail": "transactional JSONL" },
+    { "name": "Recall", "detail": "only when asked" }
   ],
   "changes": [
     {
-      "tag": "Multi-architecture image",
-      "title": "The image reuses what the release already proved.",
-      "body": "All four executables are copied from the attested Linux archives, checked byte for byte after image assembly, and shipped beside the four provider components. The image contains no configuration, policy, credentials, or audit state.",
+      "tag": "Provider storage",
+      "title": "Components can persist data without seeing a host path.",
+      "body": "The broker links an exact JSONL or durable-files interface to one authorized invocation. Namespace, scope, quotas, transaction boundaries, and physical layout remain native-host concerns.",
+      "link": { "label": "See the Wasm provider boundary", "href": "/almanac/providers/" }
+    },
+    {
+      "tag": "Durable chat memory",
+      "title": "Recall is explicit, scoped, and on demand.",
+      "body": "After a complete chat-service or local-kernel acceptance, the gateway can submit one dedicated record request. Later, an authorized agent may run memory recent or memory search; stored text is never inserted automatically.",
+      "link": { "label": "Compare both memory modes", "href": "/inference/#future-memory" }
+    },
+    {
+      "tag": "WhatsApp Cloud API",
+      "title": "A public webhook wakes the gateway, not the broker.",
+      "body": "The text-only transport verifies an exact HMAC over bounded raw bytes, deduplicates message IDs in bounded process memory, and derives canonical WhatsApp subjects before routing.",
+      "link": { "label": "Read the gateway security model", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/security-model.md#current-gateway-posture" }
+    },
+    {
+      "tag": "Generated images",
+      "title": "One configured route can return one bounded PNG.",
+      "body": "The gateway fixes the OpenAI Images endpoint and authenticated reply target. Generated bytes never enter conversation memory, provider JSON, broker protocol, telemetry payloads, evidence, or audit.",
+      "link": { "label": "Read the inference contract", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md" }
+    },
+    {
+      "tag": "Broker and provider hot paths",
+      "title": "Compile once, reuse safely, and stop repeating work.",
+      "body": "Providers compile in parallel, linked imports become cached instance templates, and an optional disk cache survives process restarts. Every call still receives a fresh bounded store and component instance.",
+      "link": { "label": "Build a v0.10.0 provider", "href": "/guides/provider-sdk/" }
+    },
+    {
+      "tag": "Published packages and chart",
+      "title": "Install the release through the channel that fits.",
+      "body": "All 23 public crates publish at 0.10.0. Chart 0.2.0 is published to GHCR with appVersion 0.10.0, beside attested archives, Homebrew, and the multi-architecture image.",
       "link": { "label": "Choose a deployment path", "href": "/deploy/" }
-    },
-    {
-      "tag": "Helm chart",
-      "title": "One pod preserves the real process boundary.",
-      "body": "The gateway and broker remain separate containers. They share only the current owner-only Unix socket, while a native sidecar startup probe orders them and reverse shutdown lets the gateway drain before the broker.",
-      "link": { "label": "See the Kubernetes cutaway", "href": "/deploy/kubernetes/" }
-    },
-    {
-      "tag": "Strict file materialization",
-      "title": "Projected secrets become files the daemons will trust.",
-      "body": "A narrowly privileged init container copies Kubernetes projections into fresh regular files owned by UID 65532 with mode 0600. The daemons never mount the source symlink farm.",
-      "link": { "label": "Understand credential delivery", "href": "/deploy/credentials/" }
-    },
-    {
-      "tag": "ChatGPT export",
-      "title": "Seed a rotating subscription credential exactly once.",
-      "body": "The operator CLI can export its isolated device-login credential under an explicit cleartext gate. The chart seeds it onto writable persistent storage and refuses to overwrite the live rotated copy on restart.",
-      "link": { "label": "See the seed-once lifecycle", "href": "/deploy/credentials/#chatgpt" }
-    },
-    {
-      "tag": "Homebrew tap",
-      "title": "Install all four executables from one formula.",
-      "body": "The tap formula is generated from the platform archives a release actually published. Version 0.4.0 supports macOS arm64 and Linux arm64/amd64; Intel macOS is intentionally retired.",
-      "link": { "label": "See install choices", "href": "/deploy/" }
     }
   ],
   "telemetry": {
     "value": "0",
-    "title": "new privileges in v0.4.0",
-    "body": "Distribution changes where Dekopon can run, not which component owns authority. The gateway still holds no Cedar policy or provider credential. The broker still performs no model orchestration.",
-    "note": "The one-pod chart shares a Unix UID trust domain because that is the current transport contract. The limitation is explicit rather than hidden."
+    "title": "authority moved to the gateway or model",
+    "body": "Storage, WhatsApp, images, and faster provider loading add useful surfaces without making a proposal into permission. Cedar, execution constraints, provider credentials, and effect execution stay with the broker.",
+    "note": "The current one-pod deployment still shares one Unix UID trust domain. Dekopon remains pre-production."
   },
   "packages": [
     {
       "name": "Homebrew",
-      "role": "Developer machine",
+      "role": "macOS + Linux",
       "command": "brew install dekopon",
-      "body": "After tapping and trusting dekopon-agents/tap, install every executable and the example provider."
+      "body": "After tapping and trusting dekopon-agents/tap, install all four executables and the example provider."
+    },
+    {
+      "name": "crates.io",
+      "role": "Pinned Rust install",
+      "command": "cargo install --locked --version 0.10.0 dekopon-run",
+      "body": "Version 0.10.0 publishes every public workspace crate through crates.io trusted publishing."
     },
     {
       "name": "Container",
       "role": "Linux arm64 + amd64",
-      "command": "docker pull ghcr.io/dekopon-agents/dekopon:v0.4.0",
-      "body": "Use one distroless image for the broker, gateway, runner, or operator CLI."
-    },
-    {
-      "name": "Archives",
-      "role": "Attested downloads",
-      "command": "gh release download v0.4.0 --repo dekopon-agents/dekopon",
-      "body": "Download the release directly for macOS arm64 or Linux arm64/amd64."
+      "command": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
+      "body": "Use one distroless multi-architecture image for the broker, gateway, runner, or operator CLI."
     }
   ],
   "scope": {
     "current": [
-      "A multi-architecture image assembled from attested release binaries",
-      "A Helm chart implementing one pod, two daemons, one UID, and one private socket",
-      "Owner-only file materialization for broker config, policy, and credentials",
-      "Persistent audit/checkpoint storage and seed-once ChatGPT credential storage",
-      "Homebrew formula automation and explicit ChatGPT credential export"
+      "Broker-owned provider storage with strict namespace, transaction, and quota boundaries",
+      "Optional durable chat memory queried explicitly with memory recent or memory search",
+      "Slack, Discord, Telegram, text-only WhatsApp, and local development transports",
+      "Route-scoped generated PNG replies on supported transports",
+      "Parallel and persistently cacheable provider compilation with fresh stores per call",
+      "Chart 0.2.0 deploying application v0.10.0 by default"
     ],
     "next": [
       "A dedicated gateway UID and transport that turns attribution into process isolation",
       "Independent retention or signing of audit checkpoints",
       "Operator-CLI integration with the broker and gateway",
-      "Agent memory that outlives one bounded conversation",
+      "Memory deletion and export workflows beyond on-demand recall",
       "Further production hardening and incident-response automation"
     ]
   },
   "previous": {
-    "version": "v0.3.0",
-    "title": "Identity, Cedar, credentials, and the gateway",
-    "body": "Version 0.3 introduced the unprivileged chat daemon, attested external subjects, strict Cedar authorization, per-agent broker credentials, persistent conversations, and the GitHub provider. Version 0.4 packages that system for deployment.",
-    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.3.0"
+    "version": "v0.9.0",
+    "title": "Native in-flight chat activity",
+    "body": "Version 0.9 added Slack Agent Working and Stop sessions, a classic reaction fallback, Discord typing, Telegram chat actions, a Skylight exploration, and release-time crates.io publication.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.9.0"
   }
 }

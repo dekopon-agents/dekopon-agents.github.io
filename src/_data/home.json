@@ -1,24 +1,24 @@
 {
   "hero": {
-    "eyebrow": "v0.4.0 · native arm64 · open source",
+    "eyebrow": "v0.10.0 · native arm64 · open source",
     "title": "An agent stack for",
     "titleAccent": "one Raspberry Pi.",
-    "lede": "The published Linux arm64 broker is 18.0 MiB; the gateway is 10.3 MiB. Together they give models a host-like workspace without inherited environment variables, host files, or ambient sockets.",
+    "lede": "The published Linux arm64 broker is 24.1 MiB; the gateway is 13.0 MiB. Together they give models a host-like workspace without inherited environment variables, host files, or ambient sockets.",
     "primaryCta": { "label": "See the broker YAML", "href": "#broker-config" },
     "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" },
-    "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.4.0",
+    "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
     "caveatLabel": "Measured scope:",
-    "caveat": "Published v0.4.0 Linux arm64 archive, 18 Aug 2026. Dekopon is pre-production; the current local deployment treats one Unix UID as a trust domain.",
+    "caveat": "Published v0.10.0 Linux arm64 archive, 22 Aug 2026. Dekopon is pre-production; the current local deployment treats one Unix UID as a trust domain.",
     "visual": {
-      "caption": "Published Dekopon v0.4.0 Linux arm64 executable sizes and process roles",
-      "title": "v0.4.0 · Linux arm64",
+      "caption": "Published Dekopon v0.10.0 Linux arm64 executable sizes and process roles",
+      "title": "v0.10.0 · Linux arm64",
       "badge": "Pi-ready",
       "stage": "Published executable bytes",
-      "trust": "18 Aug 2026",
+      "trust": "22 Aug 2026",
       "metric1Label": "gateway",
-      "metric1": "dekopond · 10.3 MiB",
+      "metric1": "dekopond · 13.0 MiB",
       "metric2Label": "broker",
-      "metric2": "dekopon-brokerd · 18.0 MiB",
+      "metric2": "dekopon-brokerd · 24.1 MiB",
       "metric3Label": "provider",
       "metric3": "example Wasm · 233 KiB",
       "boundary": "native arm64 · one Pi",
@@ -27,8 +27,8 @@
       "rightLabel": "policy + secrets",
       "right": "Broker",
       "outcomeLabel": "compressed release archive",
-      "outcome": "21.2 MiB",
-      "trace": "v0.4.0",
+      "outcome": "25.7 MiB",
+      "trace": "v0.10.0",
       "chips": ["Linux arm64", "broker-held secrets", "public provider SDK"]
     }
   },
@@ -44,7 +44,7 @@
     "intro": "This trimmed, synthetic configuration gives Alice one way to comment on a pull request. The identity, provider, credential name, destination, methods, call count, bytes, and timeout are all visible before the agent starts.",
     "fileName": "broker.yaml",
     "fileLabel": "relevant authority-bearing fields",
-    "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor: { namespaces: [slack.example] }\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    idempotency: conditional\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
+    "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor:\n      namespaces: [slack.example]\n      chatScopes:\n        - breadth: transportWide\n          kind: slack\n          transport: workspace-slack\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    idempotency: conditional\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
     "facts": [
       { "label": "who", "title": "Alice comes from transport.", "body": "The prompt cannot claim her principal." },
       { "label": "what", "title": "One named write.", "body": "Commenting does not imply approval or merge." },
@@ -58,7 +58,7 @@
     "title": "Write the command. Keep its credential away from it.",
     "intro": "Providers are ordinary Rust components. They declare what they do and, optionally, the command words agents may type. The broker supplies narrowly constrained I/O without handing the component its token.",
     "provider": {
-      "label": "Public Rust SDK · v0.7.0",
+      "label": "Public Rust SDK · v0.10.0",
       "number": "01",
       "title": "A provider is a small Wasm component.",
       "body": "Implement the public Provider trait, compile for wasm32-unknown-unknown, and inspect the final component before loading it.",
@@ -72,7 +72,7 @@
       "link": { "label": "Build a provider with the pinned SDK", "href": "/guides/provider-sdk/" }
     },
     "secrets": {
-      "label": "Broker-held credentials · v0.4.0",
+      "label": "Broker-held credentials · v0.10.0",
       "number": "02",
       "title": "The tool works without seeing its token.",
       "body": "The agent calls a normal command. The Wasm guest builds a bounded request. Only the native broker HTTP engine can inject the destination-bound credential.",
@@ -120,9 +120,9 @@
     "link": { "label": "Walk through every file and decision", "href": "/almanac/permissions/" }
   },
   "execution": {
-    "kicker": "Bash, minus the operating system · v0.7.0 provider words",
+    "kicker": "Bash, minus the operating system · v0.10.0 provider words",
     "title": "Use the shell training models already have.",
-    "intro": "State-of-the-art models are rigorously trained on normal shell sessions. Dekopon reuses their command discovery, jq, loops, and exit-code recovery without launching /bin/bash. The v0.7.0 broker path also lets providers contribute checked command words.",
+    "intro": "State-of-the-art models are rigorously trained on normal shell sessions. Dekopon reuses their command discovery, jq, loops, and exit-code recovery without launching /bin/bash. The v0.10.0 broker path also lets providers contribute checked command words.",
     "toolLabel": "the model sees one tool",
     "toolName": "bash({ script })",
     "script": "issue=$(tickets issue show T-42)\necho \"$issue\" | jq '{title, owner, state}'\n\nfor id in $(tickets issue list --state open | jq -r '.[].id'); do\n  tickets issue show \"$id\" | jq '{id, owner, state}'\ndone",
@@ -156,28 +156,28 @@
   "deployment": {
     "kicker": "Raspberry Pi deployment",
     "title": "One pod. No public control plane.",
-    "intro": "The v0.4.0 arm64 image runs the gateway and broker as separate containers in one single-node pod. They share one owner-only Unix socket, not a network API.",
+    "intro": "The v0.10.0 arm64 image runs the gateway and broker as separate containers in one single-node pod. They share one owner-only Unix socket; an optional Service exposes only the gateway’s signed WhatsApp webhook.",
     "facts": [
       { "value": "1", "label": "pod" },
       { "value": "2", "label": "daemon containers" },
-      { "value": "0", "label": "Services or Ingresses" },
+      { "value": "0", "label": "default Services or Ingresses" },
       { "value": "0600", "label": "shared Unix socket" }
     ],
     "points": [
       "A native broker sidecar becomes ready before the gateway starts",
       "An init container turns Kubernetes projections into real owner-only files",
-      "Audit and checkpoint state stay together on one persistent volume",
+      "Audit state and optional provider storage use separate retained volumes",
       "Provider and model credentials never enter the image"
     ],
     "primaryCta": { "label": "Deploy on Kubernetes", "href": "/deploy/kubernetes/" },
     "secondaryCta": { "label": "Choose another install path", "href": "/deploy/" }
   },
   "closing": {
-    "kicker": "v0.4.0 · open source · pre-production",
+    "kicker": "v0.10.0 · open source · pre-production",
     "title": "Give the agent commands.",
     "titleAccent": "Keep the host out of reach.",
     "body": "Start with the broker YAML above, add one provider, and let the model use the shell habits it already has. The credential stays with the broker.",
-    "primaryCta": { "label": "Get v0.4.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0" },
+    "primaryCta": { "label": "Get v0.10.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0" },
     "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
   }
 }

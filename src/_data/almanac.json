@@ -1,11 +1,11 @@
 {
   "title": "How Dekopon works",
-  "description": "A clear, release-backed guide to Dekopon v0.4.0: trusted identity, Cedar policy, one-tool scripting, Wasm providers, audit, and OpenTelemetry.",
+  "description": "A clear, release-backed guide to Dekopon v0.10.0: trusted identity, Cedar policy, one-tool scripting, Wasm providers, audit, and OpenTelemetry.",
   "source": {
-    "revision": "918e1a2b43c54956acc499f920041cf376245276",
-    "shortRevision": "918e1a2",
-    "release": "v0.4.0",
-    "date": "18 August 2026"
+    "revision": "c3c1bb4344548d9420413135c0fe9b11bca7a670",
+    "shortRevision": "c3c1bb4",
+    "release": "v0.10.0",
+    "date": "22 August 2026"
   },
   "chapters": [
     {

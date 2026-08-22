@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/identity/index.html
-pageTitle: Trusted identity — How Dekopon v0.4.0 works
+pageTitle: Trusted identity — How Dekopon v0.10.0 works
 pageDescription: Follow an authenticated chat sender through Dekopon gateway attestation, broker identity mapping, Cedar context, and durable audit.
 bodyClass: almanac-page almanac-article-page almanac-identity-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("01", "Trusted identity", "The gateway carries identity.<br><span>The broker decides what it means.</span>", "A chat service knows who sent the message. Dekopon carries that fact across a process boundary without letting the message, model, or gateway invent a trusted principal.", "current", "Shipping in v0.4.0") }}
+{{ pageHero("01", "Trusted identity", "The gateway carries identity.<br><span>The broker decides what it means.</span>", "A chat service knows who sent the message. Dekopon carries that fact across a process boundary without letting the message, model, or gateway invent a trusted principal.", "current", "Shipping in v0.10.0") }}
 {{ chapterNav("identity", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>01.1 · authenticated transport</span>
         <h2>Identity starts before the model sees text.</h2>
-        <p>Slack and Telegram authenticate their own users. Their envelopes carry service-native identifiers alongside the message. <code>dekopond</code> validates and normalizes those identifiers before a model session starts.</p>
+        <p>Slack, Discord, Telegram, and WhatsApp authenticate their own users or signed webhook senders. Their envelopes carry service-native identifiers alongside the message. <code>dekopond</code> validates and normalizes those identifiers before a model session starts.</p>
       </div>
 
       <div class="comparison-table-wrap">
@@ -40,7 +40,9 @@ ogType: article
           <thead><tr><th scope="col">Transport fact</th><th scope="col">Canonical subject</th><th scope="col">What it is not</th></tr></thead>
           <tbody>
             <tr><th scope="row">Slack workspace + member</th><td><code>slack.t0example.u0example</code></td><td>a Cedar principal or permission</td></tr>
+            <tr><th scope="row">Discord member identifier</th><td><code>discord.123456789012345678</code></td><td>a display name or mention string</td></tr>
             <tr><th scope="row">Telegram user identifier</th><td><code>telegram.16034700182</code></td><td>a claim copied from message text</td></tr>
+            <tr><th scope="row">Signed WhatsApp sender</th><td><code>whatsapp.16034700182</code></td><td>profile or display text</td></tr>
             <tr><th scope="row">Local development client</th><td>caller-supplied canonical subject</td><td>a production identity source</td></tr>
           </tbody>
         </table>
@@ -63,7 +65,7 @@ ogType: article
         <li><span>02</span><div><small>gateway</small><strong>Builds a canonical subject</strong><p><code>dekopond</code> also names the catalog agent selected by the route.</p></div></li>
         <li><span>03</span><div><small>Unix socket</small><strong>Authenticates the gateway peer</strong><p>The broker reads the connected peer UID. The request contains no principal field.</p></div></li>
         <li><span>04</span><div><small>broker configuration</small><strong>Checks attestation and maps identity</strong><p>The peer may vouch only for configured subject namespaces. An owner-controlled mapping resolves the subject to a principal.</p></div></li>
-        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong><p>Policy sees the mapped principal and broker-derived context. Audit ties them to every decision and effect.</p></div></li>
+        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong><p>Policy sees the mapped principal and broker-derived context. Ordinary effect audit records preserve that attribution; storage records use keyed commitments instead.</p></div></li>
       </ol>
 
       <p>The proposal still carries untrusted arguments. Trusted identity travels beside it as broker-owned context; it never becomes a field the model can edit.</p>
@@ -85,6 +87,10 @@ identities:
       principal: chat-gateway
     attestor:
       namespaces: [slack.t0example]
+      chatScopes:
+        - breadth: transportWide
+          kind: slack
+          transport: workspace-slack
 
 identityMappings:
   - subject: slack.t0example.u0example
@@ -93,6 +99,7 @@ identityMappings:
       <div class="invariant-notes">
         <article><span>peer</span><h3><code>uid: 65532</code></h3><p>Maps the authenticated Unix peer to the service identity <code>chat-gateway</code>.</p></article>
         <article><span>scope</span><h3><code>namespaces</code></h3><p>Lets that peer attest subjects from one Slack workspace, matched on segment boundaries.</p></article>
+        <article><span>chat</span><h3><code>chatScopes</code></h3><p>Separately bounds which transport and conversation scopes the gateway may attest.</p></article>
         <article><span>mapping</span><h3><code>identityMappings</code></h3><p>The only place the external subject becomes the Cedar principal <code>maintainer</code>.</p></article>
       </div>
 
@@ -130,7 +137,7 @@ identityMappings:
     <section id="audit" class="article-section">
       <div class="article-heading">
         <span>01.5 · attribution</span>
-        <h2>The record names the person, agent, and gateway.</h2>
+        <h2>Ordinary effect records preserve the attribution.</h2>
       </div>
 
       <div class="audit-identity-card">
@@ -142,7 +149,7 @@ identityMappings:
         <div><span>policy</span><code>pr-commenter-github</code></div>
       </div>
 
-      <p>The provider does not need this identity in its input. Cedar uses it to decide, telemetry uses bounded identifiers to explain, and the durable audit chain uses it to attribute the effect.</p>
+      <p>The provider does not need this identity in its input. Cedar uses it to decide, telemetry uses bounded identifiers to explain, and the durable audit chain attributes ordinary effects. Version 0.10.0 storage records deliberately omit raw identity and scope, replacing linkable values with domain-separated keyed commitments.</p>
     </section>
 
     <section id="limit" class="article-section">
@@ -154,7 +161,7 @@ identityMappings:
       <div class="truth-label-cards">
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Identity cannot come from model text</h3><p>Transport facts, Unix peer credentials, attestor grants, and owner mappings establish the context.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Every refusal fails closed</h3><p>Out-of-namespace, unmapped, and agent-denied cases reach no provider authority.</p></article>
-        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Limit</span></div><h3>One UID is one trust domain</h3><p>In v0.4.0 the gateway and broker share a UID. A dedicated gateway UID is required before <code>via</code> becomes process isolation.</p></article>
+        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Limit</span></div><h3>One UID is one trust domain</h3><p>In v0.10.0 the gateway and broker still share a UID. A dedicated gateway UID is required before <code>via</code> becomes process isolation.</p></article>
       </div>
 
       {{ docsCta("Open the current gateway contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/dekopond.md", "See exact transport subjects, attestation fields, routing behavior, and the single-UID limitation as they evolve.") }}

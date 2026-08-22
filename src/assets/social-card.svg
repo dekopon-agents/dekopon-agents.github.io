@@ -28,7 +28,7 @@
   <text x="100" y="385" fill="#425466" font-family="Arial, Helvetica, sans-serif" font-size="23">Run capable agents on hardware you own.</text>
   <g transform="translate(101 432)">
     <rect width="126" height="40" rx="20" fill="#0a2540"/>
-    <text x="20" y="26" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">V0.4.0</text>
+    <text x="20" y="26" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">V0.10.0</text>
     <rect x="139" width="183" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>
     <text x="159" y="26" fill="#0a2540" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700">CEDAR + LIMITS</text>
     <rect x="335" width="147" height="40" rx="20" fill="#fff" fill-opacity=".7" stroke="#fff"/>

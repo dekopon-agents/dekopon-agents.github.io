@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/index.html
-pageTitle: How Dekopon v0.4.0 works
+pageTitle: How Dekopon v0.10.0 works
 pageDescription: A clear guide to Dekopon trusted identity, Cedar permissions, one-tool scripting, Wasm providers, audit, and OpenTelemetry.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
@@ -14,7 +14,7 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>How it works / v0.4.0</span><code>edition 04</code></div>
+      <div class="almanac-overline"><span>How it works / v0.10.0</span><code>edition 10</code></div>
       <h1>Let the model ask.<br><span>Keep authority elsewhere.</span></h1>
       <p class="almanac-home-lede">A release-backed tour of trusted chat identity, one homemade shell tool, Cedar policy, bounded Wasm providers, broker-held credentials, and one trace across the system.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status">
@@ -33,7 +33,7 @@ ogType: article
         <div class="cutaway-outside">
           <div class="cutaway-node cutaway-model">
             <span>authenticated transport</span>
-            <strong>Slack or Telegram</strong>
+            <strong>Slack, Discord, Telegram, or WhatsApp</strong>
             <small>sender + message</small>
           </div>
           <span class="cutaway-packet" aria-hidden="true">message ↓ reply ↑</span>
@@ -126,12 +126,12 @@ ogType: article
 <section class="almanac-section truth-labels-section">
   <div class="shell truth-labels-grid">
     <div>
-      <p class="almanac-kicker">Where v0.4.0 stands</p>
+      <p class="almanac-kicker">Where v0.10.0 stands</p>
       <h2>Capable now. Honest about the boundary.</h2>
     </div>
     <div class="truth-label-cards">
       <article><div>{{ status("current", "Released") }}</div><h3>Four executables and a container image</h3><p>The release carries the operator CLI, runner, broker, gateway, and checked-in provider components for arm64 and amd64 Linux.</p></article>
-      <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation, Cedar, broker-owned credentials, bounded provider HTTP, hash-linked audit, and cross-process traces are current.</p></article>
+      <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation, Cedar, broker-owned credentials, bounded provider HTTP or storage, hash-linked audit, and cross-process traces are current.</p></article>
       <article><div>{{ status("direction", "Current limit") }}</div><h3>One Unix UID is one trust domain</h3><p>The Kubernetes gateway and broker share one UID and socket. A dedicated gateway UID and stronger audit anchoring remain future work.</p></article>
     </div>
   </div>

@@ -1,9 +1,9 @@
 {
   "name": "Dekopon",
   "wordmark": "dekopon",
-  "version": "v0.4.0",
+  "version": "v0.10.0",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon v0.4.0 — A self-hosted agent stack for Raspberry Pi",
+  "title": "Dekopon v0.10.0 — A self-hosted agent stack for Raspberry Pi",
   "description": "Run a native arm64 agent stack on Raspberry Pi-class hardware with Cedar policy, broker-held secrets, and Wasm providers exposed through sandboxed bash.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
@@ -23,8 +23,8 @@
       "heading": "Project",
       "links": [
         { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
-        { "label": "What’s new in v0.4.0", "href": "/whats-new/" },
-        { "label": "v0.4.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.4.0" },
+        { "label": "What’s new in v0.10.0", "href": "/whats-new/" },
+        { "label": "v0.10.0 on GitHub", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0" },
         { "label": "How Dekopon works", "href": "/almanac/" },
         { "label": "Deployment guides", "href": "/deploy/" }
       ]
