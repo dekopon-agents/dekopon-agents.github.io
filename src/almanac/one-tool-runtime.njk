@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/one-tool-runtime/index.html
-pageTitle: One-tool runtime — How Dekopon v0.10.0 works
+pageTitle: One-tool runtime — How Dekopon works
 pageDescription: See how Dekopon gives frontier models a familiar bash-flavored workspace without processes, files, inherited environment variables, or sockets.
 bodyClass: almanac-page almanac-article-page almanac-runtime-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("03", "One-tool runtime", "Bash habits.<br><span>No host shell.</span>", "State-of-the-art models are rigorously trained on ordinary shell sessions. Dekopon keeps the discovery, pipes, jq, loops, and exit codes they already know, then replaces the operating system with capability calls.", "current", "Shipping in v0.10.0") }}
+{{ pageHero("03", "One-tool runtime", "Bash habits.<br><span>No host shell.</span>", "State-of-the-art models are rigorously trained on ordinary shell sessions. Dekopon keeps the discovery, pipes, jq, loops, and exit codes they already know, then replaces the operating system with capability calls.", "current", "Shipping in " ~ release.tag) }}
 {{ chapterNav("runtime", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -24,7 +24,7 @@ ogType: article
       <a href="#data">Structured data</a>
       <a href="#bounds">Hard limits</a>
     </nav>
-    {{ sourceStamp(almanac.source) }}
+    {{ sourceStamp(release) }}
   </aside>
 
   <article class="almanac-prose">
@@ -77,9 +77,10 @@ ogType: article
       </div>
 
       <pre><code><span class="code-comment"># Model-authored Dekopon script</span>
+set -euo pipefail
 pr=$(gh pr view 42 -R example/widgets)
 
-if test "${pr[state]}" != "open"; then
+if [[ "${pr[state]}" != "open" ]]; then
   echo "PR 42 is not open; no comment left."
   exit 1
 fi
@@ -92,12 +93,12 @@ body=$(printf "Reviewed PR 42 at %s. It changes %s files." \
 gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
 
       <div class="script-legends">
-        <span><i></i><strong>familiar</strong> variables, <code>if</code>, command substitution, pipes</span>
+        <span><i></i><strong>familiar</strong> variables, <code>[[ ]]</code>, command substitution, pipes, <code>set -euo pipefail</code></span>
         <span><i></i><strong>structured</strong> JSON values remain values between commands</span>
         <span><i></i><strong>permissioned</strong> each <code>gh</code> subcommand maps to one capability</span>
       </div>
 
-      <p>An operator can copy the same script into <code>dekopon-run shell</code> and replay it without a model. The <code>gh</code> vocabulary is ergonomic routing, not a bundled GitHub CLI: <code>gh api</code> is refused because raw passthrough would collapse the capability boundary.</p>
+      <p>An operator can copy the same script into <code>dekopon-run shell</code> and replay it without a model. The independently published <code>gh</code> provider supplies ergonomic routing, not a bundled GitHub CLI: <code>gh api</code> is refused because raw passthrough would collapse the capability boundary.</p>
     </section>
 
     <section id="not-bash" class="article-section">
@@ -110,9 +111,11 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
         <table class="almanac-table strategy-table">
           <thead><tr><th scope="col">The language keeps</th><th scope="col">The runtime deliberately lacks</th></tr></thead>
           <tbody>
-            <tr><td><code>if</code>, loops, functions, case, break, continue</td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
-            <tr><td>variables, command substitution, arithmetic, here-documents</td><td>host environment variables, <code>export</code>, <code>source</code></td></tr>
-            <tr><td><code>jq</code>, grep, sed, cut, sort, base64, xargs</td><td>filesystem paths, descriptors, devices, real byte pipes</td></tr>
+            <tr><td><code>if</code>, loops, functions, case, groups, <code>[[ ]]</code>, <code>read</code>, <code>getopts</code></td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
+            <tr><td>variables, parameter expansion, command substitution, arithmetic, here-documents</td><td>host environment variables, <code>export</code>, <code>source</code></td></tr>
+            <tr><td><code>set -e</code>, <code>set -u</code>, <code>pipefail</code>, and <code>PIPESTATUS</code></td><td>unsupported shell options silently doing nothing</td></tr>
+            <tr><td><code>jq</code>, grep, sed, cut, sort, base64, xargs</td><td>filesystem paths, devices, or operating-system byte pipes</td></tr>
+            <tr><td>bounded in-memory stdout/stderr redirection</td><td>host file descriptors or opening redirection paths</td></tr>
             <tr><td>capability-backed <code>gh</code> and optional <code>curl</code></td><td>raw sockets, DNS, ambient HTTP, a general API escape hatch</td></tr>
             <tr><td>optional UTC <code>date</code> after an explicit grant</td><td>clock access by default, timezone environment, setting time</td></tr>
           </tbody>

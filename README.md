@@ -13,6 +13,7 @@ The homepage is deliberately short. Detailed explanations live in independent st
 | Area | Edit |
 |---|---|
 | Writing voice, terminology, and accuracy limits | `AGENTS.md` |
+| Current release tag, source revision, image, measurements, and chart publication state | `src/_data/release.json` |
 | Site metadata, global navigation, and footer | `src/_data/site.json` |
 | Homepage copy | `src/_data/home.json` |
 | Current release copy | `src/_data/whatsNew.json` and `src/whats-new.njk` |
@@ -48,7 +49,7 @@ npm test
 npm audit --audit-level=high
 ```
 
-`npm test` performs a clean production build, validates generated HTML, checks browser JavaScript syntax, and verifies local files and fragment links.
+`npm test` checks release-data consistency, performs a clean production build, validates generated HTML, checks browser JavaScript syntax, and verifies local files and fragment links. CI also compares `src/_data/release.json` with GitHub’s latest published release on every run and on a daily schedule.
 
 ## Generated output
 

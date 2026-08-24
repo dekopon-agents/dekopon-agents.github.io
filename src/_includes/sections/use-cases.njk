@@ -1,0 +1,25 @@
+<section class="home-providers section" id="providers" aria-labelledby="home-providers-title">
+  <div class="provider-ecosystem-glow" aria-hidden="true"></div>
+  <div class="shell">
+    <div class="section-heading split-heading home-providers-heading">
+      <div>
+        <span class="section-kicker cyan">{{ home.useCases.kicker }}</span>
+        <h2 id="home-providers-title">{{ home.useCases.title }}</h2>
+      </div>
+      <p>{{ home.useCases.intro }}</p>
+    </div>
+
+    <div class="provider-ecosystem-grid">
+      {% for item in home.useCases.items %}
+        <a class="provider-ecosystem-card provider-ecosystem-{{ item.accent }} reveal{% if loop.index % 2 == 0 %} reveal-delay-1{% endif %}" href="{{ item.href }}">
+          <div><span>{{ item.label }}</span><i aria-hidden="true">↗</i></div>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.body }}</p>
+          <small>{{ item.detail }}</small>
+        </a>
+      {% endfor %}
+    </div>
+
+    <a class="button button-primary provider-ecosystem-cta" href="{{ home.useCases.link.href }}">{{ home.useCases.link.label }} <span aria-hidden="true">→</span></a>
+  </div>
+</section>

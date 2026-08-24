@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/providers/index.html
-pageTitle: Wasm providers — How Dekopon v0.10.0 works
+pageTitle: Wasm providers — How Dekopon works
 pageDescription: See how Dekopon runs each provider operation in a fresh Wasm sandbox and links only broker-owned, constrained HTTP or storage interfaces.
 bodyClass: almanac-page almanac-article-page almanac-providers-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in v0.10.0") }}
+{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in " ~ release.tag) }}
 {{ chapterNav("providers", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -25,7 +25,7 @@ ogType: article
       <a href="#credential">Credential injection</a>
       <a href="#scope">What this protects</a>
     </nav>
-    {{ sourceStamp(almanac.source) }}
+    {{ sourceStamp(release) }}
   </aside>
 
   <article class="almanac-prose">
@@ -137,7 +137,7 @@ ogType: article
       <div class="article-heading">
         <span>04.5 · durable state without host paths</span>
         <h2>The broker gives storage a namespace, not a filesystem.</h2>
-        <p>Version 0.10.0 adds exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, namespace key, scope directory, or ambient filesystem access.</p>
+        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, namespace key, scope directory, or ambient filesystem access.</p>
       </div>
 
       <div class="provider-envelope">
@@ -148,6 +148,8 @@ ogType: article
       </div>
 
       <p>HTTP and storage authority cannot coexist in one v1 capability. Storage mutations commit only after a valid successful provider response. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
+
+      <p>The public <code>dekopon-provider-sdk-testkit</code> lets a provider test its compiled component against this real storage host. It skips Cedar and the constraint catalog by minting test authorization; namespace derivation, quotas, leases, transactions, and the Wasmtime path remain the production implementations.</p>
 
       <div class="article-callout callout-warning">
         <strong>Durable does not mean encrypted or automatically remembered.</strong>
@@ -184,7 +186,12 @@ ogType: article
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm does not protect a broker machine, owner UID, binary, toolchain, or dependency set that is already compromised.</p></article>
       </div>
 
-      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build and run an import-free provider with the pinned v0.10.0 Rust SDK</strong></a>.</p>
+      <div class="article-callout callout-decision">
+        <strong>Providers can move independently without becoming plugins.</strong>
+        <p>GitHub, MediaWiki, Python, ripgrep, and Turso SQL now ship from separate repositories. Their release cadence and dependency graphs are independent; their components still enter through the same manifest, WIT, broker policy, constraints, and fresh-store path.</p>
+      </div>
+
+      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build, test, and run a provider with the pinned {{ release.tag }} Rust SDK</strong></a>.</p>
 
       {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "See the exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
     </section>

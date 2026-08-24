@@ -1,138 +1,143 @@
 {
   "hero": {
-    "eyebrow": "What’s new · 22 August 2026",
-    "version": "v0.10.0",
-    "title": "Durable memory. WhatsApp. Faster starts.",
-    "lede": "Version 0.10.0 adds broker-owned provider storage, on-demand durable chat memory, a signed WhatsApp transport, generated-image replies, and a deep hardening pass across every hot path.",
-    "install": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
-    "releaseUrl": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0",
-    "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/c3c1bb4",
-    "revision": "c3c1bb4",
-    "date": "22 August 2026",
-    "dateIso": "2026-08-22"
+    "eyebrow": "What’s new",
+    "title": "A real console. A fuller shell. Independent providers.",
+    "lede": "Dekopon 0.11 adds an interactive terminal console, a substantially more capable sandboxed shell, a public provider testkit, and cleaner separation between the core platform and independently released providers. Version 0.11.1 repairs the container runtime base without changing crate behavior."
   },
+  "summary": "The core rule is unchanged: models propose and the broker authorizes. The new console makes that boundary visible while you work, and the richer shell gives models more room to plan inside it.",
   "metrics": [
-    { "value": "3", "label": "new product surfaces" },
-    { "value": "145", "label": "verified review findings" },
-    { "value": "23", "label": "public crates published" },
+    { "value": "1", "label": "interactive operator console" },
+    { "value": "25", "label": "public crates published" },
+    { "value": "5", "label": "published provider projects" },
     { "value": "0", "label": "authority moved to the model" }
   ],
   "highlights": [
     {
       "number": "01",
-      "kicker": "Durable memory",
-      "title": "Let an agent recall a delivered conversation after restart.",
-      "body": "The broker now owns namespace-bound provider storage, and the optional memory provider exposes explicit recall instead of silently filling every prompt.",
-      "points": ["Transactional JSONL and durable-file interfaces with strict quotas", "memory recent and memory search commands under fresh authorization", "No automatic replay, cross-agent sharing, or secret path access"]
+      "kicker": "Operator console",
+      "title": "Watch one agent session without moving authority into the CLI.",
+      "body": "A bare dekopon command on a terminal opens a TUI over the running broker. It shows the selected agent, effective capabilities, scripts, inputs, and results while keeping its local execution leg empty.",
+      "points": ["Attested local development subjects are explicit and off by default", "Every capability still reaches the separate broker", "Render-time control stripping and field-level secret redaction"]
     },
     {
       "number": "02",
-      "kicker": "WhatsApp + images",
-      "title": "Reach the agent in more places without moving broker authority.",
-      "body": "The gateway can accept signed WhatsApp webhooks and return bounded generated PNGs on supported chat routes.",
-      "points": ["Exact raw-body HMAC before WhatsApp payload parsing", "Route-scoped OpenAI image generation with one bounded PNG", "Slack, Discord, Telegram, WhatsApp, and local development transports"]
+      "kicker": "Sandboxed shell",
+      "title": "Use more real shell habits without launching a host process.",
+      "body": "The homemade interpreter now supports defensive options, richer parameter expansion, compound pipelines, read, getopts, double brackets, and script-addressable output streams.",
+      "points": ["set -e, set -u, pipefail, and PIPESTATUS", "if, loops, case, groups, functions, and redirections compose", "No host files, inherited environment, subprocesses, or ambient sockets"]
     },
     {
       "number": "03",
-      "kicker": "Hardening + speed",
-      "title": "Start faster and fail with a cause you can investigate.",
-      "body": "A workspace-wide review removed redundant work, bounded more failure paths, and made broker outcomes easier to diagnose without leaking payloads.",
-      "points": ["Parallel provider compilation and optional persistent compile cache", "One authorization pass and one audit serialization per invocation", "Every broker failure carries a diagnosable cause"]
+      "kicker": "Provider ecosystem",
+      "title": "Test and release integrations outside the core repository.",
+      "body": "The public testkit runs a component against the real storage host. GitHub moved to its own repository, and a SQLite-compatible Turso provider now ships independently.",
+      "points": ["FakeBroker for end-to-end provider storage tests", "GitHub component with nineteen narrow capabilities", "Independent provider tags, assets, checksums, and provenance"]
     }
   ],
-  "path": [
-    { "name": "Reply", "detail": "transport accepts it" },
-    { "name": "Receipt", "detail": "gateway attests delivery" },
-    { "name": "Broker", "detail": "fresh policy check" },
-    { "name": "Grant", "detail": "scope + storage limits" },
-    { "name": "Commit", "detail": "transactional JSONL" },
-    { "name": "Recall", "detail": "only when asked" }
-  ],
+  "path": {
+    "kicker": "One console turn",
+    "title": "See the request. Keep the decision elsewhere.",
+    "body": "The console observes the same agent loop used by chat. It can display proposals and results, but it links no policy, provider credential store, or provider host.",
+    "ariaLabel": "How one Dekopon console turn reaches the separate broker",
+    "steps": [
+      { "name": "Select", "detail": "one catalog agent" },
+      { "name": "Attest", "detail": "explicit dev subject" },
+      { "name": "Model", "detail": "one bash tool" },
+      { "name": "Propose", "detail": "typed capability" },
+      { "name": "Broker", "detail": "Cedar + limits" },
+      { "name": "Observe", "detail": "result + audit link" }
+    ]
+  },
   "changes": [
     {
-      "tag": "Provider storage",
-      "title": "Components can persist data without seeing a host path.",
-      "body": "The broker links an exact JSONL or durable-files interface to one authorized invocation. Namespace, scope, quotas, transaction boundaries, and physical layout remain native-host concerns.",
-      "link": { "label": "See the Wasm provider boundary", "href": "/almanac/providers/" }
+      "tag": "dekopon console",
+      "title": "The operator gets an interactive view over a live broker session.",
+      "body": "The TUI shows declared and effectively granted capabilities, then folds each turn’s scripts and broker calls. Observation decorators cannot influence the session, and the CLI retains no local provider execution path.",
+      "link": { "label": "Read the console contract", "href": "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-tui/README.md" }
     },
     {
-      "tag": "Durable chat memory",
-      "title": "Recall is explicit, scoped, and on demand.",
-      "body": "After a complete chat-service or local-kernel acceptance, the gateway can submit one dedicated record request. Later, an authorized agent may run memory recent or memory search; stored text is never inserted automatically.",
-      "link": { "label": "Compare both memory modes", "href": "/inference/#future-memory" }
+      "tag": "Shell language",
+      "title": "Common defensive and compositional shell patterns now work.",
+      "body": "Models can use read-shaped loops, getopts, double brackets, real errexit and nounset behavior, pipefail, richer parameter expansion, grouped pipeline stages, and bounded in-memory redirection.",
+      "link": { "label": "See the sandboxed shell", "href": "/almanac/one-tool-runtime/" }
     },
     {
-      "tag": "WhatsApp Cloud API",
-      "title": "A public webhook wakes the gateway, not the broker.",
-      "body": "The text-only transport verifies an exact HMAC over bounded raw bytes, deduplicates message IDs in bounded process memory, and derives canonical WhatsApp subjects before routing.",
-      "link": { "label": "Read the gateway security model", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/security-model.md#current-gateway-posture" }
+      "tag": "Provider testing",
+      "title": "Storage-backed providers can test against the real host without standing up Cedar.",
+      "body": "dekopon-provider-sdk-testkit mints test authorization and exercises the production StorageHost over a temporary root. It is a provider-development harness, not runtime authority.",
+      "link": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
     },
     {
-      "tag": "Generated images",
-      "title": "One configured route can return one bounded PNG.",
-      "body": "The gateway fixes the OpenAI Images endpoint and authenticated reply target. Generated bytes never enter conversation memory, provider JSON, broker protocol, telemetry payloads, evidence, or audit.",
-      "link": { "label": "Read the inference contract", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md" }
+      "tag": "Independent providers",
+      "title": "GitHub and SQL move at their own release cadence.",
+      "body": "The GitHub component left the core tree with its PR-review walkthrough. Turso SQL adds SQLite-compatible durable storage through the existing exact storage interface. Nothing in core depends on either component.",
+      "link": { "label": "Browse the provider ecosystem", "href": "/#providers" }
     },
     {
-      "tag": "Broker and provider hot paths",
-      "title": "Compile once, reuse safely, and stop repeating work.",
-      "body": "Providers compile in parallel, linked imports become cached instance templates, and an optional disk cache survives process restarts. Every call still receives a fresh bounded store and component instance.",
-      "link": { "label": "Build a v0.10.0 provider", "href": "/guides/provider-sdk/" }
+      "tag": "Local development identity",
+      "title": "The console no longer borrows an identifier that looks externally authenticated.",
+      "body": "The new dev.<surface>.<name> subject family is admitted only when the broker explicitly enables development subjects. It still maps through owner-controlled identity and Cedar policy.",
+      "link": { "label": "Follow trusted identity", "href": "/almanac/identity/" }
     },
     {
-      "tag": "Published packages and chart",
-      "title": "Install the release through the channel that fits.",
-      "body": "All 23 public crates publish at 0.10.0. Chart 0.2.0 is published to GHCR with appVersion 0.10.0, beside attested archives, Homebrew, and the multi-architecture image.",
-      "link": { "label": "Choose a deployment path", "href": "/deploy/" }
+      "tag": "0.11.1 container fix",
+      "title": "The published image now matches the glibc required by the release binaries.",
+      "body": "Version 0.11.0’s image publish failed because the console binary named weak glibc 2.39 symbols while the Debian 12 runtime carried glibc 2.36. Version 0.11.1 moves the image to Debian 13; crate source is unchanged.",
+      "link": { "label": "Open the GitHub release", "release": true }
     }
   ],
+  "detailsIntro": "The console, shell, provider testkit, and independently shipped integrations keep the same proposal, policy, constraint, execution, and evidence path. The patch release changes only image compatibility.",
   "telemetry": {
     "value": "0",
-    "title": "authority moved to the gateway or model",
-    "body": "Storage, WhatsApp, images, and faster provider loading add useful surfaces without making a proposal into permission. Cedar, execution constraints, provider credentials, and effect execution stay with the broker.",
-    "note": "The current one-pod deployment still shares one Unix UID trust domain. Dekopon remains pre-production."
+    "title": "authority moved to the console, gateway, or model",
+    "body": "The console holds a model credential and observes one agent loop. Cedar, execution constraints, provider credentials, provider execution, replay protection, and durable audit remain inside the separate broker.",
+    "note": "The current local deployment still treats one Unix UID as a trust domain. Dekopon remains pre-production."
   },
   "packages": [
     {
       "name": "Homebrew",
-      "role": "macOS + Linux",
-      "command": "brew install dekopon",
-      "body": "After tapping and trusting dekopon-agents/tap, install all four executables and the example provider."
+      "role": "macOS arm64 + Linux",
+      "body": "The generated formula is verified against the current published archives and installs all four executables."
     },
     {
       "name": "crates.io",
       "role": "Pinned Rust install",
-      "command": "cargo install --locked --version 0.10.0 dekopon-run",
-      "body": "Version 0.10.0 publishes every public workspace crate through crates.io trusted publishing."
+      "body": "All 25 public workspace crates, including the TUI and provider testkit, are published at the current application version."
     },
     {
       "name": "Container",
       "role": "Linux arm64 + amd64",
-      "command": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
-      "body": "Use one distroless multi-architecture image for the broker, gateway, runner, or operator CLI."
+      "body": "The Debian 13 distroless multi-architecture image is published for the broker, gateway, runner, or operator CLI."
     }
   ],
+  "installIntro": "The application release is available through Homebrew, crates.io, attested GitHub archives, and the multi-architecture image. The latest published Helm chart remains 0.2.0 with application 0.10.0; chart 0.2.1 is present in source but not published.",
   "scope": {
     "current": [
-      "Broker-owned provider storage with strict namespace, transaction, and quota boundaries",
-      "Optional durable chat memory queried explicitly with memory recent or memory search",
-      "Slack, Discord, Telegram, text-only WhatsApp, and local development transports",
-      "Route-scoped generated PNG replies on supported transports",
-      "Parallel and persistently cacheable provider compilation with fresh stores per call",
-      "Chart 0.2.0 deploying application v0.10.0 by default"
+      "Interactive terminal console over one broker-authorized agent session",
+      "A broader bash-shaped language with no operating-system shell",
+      "Public provider SDK testkit backed by the real storage host",
+      "Twenty-five public crates published at the current application version",
+      "Independent GitHub, MediaWiki, Python, ripgrep, and Turso SQL provider releases",
+      "A published multi-architecture container image for the current release"
     ],
     "next": [
+      "Publish the chart update already prepared in source",
       "A dedicated gateway UID and transport that turns attribution into process isolation",
       "Independent retention or signing of audit checkpoints",
-      "Operator-CLI integration with the broker and gateway",
       "Memory deletion and export workflows beyond on-demand recall",
       "Further production hardening and incident-response automation"
     ]
   },
+  "scopeIntro": "The full local path includes gateway or console attestation, Cedar, broker-managed credentials, Wasm providers, audit, and telemetry. Stronger process isolation and audit anchoring remain.",
   "previous": {
-    "version": "v0.9.0",
-    "title": "Native in-flight chat activity",
-    "body": "Version 0.9 added Slack Agent Working and Stop sessions, a classic reaction fallback, Discord typing, Telegram chat actions, a Skylight exploration, and release-time crates.io publication.",
-    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.9.0"
+    "version": "v0.10.0",
+    "title": "Durable provider storage, WhatsApp, images, and hardening",
+    "body": "Version 0.10 added broker-owned storage, explicit durable chat recall, a signed text-only WhatsApp transport, bounded generated-image replies, and a deep reliability pass.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0",
+    "label": "View 0.10"
+  },
+  "closing": {
+    "title": "Run it. Watch the boundary work.",
+    "body": "Choose a deployment path, or open the system guide for a clear tour from authenticated request to audited effect."
   }
 }

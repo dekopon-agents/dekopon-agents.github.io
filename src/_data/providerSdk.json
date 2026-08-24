@@ -1,14 +1,5 @@
 {
-  "release": "v0.10.0",
-  "revision": "c3c1bb4344548d9420413135c0fe9b11bca7a670",
-  "shortRevision": "c3c1bb4",
-  "date": "22 August 2026",
   "versions": {
-    "runner": "0.10.0",
-    "broker": "0.10.0",
-    "providerSdk": "0.10.0",
-    "providerHttp": "0.10.0",
-    "providerStorage": "0.10.0",
     "providerWit": "0.2.0",
     "httpWit": "1.0.0",
     "storageWit": "0.1.0",

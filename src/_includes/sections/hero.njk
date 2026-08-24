@@ -21,19 +21,12 @@
       <p class="hero-lede reveal reveal-delay-2">{{ home.hero.lede }}</p>
       <div class="hero-buttons reveal reveal-delay-3">
         <a class="button button-primary" href="{{ home.hero.primaryCta.href }}">{{ home.hero.primaryCta.label }} <span aria-hidden="true">→</span></a>
-        <a class="button button-secondary" href="{{ home.hero.secondaryCta.href }}">{{ home.hero.secondaryCta.label }} <span aria-hidden="true">↗</span></a>
+        <a class="button button-secondary" href="{{ home.hero.secondaryCta.href }}">{{ home.hero.secondaryCta.label }} <span aria-hidden="true">↓</span></a>
       </div>
-
-      <div class="install-command reveal reveal-delay-4" data-copy-group>
-        <span class="command-prompt" aria-hidden="true">$</span>
-        <code>{{ home.hero.installCommand }}</code>
-        <button type="button" class="copy-button" data-copy="{{ home.hero.installCommand }}" aria-label="Copy install command">
-          <svg class="copy-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="6.5" y="6.5" width="9" height="9" rx="1.5"/><path d="M4 12.5H3.5A1.5 1.5 0 0 1 2 11V3.5A1.5 1.5 0 0 1 3.5 2H11a1.5 1.5 0 0 1 1.5 1.5V4"/></svg>
-          <svg class="check-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-9"/></svg>
-          <span class="copy-label">Copy</span>
-        </button>
-      </div>
-      <p class="hero-caveat reveal reveal-delay-4"><strong>{{ home.hero.caveatLabel }}</strong> {{ home.hero.caveat }}</p>
+      <ul class="hero-proof-list reveal reveal-delay-4">
+        {% for proof in home.hero.proofs %}<li><span aria-hidden="true">✓</span>{{ proof }}</li>{% endfor %}
+      </ul>
+      <p class="hero-release reveal reveal-delay-4">Latest release: <a href="{{ release.url }}"><strong>{{ release.tag }}</strong> · {{ release.dateShort }} <span aria-hidden="true">↗</span></a></p>
     </div>
 
     <figure class="hero-visual reveal reveal-delay-2">
@@ -44,45 +37,48 @@
         <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
 
-      <div class="invocation-card">
+      <div class="invocation-card authority-map-card">
         <div class="window-bar">
           <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <span>{{ home.hero.visual.title }}</span>
           <span class="design-target">{{ home.hero.visual.badge }}</span>
         </div>
 
-        <div class="proposal-block">
-          <div class="block-heading">
-            <span class="stage-index">01</span>
-            <span>{{ home.hero.visual.stage }}</span>
-            <span class="untrusted-tag">{{ home.hero.visual.trust }}</span>
-          </div>
-          <div class="code-line"><span>{{ home.hero.visual.metric1Label }}</span><strong>{{ home.hero.visual.metric1 }}</strong></div>
-          <div class="code-line"><span>{{ home.hero.visual.metric2Label }}</span><strong>{{ home.hero.visual.metric2 }}</strong></div>
-          <div class="code-line"><span>{{ home.hero.visual.metric3Label }}</span><strong>{{ home.hero.visual.metric3 }}</strong></div>
-        </div>
-
-        <div class="authority-gate">
-          <span class="gate-line"></span>
-          <span class="gate-pill"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 8V6a4.5 4.5 0 0 1 9 0v2M4 8h12v9H4z"/></svg> {{ home.hero.visual.boundary }}</span>
-          <span class="gate-line"></span>
+        <div class="authority-map-flow">
+          <article class="authority-map-node authority-map-request">
+            <small>{{ home.hero.visual.requestLabel }}</small>
+            <strong>{{ home.hero.visual.request }}</strong>
+            <span>{{ home.hero.visual.requestDetail }}</span>
+          </article>
+          <div class="authority-map-arrow"><span>message ↓ reply ↑</span></div>
+          <article class="authority-map-node authority-map-proposal">
+            <small>{{ home.hero.visual.proposalLabel }}</small>
+            <strong><code>{{ home.hero.visual.proposal }}</code></strong>
+            <span>{{ home.hero.visual.proposalDetail }}</span>
+          </article>
+          <div class="authority-map-arrow authority-map-arrow-boundary"><span>proposal · never permission ↓</span></div>
+          <article class="authority-map-node authority-map-broker">
+            <small>{{ home.hero.visual.gateLabel }}</small>
+            <strong>{{ home.hero.visual.gate }}</strong>
+            <span>{{ home.hero.visual.gateDetail }}</span>
+          </article>
         </div>
 
         <div class="decision-grid">
-          <div class="decision decision-denied">
-            <span class="decision-mark">◇</span>
-            <div><small>{{ home.hero.visual.leftLabel }}</small><strong>{{ home.hero.visual.left }}</strong></div>
-          </div>
           <div class="decision decision-authorized">
-            <span class="decision-mark">◆</span>
-            <div><small>{{ home.hero.visual.rightLabel }}</small><strong>{{ home.hero.visual.right }}</strong></div>
+            <span class="decision-mark">✓</span>
+            <div><small>{{ home.hero.visual.allowedLabel }}</small><strong>{{ home.hero.visual.allowed }}</strong></div>
+          </div>
+          <div class="decision decision-denied">
+            <span class="decision-mark">—</span>
+            <div><small>{{ home.hero.visual.deniedLabel }}</small><strong>{{ home.hero.visual.denied }}</strong></div>
           </div>
         </div>
 
-        <div class="evidence-row">
+        <div class="evidence-row authority-map-outcome">
           <span class="pulse-ring" aria-hidden="true"></span>
           <div><small>{{ home.hero.visual.outcomeLabel }}</small><strong>{{ home.hero.visual.outcome }}</strong></div>
-          <code>{{ home.hero.visual.trace }}</code>
+          <code>{{ home.hero.visual.audit }}</code>
         </div>
       </div>
 

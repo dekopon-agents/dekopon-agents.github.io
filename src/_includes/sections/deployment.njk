@@ -14,8 +14,23 @@
       </div>
     </div>
 
+    <div class="pi-release-proof reveal" role="group" aria-label="Published Linux arm64 release measurements">
+      <div class="pi-release-proof-top"><span>Published Linux arm64</span><a href="{{ release.url }}">{{ release.tag }} ↗</a></div>
+      <div class="pi-release-metrics">
+        <div><small>gateway</small><strong>{{ release.archive.gatewaySize }}</strong><span>dekopond</span></div>
+        <div><small>broker</small><strong>{{ release.archive.brokerSize }}</strong><span>dekopon-brokerd</span></div>
+        <div><small>archive</small><strong>{{ release.archive.size }}</strong><span>compressed release</span></div>
+      </div>
+      <div class="release-command pi-release-command" data-copy-group>
+        <span aria-hidden="true">$</span>
+        <code>{{ release.installCommand }}</code>
+        <button type="button" data-copy="{{ release.installCommand }}" aria-label="Copy container pull command"><span class="copy-label">Copy</span></button>
+      </div>
+      <p>Measured from the attested {{ release.archive.target }} archive published {{ release.date }}. Size is evidence that it fits small hardware, not the reason to trust it.</p>
+    </div>
+
     <div class="pod-cutaway reveal" role="group" aria-label="Kubernetes pod with a gateway and broker sharing a Unix socket">
-      <div class="pod-cutaway-top"><span>Kubernetes pod</span><code>v0.10.0</code></div>
+      <div class="pod-cutaway-top"><span>Kubernetes pod</span><code>published chart {{ release.chart.publishedVersion }} · app {{ release.chart.publishedAppVersion }}</code></div>
       <div class="pod-cutaway-init"><small>starts first</small><strong>prepare-files</strong><span>owner-only config</span></div>
       <div class="pod-cutaway-processes">
         <article><small>unprivileged orchestration</small><strong>dekopond</strong><span>chat + model</span></article>
@@ -24,6 +39,7 @@
       </div>
       <div class="pod-cutaway-state"><span>retained state</span><strong>audit + optional provider storage</strong></div>
       <div class="pod-cutaway-none"><span>default: no Service</span><span>no chart Ingress</span><span>broker: Unix only</span></div>
+      <p class="pod-chart-note">The published chart trails the application release. Chart {{ release.chart.sourceVersion }} with app {{ release.chart.sourceAppVersion }} exists in source but is not yet published.</p>
     </div>
   </div>
 

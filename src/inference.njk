@@ -11,14 +11,14 @@ ogType: article
   <div class="inference-hero-gridlines" aria-hidden="true"></div>
   <div class="shell inference-hero-grid">
     <div class="inference-hero-copy">
-      <p class="inference-eyebrow"><span>v0.10.0</span> Model inference &amp; memory</p>
+      <p class="inference-eyebrow"><span>{{ release.tag }}</span> Model inference &amp; memory</p>
       <h1>A conversation grows.<br><span>The model starts fresh.</span></h1>
       <p class="inference-lede">Dekopon sends the model the context it needs for each turn. A persistent route can replay recent exchanges, while every outside action still gets a fresh permission check.</p>
       <div class="inference-actions">
         <a class="button button-primary" href="#request-growth">See a request grow <span aria-hidden="true">↓</span></a>
-        <a class="button button-secondary" href="https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md">Read the code walkthrough <span aria-hidden="true">↗</span></a>
+        <a class="button button-secondary" href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/docs/inference.md">Read the code walkthrough <span aria-hidden="true">↗</span></a>
       </div>
-      <p class="inference-release-note"><strong>Pre-production:</strong> this page and the “How it works” guides are pinned to the published v0.10.0 release.</p>
+      <p class="inference-release-note"><strong>Pre-production:</strong> this page and the “How it works” guides are pinned to the published {{ release.tag }} release.</p>
     </div>
 
     <figure class="inference-context-card">
@@ -56,8 +56,8 @@ ogType: article
     <div class="source-stamp inference-source-stamp">
       <div class="source-stamp-mark" aria-hidden="true">{ }</div>
       <div>
-        <strong>Based on v0.10.0</strong>
-        <p>Implementation pinned <time datetime="2026-08-22">22 Aug 2026</time>; OpenAI public API docs checked 20 Aug. The private subscription endpoint has no public cache contract.</p>
+        <strong>Based on {{ release.tag }}</strong>
+        <p>Implementation pinned <time datetime="{{ release.dateIso }}">{{ release.dateShort }}</time>; OpenAI public API docs checked 20 Aug. The private subscription endpoint has no public cache contract.</p>
       </div>
     </div>
   </aside>
@@ -280,7 +280,7 @@ ogType: article
       </div>
 
       <div class="almanac-code-block inference-code-block">
-        <div class="code-block-label"><span>compact pre-wire shape</span><a href="https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md">full literal walkthrough ↗</a></div>
+        <div class="code-block-label"><span>compact pre-wire shape</span><a href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/docs/inference.md">full literal walkthrough ↗</a></div>
         <pre><code><span class="code-comment">// abridged across dekopond/session.rs and dekopon-agent/prompt.rs</span>
 <span class="code-purple">let mut</span> messages = Vec::new();
 <span class="code-purple">if let</span> Some(system) = system {
@@ -305,7 +305,7 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
       <div class="article-heading">
         <span>07 · two different memory layers</span>
         <h2>Automatic replay is short. Durable recall is explicit.</h2>
-        <p>Version 0.10.0 keeps the existing in-process conversation window and adds an optional broker-owned memory provider. They solve different problems and never silently merge.</p>
+        <p>The current release keeps the in-process conversation window and the optional broker-owned memory provider as separate mechanisms. They solve different problems and never silently merge.</p>
       </div>
 
       <div class="future-memory-grid">
@@ -329,8 +329,8 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
       <p>Durable memory is scoped by provider, agent, sender, transport, channel, and conversation authority. It can survive broker and gateway restarts, but it has no semantic/vector search, cross-agent sharing, automatic replay, encryption-at-rest claim, or deletion/export UX. Stored text remains a sensitive prompt-injection surface.</p>
 
       <div class="source-links inference-source-links">
-        <a href="https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md"><span>Canonical guide</span><strong><code>docs/inference.md</code> ↗</strong></a>
-        <a href="https://github.com/dekopon-agents/dekopon/blob/v0.10.0/crates/dekopond/src/conversation.rs"><span>Conversation source</span><strong><code>conversation.rs</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/docs/inference.md"><span>Canonical guide</span><strong><code>docs/inference.md</code> ↗</strong></a>
+        <a href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/crates/dekopond/src/conversation.rs"><span>Conversation source</span><strong><code>conversation.rs</code> ↗</strong></a>
         <a href="https://developers.openai.com/api/docs/guides/prompt-caching"><span>Provider source</span><strong>OpenAI prompt caching ↗</strong></a>
       </div>
     </section>
@@ -340,6 +340,6 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
 <section class="inference-closing">
   <div class="shell">
     <div><span>Keep the boundaries clear</span><h2>Context can persist.<br>Permission never does.</h2></div>
-    <a class="button button-white" href="https://github.com/dekopon-agents/dekopon/blob/v0.10.0/docs/inference.md">Read the full walkthrough <span aria-hidden="true">↗</span></a>
+    <a class="button button-white" href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/docs/inference.md">Read the full walkthrough <span aria-hidden="true">↗</span></a>
   </div>
 </section>

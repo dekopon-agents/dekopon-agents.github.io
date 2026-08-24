@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: "17 9 * * *"
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,11 @@ jobs:
 
       - name: Audit build dependencies
         run: npm audit --audit-level=high
+
+      - name: Verify the site names the latest published release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run check:release -- --remote
 
       - name: Compile and validate site
         run: npm test

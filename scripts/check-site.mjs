@@ -4,6 +4,7 @@ import process from "node:process";
 
 const outputDirectory = path.resolve("_site");
 const failures = [];
+const release = JSON.parse(await readFile(path.resolve("src", "_data", "release.json"), "utf8"));
 
 const walk = async (directory) => {
     const entries = await readdir(directory, { withFileTypes: true });
@@ -52,6 +53,10 @@ for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");
     const relativeFile = path.relative(outputDirectory, file);
 
+    if (!html.includes(release.tag)) {
+        failures.push(`${relativeFile}: header does not render current release ${release.tag}`);
+    }
+
     if (html.includes("{{") || html.includes("{%")) {
         failures.push(`${relativeFile}: contains an unrendered template expression`);
     }
@@ -62,6 +67,23 @@ for (const file of htmlFiles) {
         failures.push(`${relativeFile}: duplicate id(s): ${[...new Set(duplicates)].join(", ")}`);
     }
     pageIds.set(file, new Set(ids));
+}
+
+const homepage = await readFile(path.join(outputDirectory, "index.html"), "utf8");
+for (const id of ["why", "one-request", "security", "providers"]) {
+    if (!homepage.includes(`id="${id}"`)) {
+        failures.push(`index.html: missing orientation section #${id}`);
+    }
+}
+if (!homepage.includes(release.installCommand)) {
+    failures.push(`index.html: missing current install command for ${release.tag}`);
+}
+
+for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {
+    const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
+    if (!html.includes(release.tag)) {
+        failures.push(`${relativeFile}: missing current release ${release.tag}`);
+    }
 }
 
 for (const file of htmlFiles) {

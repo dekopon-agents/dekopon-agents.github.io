@@ -1,0 +1,26 @@
+<section class="home-why section" id="why" aria-labelledby="home-why-title">
+  <div class="shell">
+    <div class="section-heading split-heading home-why-heading">
+      <div>
+        <span class="section-kicker purple">{{ home.why.kicker }}</span>
+        <h2 id="home-why-title">{{ home.why.title }}</h2>
+      </div>
+      <p>{{ home.why.intro }}</p>
+    </div>
+
+    <div class="home-why-grid">
+      {% for card in home.why.cards %}
+        <article class="home-why-card reveal{% if loop.index > 1 %} reveal-delay-{{ loop.index - 1 }}{% endif %}">
+          <span>{{ card.number }}</span>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+
+    <blockquote class="home-thesis reveal">
+      <span aria-hidden="true">“</span>
+      <p>{{ home.why.bridge }}</p>
+    </blockquote>
+  </div>
+</section>

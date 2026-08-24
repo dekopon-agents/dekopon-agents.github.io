@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: deploy/kubernetes/index.html
-pageTitle: Kubernetes deployment — Dekopon v0.10.0
+pageTitle: Kubernetes deployment — Published Dekopon Helm chart
 pageDescription: Understand Dekopon’s one-pod, two-container Kubernetes design, owner-only Unix socket, init container, persistent audit state, probes, and current limits.
 bodyClass: almanac-page almanac-article-page deploy-page deploy-kubernetes-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 {% from "components/deploy.njk" import deployNav %}
 {% from "components/almanac.njk" import pageHero, docsCta %}
 
-{{ pageHero("K", "Kubernetes deployment", "One pod. Two daemons.<br><span>No broker network service.</span>", "Published chart 0.2.0 deploys Dekopon v0.10.0 around its real broker transport: an owner-only Unix socket authenticated with peer credentials. An optional Service reaches only the gateway’s signed webhook.", "current", "Chart 0.2.0 · app v0.10.0") }}
+{{ pageHero("K", "Kubernetes deployment", "One pod. Two daemons.<br><span>No broker network service.</span>", "Published chart " ~ release.chart.publishedVersion ~ " deploys application " ~ release.chart.publishedAppVersion ~ " around an owner-only Unix broker socket. It currently trails application " ~ release.version ~ "; chart " ~ release.chart.sourceVersion ~ " exists in source but is not published.", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
 {{ deployNav("kubernetes", deploy.pages) }}
 
 <div class="almanac-article-shell shell">
@@ -36,7 +36,7 @@ ogType: article
       </div>
 
       <figure class="kubernetes-cutaway">
-        <div class="k8s-cutaway-title"><span>Chart 0.2.0 · app 0.10.0 · replicas: 1 · Recreate</span><code>runAsUser: 65532</code></div>
+        <div class="k8s-cutaway-title"><span>Published chart {{ release.chart.publishedVersion }} · app {{ release.chart.publishedAppVersion }} · replicas: 1 · Recreate</span><code>runAsUser: 65532</code></div>
         <div class="k8s-init-row">
           <article><small>init container · root + CHOWN/FOWNER only</small><strong>prepare-files</strong><span>projected inputs → real 0600 files owned by 65532</span></article>
           <i aria-hidden="true">finishes before daemons start ↓</i>
@@ -74,7 +74,7 @@ ogType: article
         </table>
       </div>
 
-      <p>Two images would still need the same version and pod. Version 0.10.0 therefore ships one image containing all four executables. Each container selects its command and retains its own responsibility.</p>
+      <p>Two images would still need the same application version and pod. The chart therefore uses one image containing all four executables. Each container selects its command and retains its own responsibility.</p>
     </section>
 
     <section id="files" class="article-section">
@@ -173,13 +173,14 @@ ogType: article
         <table class="almanac-table strategy-table">
           <thead><tr><th scope="col">Version</th><th scope="col">Tag</th><th scope="col">Publishes</th></tr></thead>
           <tbody>
-            <tr><th scope="row">Application <code>0.10.0</code></th><td><code>v0.10.0</code></td><td>crates, archives, container image, Homebrew</td></tr>
-            <tr><th scope="row">Chart <code>0.2.0</code></th><td><code>dekopon-chart-0.2.0</code></td><td>OCI Helm package only</td></tr>
+            <tr><th scope="row">Current application <code>{{ release.version }}</code></th><td><code>{{ release.tag }}</code></td><td>crates, archives, container image, Homebrew</td></tr>
+            <tr><th scope="row">Published chart <code>{{ release.chart.publishedVersion }}</code></th><td><code>dekopon-chart-{{ release.chart.publishedVersion }}</code></td><td>OCI Helm package; defaults to app {{ release.chart.publishedAppVersion }}</td></tr>
+            <tr><th scope="row">Chart source <code>{{ release.chart.sourceVersion }}</code></th><td>no tag</td><td>Not published; names app {{ release.chart.sourceAppVersion }}</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Chart 0.2.0 is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application 0.10.0. Its render and file-mode checks pass in CI, but the project has not yet applied the chart to a live cluster. A chart fix does not force a new application release.</p>
+      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Its render and file-mode checks pass in CI, but the project has not yet applied the chart to a live cluster. Do not treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
 
       {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest publication status, values, path contract, probes, storage arithmetic, ChatGPT seeding behavior, and Argo CD instructions before installing.") }}
     </section>

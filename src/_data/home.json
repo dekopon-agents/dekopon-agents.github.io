@@ -1,47 +1,199 @@
 {
   "hero": {
-    "eyebrow": "v0.10.0 · native arm64 · open source",
-    "title": "An agent stack for",
-    "titleAccent": "one Raspberry Pi.",
-    "lede": "The published Linux arm64 broker is 24.1 MiB; the gateway is 13.0 MiB. Together they give models a host-like workspace without inherited environment variables, host files, or ambient sockets.",
-    "primaryCta": { "label": "See the broker YAML", "href": "#broker-config" },
-    "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" },
-    "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.10.0",
-    "caveatLabel": "Measured scope:",
-    "caveat": "Published v0.10.0 Linux arm64 archive, 22 Aug 2026. Dekopon is pre-production; the current local deployment treats one Unix UID as a trust domain.",
+    "eyebrow": "Open source · self-hosted · pre-production",
+    "title": "Give AI agents useful tools.",
+    "titleAccent": "Not your whole computer.",
+    "lede": "Dekopon is a self-hosted agent harness with a separate permission broker. The model may request an action. The broker verifies who asked, applies policy and hard limits, then records what happened.",
+    "primaryCta": { "label": "See one request end to end", "href": "#one-request" },
+    "secondaryCta": { "label": "What does it protect against?", "href": "#security" },
+    "proofs": ["Runs on Raspberry Pi-class hardware", "Provider credentials stay out of prompts", "Every capability call is freshly authorized"],
     "visual": {
-      "caption": "Published Dekopon v0.10.0 Linux arm64 executable sizes and process roles",
-      "title": "v0.10.0 · Linux arm64",
-      "badge": "Pi-ready",
-      "stage": "Published executable bytes",
-      "trust": "22 Aug 2026",
-      "metric1Label": "gateway",
-      "metric1": "dekopond · 13.0 MiB",
-      "metric2Label": "broker",
-      "metric2": "dekopon-brokerd · 24.1 MiB",
-      "metric3Label": "provider",
-      "metric3": "example Wasm · 233 KiB",
-      "boundary": "native arm64 · one Pi",
-      "leftLabel": "chat + model",
-      "left": "Gateway",
-      "rightLabel": "policy + secrets",
-      "right": "Broker",
-      "outcomeLabel": "compressed release archive",
-      "outcome": "25.7 MiB",
-      "trace": "v0.10.0",
-      "chips": ["Linux arm64", "broker-held secrets", "public provider SDK"]
+      "caption": "One request moving from an authenticated sender through an untrusted model to the separate Dekopon broker and one bounded provider action",
+      "title": "One request · one authority boundary",
+      "badge": "model is untrusted",
+      "requestLabel": "Authenticated sender",
+      "request": "Alice asks: comment on PR 42",
+      "requestDetail": "Slack supplies the sender identity",
+      "proposalLabel": "Agent and model",
+      "proposal": "gh.pull-request.comment",
+      "proposalDetail": "may propose · cannot approve itself",
+      "gateLabel": "Separate broker",
+      "gate": "identity → Cedar → hard limits",
+      "gateDetail": "Alice · comment · api.github.com · 2 calls · 15 s",
+      "allowedLabel": "allowed",
+      "allowed": "leave one comment",
+      "deniedLabel": "absent",
+      "denied": "merge permission",
+      "outcomeLabel": "Broker-owned HTTP",
+      "outcome": "token injected only at the approved destination",
+      "audit": "decision + result linked in audit",
+      "chips": ["sender-derived identity", "broker-held token", "comment ≠ merge"]
     }
   },
   "principles": [
-    "Native Linux arm64",
-    "Broker config you can read",
-    "Public Rust provider SDK",
-    "Provider secrets stop at broker"
+    "The model proposes",
+    "The broker decides",
+    "Hard limits bind execution",
+    "Audit links decision to result"
   ],
+  "why": {
+    "kicker": "Why Dekopon exists",
+    "title": "Do not make the model trusted. Limit what it can cause.",
+    "intro": "A harness gives a model instructions, tools, and a loop. Dekopon adds a separate authority layer around those tools. Useful exploration stays possible without turning model text into operating-system permission.",
+    "cards": [
+      {
+        "number": "01",
+        "title": "Untrusted content can steer a model.",
+        "body": "Messages, webpages, issues, pull requests, tool results, and the model’s own output can all contain misleading instructions. Dekopon treats every resulting tool request as an untrusted proposal."
+      },
+      {
+        "number": "02",
+        "title": "A general shell can carry ambient authority.",
+        "body": "Host files, inherited environment variables, subprocesses, and unrestricted sockets turn one mistake into a machine-wide problem. Dekopon’s shell has none of those by default."
+      },
+      {
+        "number": "03",
+        "title": "Permission should survive the prompt.",
+        "body": "Identity, policy, credentials, execution limits, and audit live outside the model session. A persuasive string cannot claim a principal, widen a host list, or invent a missing capability."
+      }
+    ],
+    "bridge": "The practical goal is containment: narrow, attributable, reviewable, and revocable authority around an untrusted model."
+  },
+  "journey": {
+    "kicker": "One request, end to end",
+    "title": "Alice may comment. Merge stays absent.",
+    "intro": "This synthetic pull-request agent shows the whole security story without starting from YAML or Rust types.",
+    "steps": [
+      {
+        "number": "01",
+        "label": "Identify",
+        "title": "Slack authenticates Alice.",
+        "body": "The gateway carries a canonical Slack subject. The message cannot name its own trusted principal.",
+        "detail": "subject → owner-controlled mapping → alice"
+      },
+      {
+        "number": "02",
+        "label": "Propose",
+        "title": "The model asks to comment.",
+        "body": "Its one sandboxed tool resolves a familiar gh command into one narrow capability request.",
+        "detail": "gh pr review --comment → gh.pull-request.comment"
+      },
+      {
+        "number": "03",
+        "label": "Decide",
+        "title": "The broker checks every boundary.",
+        "body": "Cedar decides whether Alice may use this action through this agent. Separate constraints bind host, methods, calls, bytes, timeout, and credential.",
+        "detail": "principal × action × provider × trusted route"
+      },
+      {
+        "number": "04",
+        "label": "Execute",
+        "title": "One fresh provider call runs.",
+        "body": "A fresh Wasm store receives only approved host interfaces. Native broker HTTP injects the token after guest headers are checked.",
+        "detail": "bounded provider → api.github.com"
+      },
+      {
+        "number": "05",
+        "label": "Record",
+        "title": "Decision and outcome remain linked.",
+        "body": "Hash-linked audit records the trusted identity, policy decision, constraints, outcome, and digest evidence without storing prompt or response bodies.",
+        "detail": "invocation ID + trace ID + policy digest"
+      }
+    ],
+    "allowed": "Allowed: leave one bounded comment",
+    "denied": "Still denied: approve, merge, arbitrary GitHub API, host shell",
+    "link": { "label": "Open the complete policy walkthrough", "href": "/almanac/permissions/" }
+  },
+  "security": {
+    "kicker": "Scoped security claims",
+    "title": "What the boundary changes—and what it does not.",
+    "intro": "Dekopon names the safeguard and its limit. It does not claim to make models trustworthy, stop prompt injection, or turn a pre-production local deployment into a hardened multi-tenant service.",
+    "rows": [
+      {
+        "threat": "Prompt injection or a model mistake",
+        "control": "Model output can propose only named capabilities. The broker authorizes each call from fresh trusted context.",
+        "limit": "Dekopon does not detect prompt injection. Persistent history can make injected text last longer."
+      },
+      {
+        "threat": "Credential exposure",
+        "control": "Provider credentials stay out of prompts, shell state, and Wasm guests. Native HTTP injects a destination-bound value.",
+        "limit": "A permitted remote endpoint could still reflect the credential. Scope and trust that endpoint separately."
+      },
+      {
+        "threat": "Over-broad tool execution",
+        "control": "No operating-system bash, inherited environment, host files, processes, or ambient sockets. Hosts, methods, calls, bytes, and time are bounded.",
+        "limit": "A compromised host or malicious process inside the current Unix UID trust domain remains out of scope."
+      },
+      {
+        "threat": "Forged identity",
+        "control": "Chat identity comes from authenticated transport and owner-controlled broker mapping, never message text or provider input.",
+        "limit": "The local development subject is explicitly opt-in and is not authenticated by an external service."
+      },
+      {
+        "threat": "Unclear or disputed effects",
+        "control": "Decision, policy digest, execution outcome, evidence digest, invocation ID, and trace ID remain correlated.",
+        "limit": "The local audit checkpoint has no independent remote or signed anchor and cannot roll back an external effect."
+      }
+    ],
+    "limits": [
+      "One local Unix UID is currently one trust domain",
+      "No production-hardening or multi-tenant-isolation claim",
+      "No independent audit anchor or incident-response automation"
+    ],
+    "link": { "label": "Read the complete threat model", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md" }
+  },
+  "useCases": {
+    "kicker": "Published provider ecosystem",
+    "title": "Give the same harness very different skills.",
+    "intro": "Providers are independently released Wasm components. Each exposes narrow operations instead of handing the model a general plugin or operating-system process.",
+    "items": [
+      {
+        "label": "GitHub",
+        "title": "Review, comment, approve, or merge through separate grants.",
+        "body": "Nineteen fixed-shape repository, issue, and pull-request capabilities. There is deliberately no raw GitHub API passthrough.",
+        "detail": "External reads and writes · broker-held token",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-gh",
+        "accent": "purple"
+      },
+      {
+        "label": "Wikipedia",
+        "title": "Search and read bounded article sections.",
+        "body": "Five read-only operations guide the model from title search to a revision-pinned section without exposing a generic URL tool.",
+        "detail": "Public HTTPS reads · exact language hosts",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-mediawiki",
+        "accent": "cyan"
+      },
+      {
+        "label": "Ripgrep",
+        "title": "Search text supplied to a zero-import component.",
+        "body": "Real Rust regex and ripgrep matching over bounded virtual documents. Paths are labels; the provider never opens a filesystem.",
+        "detail": "Read-only compute · no host imports",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-ripgrep",
+        "accent": "mint"
+      },
+      {
+        "label": "Python",
+        "title": "Run constrained Python without Python owning the host.",
+        "body": "A fresh RustPython interpreter evaluates one bounded script with a small module and value surface and no files, network, clock, entropy, or subprocesses.",
+        "detail": "High-risk compute · zero imports",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-python",
+        "accent": "orange"
+      },
+      {
+        "label": "SQL",
+        "title": "Keep SQLite-compatible data behind broker storage.",
+        "body": "Turso runs inside Wasm and reaches two logical durable files through an exact storage import. The guest never receives a host path.",
+        "detail": "Local write · transactional durable storage",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-turso-sql",
+        "accent": "rose"
+      }
+    ],
+    "link": { "label": "Build a provider with the Rust SDK", "href": "/guides/provider-sdk/" }
+  },
   "broker": {
-    "kicker": "The root configuration",
-    "title": "Start with the broker YAML.",
-    "intro": "This trimmed, synthetic configuration gives Alice one way to comment on a pull request. The identity, provider, credential name, destination, methods, call count, bytes, and timeout are all visible before the agent starts.",
+    "kicker": "Now inspect the authority",
+    "title": "The broker YAML makes every limit visible.",
+    "intro": "The story above becomes owner-authored configuration. This trimmed synthetic example names Alice, one provider operation, one credential, one destination, two methods, two calls, byte ceilings, and a timeout before the agent starts.",
     "fileName": "broker.yaml",
     "fileLabel": "relevant authority-bearing fields",
     "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor:\n      namespaces: [slack.example]\n      chatScopes:\n        - breadth: transportWide\n          kind: slack\n          transport: workspace-slack\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    idempotency: conditional\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
@@ -56,9 +208,9 @@
   "status": {
     "kicker": "Provider SDK + secret handling",
     "title": "Write the command. Keep its credential away from it.",
-    "intro": "Providers are ordinary Rust components. They declare what they do and, optionally, the command words agents may type. The broker supplies narrowly constrained I/O without handing the component its token.",
+    "intro": "Providers are ordinary Rust components. They declare narrow operations and optional command words. The broker supplies constrained I/O without handing the component its token.",
     "provider": {
-      "label": "Public Rust SDK · v0.10.0",
+      "label": "Public Rust SDK",
       "number": "01",
       "title": "A provider is a small Wasm component.",
       "body": "Implement the public Provider trait, compile for wasm32-unknown-unknown, and inspect the final component before loading it.",
@@ -66,19 +218,19 @@
         "Describe typed capabilities in a manifest",
         "Validate every operation-specific input in provider code",
         "Start each description, command rewrite, and invocation in a fresh Wasm store",
-        "Expose an optional command word such as tickets to the agent’s bash sandbox"
+        "Test storage-backed providers against the real host with the public testkit"
       ],
-      "path": ["Rust trait", "Wasm", "manifest", "bash"],
+      "path": ["Rust trait", "Wasm", "manifest", "agent command"],
       "link": { "label": "Build a provider with the pinned SDK", "href": "/guides/provider-sdk/" }
     },
     "secrets": {
-      "label": "Broker-held credentials · v0.10.0",
+      "label": "Broker-held provider credentials",
       "number": "02",
       "title": "The tool works without seeing its token.",
       "body": "The agent calls a normal command. The Wasm guest builds a bounded request. Only the native broker HTTP engine can inject the destination-bound credential.",
       "items": [
         { "name": "prompt", "description": "No provider token in model context" },
-        { "name": "bash", "description": "No inherited environment or host files" },
+        { "name": "shell", "description": "No inherited environment or host files" },
         { "name": "Wasm guest", "description": "No credential import or ambient socket" },
         { "name": "broker", "description": "Loads the 0600 file and injects at the bound host" }
       ],
@@ -112,7 +264,7 @@
     ],
     "denial": "Route Alice to release-bot and Cedar denies agent.prompt before any model call: the Agent resource no longer matches.",
     "invariants": [
-      { "number": "I", "class": "gradient-one", "title": "Text cannot become Alice", "body": "The principal comes from the gateway attestation and broker mapping, never the prompt." },
+      { "number": "I", "class": "gradient-one", "title": "Text cannot become Alice", "body": "The principal comes from gateway attestation and broker mapping, never the prompt." },
       { "number": "II", "class": "gradient-two", "title": "Prompt is a separate grant", "body": "Permission to drive pr-commenter does not imply permission to use its GitHub capability." },
       { "number": "III", "class": "gradient-three", "title": "Comment is not merge", "body": "Each capability is a distinct Cedar action. Missing actions stay denied." },
       { "number": "IV", "class": "gradient-four", "title": "Policy cannot widen I/O", "body": "Cedar can allow the action. It cannot add hosts, methods, calls, time, bytes, or credentials." }
@@ -120,16 +272,16 @@
     "link": { "label": "Walk through every file and decision", "href": "/almanac/permissions/" }
   },
   "execution": {
-    "kicker": "Bash, minus the operating system · v0.10.0 provider words",
+    "kicker": "Bash habits, without operating-system bash",
     "title": "Use the shell training models already have.",
-    "intro": "State-of-the-art models are rigorously trained on normal shell sessions. Dekopon reuses their command discovery, jq, loops, and exit-code recovery without launching /bin/bash. The v0.10.0 broker path also lets providers contribute checked command words.",
+    "intro": "Models already know variables, functions, pipelines, structured filters, conditionals, loops, exit codes, and defensive shell options. Dekopon keeps that exploration pattern inside a language with no host processes, files, environment, or ambient sockets.",
     "toolLabel": "the model sees one tool",
     "toolName": "bash({ script })",
-    "script": "issue=$(tickets issue show T-42)\necho \"$issue\" | jq '{title, owner, state}'\n\nfor id in $(tickets issue list --state open | jq -r '.[].id'); do\n  tickets issue show \"$id\" | jq '{id, owner, state}'\ndone",
+    "script": "set -euo pipefail\nissue=$(tickets issue show T-42)\necho \"$issue\" | jq '{title, owner, state}'\n\nfor id in $(tickets issue list --state open | jq -r '.[].id'); do\n  tickets issue show \"$id\" | jq '{id, owner, state}'\ndone",
     "result": "one script · bounded JSON · explicit exit codes",
     "cards": [
-      { "number": "01", "title": "The training transfers", "body": "Variables, loops, pipes, command substitution, jq, and exit codes feel like the shell transcripts frontier models already know." },
-      { "number": "02", "title": "Providers become verbs", "body": "A provider may declare commandWords: [\"tickets\"]. Its pure resolver turns argv into one typed capability proposal." },
+      { "number": "01", "title": "The training transfers", "body": "Variables, loops, functions, pipes, command substitution, jq, getopts, read, and exit codes feel like shell transcripts frontier models already know." },
+      { "number": "02", "title": "Providers become verbs", "body": "A provider may declare a command word. Its pure resolver turns argv into one typed capability proposal." },
       { "number": "03", "title": "A command grants nothing", "body": "Resolving tickets issue show does not authorize it. The same Cedar decision and broker constraints still run." },
       { "number": "04", "title": "Every loop has a ceiling", "body": "Script steps, recursion, output, deadline, model turns, tool calls, provider fuel, memory, and broker I/O are all bounded." }
     ],
@@ -155,29 +307,29 @@
   },
   "deployment": {
     "kicker": "Raspberry Pi deployment",
-    "title": "One pod. No public control plane.",
-    "intro": "The v0.10.0 arm64 image runs the gateway and broker as separate containers in one single-node pod. They share one owner-only Unix socket; an optional Service exposes only the gateway’s signed WhatsApp webhook.",
+    "title": "Small enough for home. Explicit enough to inspect.",
+    "intro": "The published Linux arm64 release runs natively on Raspberry Pi-class hardware. The Kubernetes chart places the gateway and broker in one pod with separate process roles and one owner-only Unix socket.",
+    "points": [
+      "Native Linux arm64 executables and a multi-architecture image",
+      "Gateway and broker remain separate daemon containers",
+      "Provider, model, and chat credentials never enter the image",
+      "Audit state and optional provider storage use separate retained volumes"
+    ],
     "facts": [
       { "value": "1", "label": "pod" },
       { "value": "2", "label": "daemon containers" },
       { "value": "0", "label": "default Services or Ingresses" },
       { "value": "0600", "label": "shared Unix socket" }
     ],
-    "points": [
-      "A native broker sidecar becomes ready before the gateway starts",
-      "An init container turns Kubernetes projections into real owner-only files",
-      "Audit state and optional provider storage use separate retained volumes",
-      "Provider and model credentials never enter the image"
-    ],
     "primaryCta": { "label": "Deploy on Kubernetes", "href": "/deploy/kubernetes/" },
     "secondaryCta": { "label": "Choose another install path", "href": "/deploy/" }
   },
   "closing": {
-    "kicker": "v0.10.0 · open source · pre-production",
+    "kicker": "Open source · pre-production",
     "title": "Give the agent commands.",
-    "titleAccent": "Keep the host out of reach.",
-    "body": "Start with the broker YAML above, add one provider, and let the model use the shell habits it already has. The credential stays with the broker.",
-    "primaryCta": { "label": "Get v0.10.0", "href": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0" },
+    "titleAccent": "Keep authority elsewhere.",
+    "body": "Start with one useful capability, one exact policy, and one constrained provider. Let the model explore without handing it the host.",
+    "primaryCta": { "label": "Get the latest release", "href": "/whats-new/" },
     "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
   }
 }

@@ -2,38 +2,38 @@
 layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
-pageTitle: What’s new in Dekopon v0.10.0
-pageDescription: Version 0.10.0 adds broker-owned provider storage, durable chat memory, WhatsApp, generated-image replies, and a deep hardening pass.
+pageTitle: What’s new in Dekopon
+pageDescription: The latest Dekopon release adds an interactive console, a fuller sandboxed shell, a provider testkit, and independently released integrations.
 ogType: article
 ---
 <section class="release-hero">
   <div class="release-hero-mesh" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="shell release-hero-grid">
     <div class="release-hero-copy">
-      <p class="release-eyebrow reveal"><span aria-hidden="true"></span>{{ whatsNew.hero.eyebrow }}</p>
-      <h1 class="reveal reveal-delay-1"><span>{{ whatsNew.hero.version }}</span>{{ whatsNew.hero.title }}</h1>
+      <p class="release-eyebrow reveal"><span aria-hidden="true"></span>{{ whatsNew.hero.eyebrow }} · {{ release.date }}</p>
+      <h1 class="reveal reveal-delay-1"><span>{{ release.tag }}</span>{{ whatsNew.hero.title }}</h1>
       <p class="release-lede reveal reveal-delay-2">{{ whatsNew.hero.lede }}</p>
       <div class="release-actions reveal reveal-delay-3">
-        <a class="button button-primary" href="#get-v0100">Get v0.10.0 <span aria-hidden="true">↓</span></a>
-        <a class="button button-secondary" href="{{ whatsNew.hero.releaseUrl }}">GitHub release <span aria-hidden="true">↗</span></a>
+        <a class="button button-primary" href="#get-latest">Get {{ release.tag }} <span aria-hidden="true">↓</span></a>
+        <a class="button button-secondary" href="{{ release.url }}">GitHub release <span aria-hidden="true">↗</span></a>
       </div>
     </div>
 
-    <aside class="release-card reveal reveal-delay-2" aria-label="v0.10.0 release details">
+    <aside class="release-card reveal reveal-delay-2" aria-label="{{ release.tag }} release details">
       <div class="release-card-top">
         <span><i aria-hidden="true"></i> Current release</span>
-        <code>{{ whatsNew.hero.revision }}</code>
+        <code>{{ release.shortRevision }}</code>
       </div>
-      <strong>{{ whatsNew.hero.version }}</strong>
-      <p>Released <time datetime="{{ whatsNew.hero.dateIso }}">{{ whatsNew.hero.date }}</time></p>
+      <strong>{{ release.tag }}</strong>
+      <p>Released <time datetime="{{ release.dateIso }}">{{ release.date }}</time></p>
       <div class="release-command" data-copy-group>
         <span aria-hidden="true">$</span>
-        <code>{{ whatsNew.hero.install }}</code>
-        <button type="button" data-copy="{{ whatsNew.hero.install }}" aria-label="Copy install command">
+        <code>{{ release.installCommand }}</code>
+        <button type="button" data-copy="{{ release.installCommand }}" aria-label="Copy install command">
           <span class="copy-label">Copy</span>
         </button>
       </div>
-      <a href="{{ whatsNew.hero.sourceUrl }}">See the code for this release <span aria-hidden="true">→</span></a>
+      <a href="{{ release.sourceUrl }}">See the code for this release <span aria-hidden="true">→</span></a>
     </aside>
   </div>
 
@@ -51,7 +51,7 @@ ogType: article
         <span class="section-kicker purple">The short version</span>
         <h2 id="release-summary-title">The release in three points.</h2>
       </div>
-      <p>The core rule is unchanged: models propose and the broker authorizes. What is new is durable provider data, explicit chat recall, two new output and transport surfaces, and less work on every hot path.</p>
+      <p>{{ whatsNew.summary }}</p>
     </div>
 
     <div class="release-highlight-grid">
@@ -72,11 +72,11 @@ ogType: article
 <section class="release-path-section" aria-labelledby="release-path-title">
   <div class="shell">
     <div class="release-path-heading">
-      <div><span class="section-kicker mint">One durable turn</span><h2 id="release-path-title">Record after delivery. Recall only on request.</h2></div>
-      <p>A normal reply finishes first. A separate broker-authorized request then commits the delivered turn inside an exact storage scope. Nothing is replayed automatically.</p>
+      <div><span class="section-kicker mint">{{ whatsNew.path.kicker }}</span><h2 id="release-path-title">{{ whatsNew.path.title }}</h2></div>
+      <p>{{ whatsNew.path.body }}</p>
     </div>
-    <ol class="release-path" aria-label="How Dekopon records and recalls one delivered turn">
-      {% for step in whatsNew.path %}
+    <ol class="release-path" aria-label="{{ whatsNew.path.ariaLabel }}">
+      {% for step in whatsNew.path.steps %}
         <li><span>0{{ loop.index }}</span><strong>{{ step.name }}</strong><small>{{ step.detail }}</small></li>
       {% endfor %}
     </ol>
@@ -88,9 +88,9 @@ ogType: article
     <div class="release-section-heading release-details-heading">
       <div>
         <span class="section-kicker orange">Under the hood</span>
-        <h2 id="release-details-title">What v0.10.0 brings.</h2>
+        <h2 id="release-details-title">What {{ release.tag }} brings.</h2>
       </div>
-      <p>The gateway, broker, provider, storage host, and audit responsibilities remain separated. New capabilities still travel through the same proposal, policy, constraint, execution, and evidence path.</p>
+      <p>{{ whatsNew.detailsIntro }}</p>
     </div>
 
     <div class="release-change-list">
@@ -101,37 +101,44 @@ ogType: article
             <small>{{ change.tag }}</small>
             <h3>{{ change.title }}</h3>
             <p>{{ change.body }}</p>
-            <a class="text-link" href="{{ change.link.href }}">{{ change.link.label }} <span aria-hidden="true">→</span></a>
+            <a class="text-link" href="{% if change.link.release %}{{ release.url }}{% else %}{{ change.link.href }}{% endif %}">{{ change.link.label }} <span aria-hidden="true">→</span></a>
           </div>
         </article>
       {% endfor %}
     </div>
 
-    <aside class="release-telemetry reveal" aria-label="Version 0.10.0 authority change">
+    <aside class="release-telemetry reveal" aria-label="{{ release.tag }} authority change">
       <div><span>Authority boundary</span><strong>{{ whatsNew.telemetry.value }}</strong><small>{{ whatsNew.telemetry.title }}</small></div>
       <div><p>{{ whatsNew.telemetry.body }}</p><small>{{ whatsNew.telemetry.note }}</small></div>
     </aside>
   </div>
 </section>
 
-<section class="release-install section" id="get-v0100" aria-labelledby="release-install-title">
+<section class="release-install section" id="get-latest" aria-labelledby="release-install-title">
   <div class="shell">
     <div class="release-section-heading release-install-heading">
       <div>
         <span class="section-kicker mint">Available now</span>
         <h2 id="release-install-title">Pick your starting point.</h2>
       </div>
-      <p>Version 0.10.0 is available through Homebrew, crates.io, attested GitHub archives, and the multi-architecture container image. Chart 0.2.0 deploys it by default.</p>
+      <p>{{ whatsNew.installIntro }}</p>
     </div>
 
     <div class="release-package-grid">
       {% for package in whatsNew.packages %}
+        {% if package.name == "Homebrew" %}
+          {% set packageCommand = "brew install dekopon-agents/tap/dekopon" %}
+        {% elif package.name == "crates.io" %}
+          {% set packageCommand = "cargo install --locked --version " ~ release.version ~ " dekopon-run" %}
+        {% else %}
+          {% set packageCommand = release.installCommand %}
+        {% endif %}
         <article class="release-package reveal{% if loop.index > 1 %} reveal-delay-{{ loop.index - 1 }}{% endif %}">
           <div><code>{{ package.name }}</code><span>{{ package.role }}</span></div>
           <p>{{ package.body }}</p>
           <div class="release-package-command" data-copy-group>
-            <code>{{ package.command }}</code>
-            <button type="button" data-copy="{{ package.command }}" aria-label="Copy {{ package.name }} install command"><span class="copy-label">Copy</span></button>
+            <code>{{ packageCommand }}</code>
+            <button type="button" data-copy="{{ packageCommand }}" aria-label="Copy {{ package.name }} install command"><span class="copy-label">Copy</span></button>
           </div>
         </article>
       {% endfor %}
@@ -143,15 +150,15 @@ ogType: article
   <div class="shell">
     <div class="release-section-heading">
       <div>
-        <span class="section-kicker purple">Where v0.10.0 stands</span>
+        <span class="section-kicker purple">Where {{ release.tag }} stands</span>
         <h2 id="release-scope-title">Deployable foundation. Still pre-production.</h2>
       </div>
-      <p>The full local path includes gateway attestation, Cedar, broker-managed credentials, Wasm providers, audit, and telemetry. Stronger process isolation and audit anchoring remain.</p>
+      <p>{{ whatsNew.scopeIntro }}</p>
     </div>
 
     <div class="release-scope-grid">
       <article class="release-scope-card current reveal">
-        <span><i aria-hidden="true"></i> Current in v0.10.0</span>
+        <span><i aria-hidden="true"></i> Current in {{ release.tag }}</span>
         <ul>{% for item in whatsNew.scope.current %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
       <article class="release-scope-card next reveal reveal-delay-1">
@@ -163,14 +170,14 @@ ogType: article
     <article class="previous-release reveal">
       <div><span>Previous release</span><strong>{{ whatsNew.previous.version }}</strong></div>
       <div><h3>{{ whatsNew.previous.title }}</h3><p>{{ whatsNew.previous.body }}</p></div>
-      <a href="{{ whatsNew.previous.url }}" aria-label="View the v0.9.0 release">View 0.9 <span aria-hidden="true">↗</span></a>
+      <a href="{{ whatsNew.previous.url }}" aria-label="View the {{ whatsNew.previous.version }} release">{{ whatsNew.previous.label }} <span aria-hidden="true">↗</span></a>
     </article>
   </div>
 </section>
 
 <section class="release-closing">
   <div class="shell release-closing-inner">
-    <div><span class="section-kicker mint">v0.10.0 is available now</span><h2>Pull it.<br>Keep every boundary.</h2></div>
-    <div><p>Choose a deployment path, or open the system guide for a clear tour from authenticated message to audited effect.</p><div class="release-actions"><a class="button button-white" href="/deploy/">Deploy v0.10.0 <span aria-hidden="true">→</span></a><a class="button button-ghost" href="/almanac/">See how it works <span aria-hidden="true">→</span></a></div></div>
+    <div><span class="section-kicker mint">{{ release.tag }} is available now</span><h2>{{ whatsNew.closing.title }}</h2></div>
+    <div><p>{{ whatsNew.closing.body }}</p><div class="release-actions"><a class="button button-white" href="/deploy/">Deploy {{ release.tag }} <span aria-hidden="true">→</span></a><a class="button button-ghost" href="/almanac/">See how it works <span aria-hidden="true">→</span></a></div></div>
   </div>
 </section>

@@ -1,0 +1,32 @@
+<section class="home-security section" id="security" aria-labelledby="home-security-title">
+  <div class="shell">
+    <div class="section-heading split-heading home-security-heading">
+      <div>
+        <span class="section-kicker orange">{{ home.security.kicker }}</span>
+        <h2 id="home-security-title">{{ home.security.title }}</h2>
+      </div>
+      <p>{{ home.security.intro }}</p>
+    </div>
+
+    <div class="security-table" role="table" aria-label="Threats, Dekopon safeguards, and current limits">
+      <div class="security-table-head" role="row">
+        <span role="columnheader">Threat or failure</span>
+        <span role="columnheader">What Dekopon changes</span>
+        <span role="columnheader">Current limit</span>
+      </div>
+      {% for row in home.security.rows %}
+        <article class="security-row reveal" role="row">
+          <h3 role="cell">{{ row.threat }}</h3>
+          <p class="security-control" role="cell"><span aria-hidden="true">✓</span>{{ row.control }}</p>
+          <p class="security-limit" role="cell"><span aria-hidden="true">!</span>{{ row.limit }}</p>
+        </article>
+      {% endfor %}
+    </div>
+
+    <aside class="security-honesty reveal" aria-label="Current project limitations">
+      <div><span>Pre-production means</span><strong>No blanket “secure” claim</strong></div>
+      <ul>{% for limit in home.security.limits %}<li>{{ limit }}</li>{% endfor %}</ul>
+      <a class="text-link" href="{{ home.security.link.href }}">{{ home.security.link.label }} <span aria-hidden="true">↗</span></a>
+    </aside>
+  </div>
+</section>

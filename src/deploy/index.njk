@@ -1,8 +1,8 @@
 ---
 layout: layouts/base.njk
 permalink: deploy/index.html
-pageTitle: Deploy Dekopon v0.10.0
-pageDescription: Choose Homebrew, crates.io, attested release archives, the multi-architecture image, or chart 0.2.0 for Dekopon v0.10.0.
+pageTitle: Deploy Dekopon
+pageDescription: Choose Homebrew, crates.io, attested release archives, the multi-architecture image, or the independently versioned Helm chart.
 bodyClass: almanac-page deploy-page deploy-overview-page
 almanacPage: true
 ogType: article
@@ -14,16 +14,16 @@ ogType: article
   <div class="deploy-hero-gridlines" aria-hidden="true"></div>
   <div class="shell deploy-hero-grid">
     <div>
-      <p class="almanac-kicker">Deploy v0.10.0</p>
+      <p class="almanac-kicker">Deploy {{ release.tag }}</p>
       <h1>Start on one machine.<br><span>Keep the boundary visible.</span></h1>
-      <p>Install the four executables directly or run the gateway and broker together in one Kubernetes pod. Every path preserves the same authority split.</p>
+      <p>Install the four executables directly or run the gateway and broker together. Every current path preserves the same authority split.</p>
       <div class="deploy-hero-status">{{ status("current", "Released") }}<span>Linux arm64 + amd64 · macOS arm64</span></div>
     </div>
     <div class="deploy-release-box">
       <span>Current application release</span>
-      <strong>v0.10.0</strong>
+      <strong>{{ release.tag }}</strong>
       <dl><div><dt>executables</dt><dd>4</dd></div><div><dt>Linux image platforms</dt><dd>2</dd></div><div><dt>broker TCP control APIs</dt><dd>0</dd></div></dl>
-      <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0">Open the GitHub release <span aria-hidden="true">↗</span></a>
+      <a href="{{ release.url }}">Open the GitHub release <span aria-hidden="true">↗</span></a>
     </div>
   </div>
 </header>
@@ -34,45 +34,43 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">01—04</span>
-      <div><p class="almanac-kicker">Choose an install path</p><h2>Same binaries. Different operating shape.</h2></div>
-      <p>Version 0.10.0 ships through native package managers, attested archives, a multi-architecture image, and published chart 0.2.0. Every path keeps the same broker boundary.</p>
+      <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary. Different operating shape.</h2></div>
+      <p>The current application ships through native package managers, attested archives, and a multi-architecture image. The published Helm chart moves independently and currently trails the application.</p>
     </div>
 
     <div class="deploy-option-grid">
       <article class="deploy-option-card">
         <div><span>01</span>{{ status("current", "macOS + Linux") }}</div>
         <h2>Homebrew</h2>
-        <p>Install all four executables and the immediately runnable example provider from the organization tap.</p>
-        <pre><code>brew tap dekopon-agents/tap
-brew trust dekopon-agents/tap
-brew install dekopon</code></pre>
-        <small>Homebrew 6 requires explicit trust for a non-official tap.</small>
+        <p>Install all four executables and the broker-hosted JSONPlaceholder example from the organization tap.</p>
+        <pre><code>brew install dekopon-agents/tap/dekopon</code></pre>
+        <small>The generated formula is pinned to the current attested release archives.</small>
       </article>
 
       <article class="deploy-option-card">
         <div><span>02</span>{{ status("current", "pinned Rust install") }}</div>
         <h2>crates.io</h2>
-        <p>Install an exact release of any public Dekopon crate with Cargo. Version 0.10.0 publishes all 23 public workspace crates.</p>
+        <p>Install an exact release of any public Dekopon crate with Cargo. The current release publishes all 25 public workspace crates.</p>
         <pre><code>cargo install --locked \
-  --version 0.10.0 dekopon-run</code></pre>
+  --version {{ release.version }} dekopon-run</code></pre>
         <small>Attested archives remain available for macOS arm64 and Linux arm64/amd64 on the GitHub release.</small>
       </article>
 
       <article class="deploy-option-card">
         <div><span>03</span>{{ status("current", "multi-architecture") }}</div>
         <h2>Container image</h2>
-        <p>Run the exact Linux executable bytes from the release archives in one distroless image with the provider components.</p>
+        <p>Run the exact Linux executable bytes from the release archives in one distroless image with broker provider components.</p>
         <pre><code>docker pull \
-  ghcr.io/dekopon-agents/dekopon:v0.10.0</code></pre>
+  {{ release.imageReference }}</code></pre>
         <small>Runs as numeric UID 65532. No shell, config, policy, credential, or audit state is baked in.</small>
       </article>
 
       <article class="deploy-option-card deploy-option-featured">
-        <div><span>04</span>{{ status("current", "chart 0.2.0 published") }}</div>
+        <div><span>04</span>{{ status("direction", "published chart trails app") }}</div>
         <h2>Kubernetes</h2>
-        <p>Run <code>dekopond</code> and <code>dekopon-brokerd</code> as two containers in one pod sharing the authenticated Unix socket.</p>
+        <p>Published chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}. Chart {{ release.chart.sourceVersion }} for application {{ release.chart.sourceAppVersion }} exists in source but is not yet published.</p>
         <a class="button button-primary" href="/deploy/kubernetes/">Understand the pod <span aria-hidden="true">→</span></a>
-        <small>Published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. Chart and application versions move independently.</small>
+        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. A source version is not a published install path.</small>
       </article>
     </div>
   </div>

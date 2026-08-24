@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/index.html
-pageTitle: How Dekopon v0.10.0 works
+pageTitle: How Dekopon works
 pageDescription: A clear guide to Dekopon trusted identity, Cedar permissions, one-tool scripting, Wasm providers, audit, and OpenTelemetry.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
@@ -14,32 +14,32 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>How it works / v0.10.0</span><code>edition 10</code></div>
+      <div class="almanac-overline"><span>How it works / {{ release.tag }}</span><code>edition 11</code></div>
       <h1>Let the model ask.<br><span>Keep authority elsewhere.</span></h1>
-      <p class="almanac-home-lede">A release-backed tour of trusted chat identity, one homemade shell tool, Cedar policy, bounded Wasm providers, broker-held credentials, and one trace across the system.</p>
+      <p class="almanac-home-lede">A release-backed tour of chat or console identity, one homemade shell tool, Cedar policy, bounded Wasm providers, broker-held credentials, and one trace across the system.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status">
         {{ status("current", "Shipping now") }}
         {{ status("direction", "Current limit") }}
       </div>
-      {{ sourceStamp(almanac.source) }}
+      {{ sourceStamp(release) }}
     </div>
 
     <div class="runtime-cutaway">
       <div class="cutaway-topline">
-        <span>One message, one authority boundary</span>
+        <span>One request, one authority boundary</span>
         <span class="cutaway-live"><i aria-hidden="true"></i> independent OTLP emitters</span>
       </div>
       <div class="cutaway-machine">
         <div class="cutaway-outside">
           <div class="cutaway-node cutaway-model">
-            <span>authenticated transport</span>
-            <strong>Slack, Discord, Telegram, or WhatsApp</strong>
-            <small>sender + message</small>
+            <span>request surface</span>
+            <strong>Chat transport or dekopon console</strong>
+            <small>authenticated sender or explicit local dev subject</small>
           </div>
-          <span class="cutaway-packet" aria-hidden="true">message ↓ reply ↑</span>
+          <span class="cutaway-packet" aria-hidden="true">request ↓ result ↑</span>
         </div>
         <div class="cutaway-process">
-          <div class="cutaway-process-label"><span>GATEWAY PROCESS</span><strong>dekopond</strong></div>
+          <div class="cutaway-process-label"><span>GATEWAY ROLE</span><strong>dekopond or console</strong></div>
           <div class="cutaway-node">
             <span>attestation + model session</span>
             <strong>subject + agent</strong>
@@ -67,7 +67,7 @@ ogType: article
       </div>
       <div class="cutaway-readout">
         <span>The core rule</span>
-        <p>The gateway may vouch for a subject. The model may propose an action. Only the broker can map identity, permit, constrain, execute, and record it.</p>
+        <p>A gateway role may vouch for a subject. The model may propose an action. Only the broker can map identity, permit, constrain, execute, and record it.</p>
       </div>
     </div>
   </div>
@@ -113,7 +113,7 @@ ogType: article
       <p>These are the boundaries every deeper detail preserves.</p>
     </div>
     <ol class="mental-model-list">
-      <li><span>01</span><div><strong>The transport knows the sender.</strong><p>The gateway turns that authenticated fact into a canonical subject, not a self-asserted principal.</p></div></li>
+      <li><span>01</span><div><strong>The request starts with a subject.</strong><p>A chat transport supplies an authenticated sender. The local console uses an explicit opt-in development subject. Neither is already a principal.</p></div></li>
       <li><span>02</span><div><strong>The broker owns identity.</strong><p>It authenticates the gateway, checks its attestor grant, and alone maps subject to principal.</p></div></li>
       <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell can explore and combine granted capabilities but cannot reach the operating system.</p></div></li>
       <li><span>04</span><div><strong>Cedar permits; constraint sets limit.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach.</p></div></li>
@@ -126,7 +126,7 @@ ogType: article
 <section class="almanac-section truth-labels-section">
   <div class="shell truth-labels-grid">
     <div>
-      <p class="almanac-kicker">Where v0.10.0 stands</p>
+      <p class="almanac-kicker">Where {{ release.tag }} stands</p>
       <h2>Capable now. Honest about the boundary.</h2>
     </div>
     <div class="truth-label-cards">

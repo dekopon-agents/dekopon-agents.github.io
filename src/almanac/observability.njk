@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 permalink: almanac/observability/index.html
-pageTitle: Audit and OpenTelemetry — How Dekopon v0.10.0 works
+pageTitle: Audit and OpenTelemetry — How Dekopon works
 pageDescription: Read one Dekopon CSS trace waterfall from gateway message through model, shell, Cedar, Wasm provider, and HTTP, then learn how audit, traces, and logs differ.
 bodyClass: almanac-page almanac-article-page almanac-observability-page
 almanacPage: true
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("05", "Audit & OpenTelemetry", "One message.<br><span>Every layer visible.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in v0.10.0") }}
+{{ pageHero("05", "Audit & OpenTelemetry", "One message.<br><span>Every layer visible.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in " ~ release.tag) }}
 {{ chapterNav("observability", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -24,7 +24,7 @@ ogType: article
       <a href="#privacy">Private by default</a>
       <a href="#openobserve">OpenObserve</a>
     </nav>
-    {{ sourceStamp(almanac.source) }}
+    {{ sourceStamp(release) }}
   </aside>
 
   <article class="almanac-prose">
@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>05.1 · one real system shape</span>
         <h2>See the thinking, the tools, and the effect in one view.</h2>
-        <p>This CSS rendering follows the release-backed shape of a v0.10.0 HTTP-provider trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
+        <p>This CSS rendering follows the current release-backed shape of an HTTP-provider trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
       </div>
 
       <figure class="otel-waterfall">

@@ -1,0 +1,28 @@
+<section class="home-journey section" id="one-request" aria-labelledby="home-journey-title">
+  <div class="journey-gridlines" aria-hidden="true"></div>
+  <div class="shell">
+    <div class="section-heading split-heading home-journey-heading">
+      <div>
+        <span class="section-kicker mint">{{ home.journey.kicker }}</span>
+        <h2 id="home-journey-title">{{ home.journey.title }}</h2>
+      </div>
+      <p>{{ home.journey.intro }}</p>
+    </div>
+
+    <ol class="home-journey-list">
+      {% for step in home.journey.steps %}
+        <li class="home-journey-step reveal{% if loop.index % 2 == 0 %} reveal-delay-1{% endif %}">
+          <div class="journey-step-index"><span>{{ step.number }}</span><small>{{ step.label }}</small></div>
+          <div><h3>{{ step.title }}</h3><p>{{ step.body }}</p><code>{{ step.detail }}</code></div>
+          {% if not loop.last %}<i aria-hidden="true">↓</i>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+
+    <div class="journey-outcomes reveal" role="group" aria-label="Allowed and unavailable actions in the example">
+      <p class="journey-allowed"><span aria-hidden="true">✓</span>{{ home.journey.allowed }}</p>
+      <p class="journey-denied"><span aria-hidden="true">—</span>{{ home.journey.denied }}</p>
+      <a class="button button-white" href="{{ home.journey.link.href }}">{{ home.journey.link.label }} <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
