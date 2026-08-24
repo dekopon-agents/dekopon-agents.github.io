@@ -59,6 +59,12 @@ ogType: article
       </div>
 
       <div class="article-callout callout-decision">
+        <strong>No model is in the authorization path.</strong>
+        <p>Cedar policy and the constraint sets are static files. The broker evaluates them in native Rust and reaches the same decision every time. Nothing asks a model whether an action looks safe, and nothing scores intent. <code>dekopon-policy</code> is used only by <code>dekopon-broker</code> and <code>dekopon-brokerd</code>, and neither of those depends on <code>dekopon-model</code> — the crate that talks to models and the crate that decides permissions share no dependency edge. Check it with <code>cargo tree</code> rather than taking our word for it.</p>
+        <p>Use the best model you have to <em>write</em> these files; they are exactly the sort of thing a strong model is good at. Then roll them out through gitops like any other production config — reviewed, versioned, deliberate. Authoring time is where a model belongs. Decision time is not.</p>
+      </div>
+
+      <div class="article-callout callout-decision">
         <strong>A capability is an action, not ambient access.</strong>
         <p>The agent catalog says what a model may propose. Cedar says whether this principal may request that action on this resource. The broker still applies a separate execution envelope before anything runs.</p>
       </div>

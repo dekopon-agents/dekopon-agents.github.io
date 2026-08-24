@@ -67,7 +67,7 @@ ogType: article
       </div>
       <div class="cutaway-readout">
         <span>The core rule</span>
-        <p>A gateway can vouch for a subject and the model can propose an action. Everything after that happens in the broker.</p>
+        <p>A gateway can vouch for a subject and the model can propose an action. Everything after that happens in the broker, in native code, against files you wrote.</p>
       </div>
     </div>
   </div>
@@ -116,7 +116,7 @@ ogType: article
       <li><span>01</span><div><strong>The request starts with a subject.</strong><p>A chat transport supplies an authenticated sender. The local console uses an explicit opt-in development subject. Neither is already a principal.</p></div></li>
       <li><span>02</span><div><strong>The broker owns identity.</strong><p>It authenticates the gateway, checks its attestor grant, and alone maps subject to principal.</p></div></li>
       <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell combines granted capabilities and can’t reach the operating system.</p></div></li>
-      <li><span>04</span><div><strong>Cedar permits; constraint sets limit.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach.</p></div></li>
+      <li><span>04</span><div><strong>Cedar permits; constraint sets limit. No model votes.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach. Both are static files, evaluated the same way every time.</p></div></li>
       <li><span>05</span><div><strong>Credentials stay with the broker.</strong><p>The native HTTP engine injects a destination-bound value after provider headers are checked.</p></div></li>
       <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization history is durable. OpenTelemetry explains timing, cost, and failures.</p></div></li>
     </ol>

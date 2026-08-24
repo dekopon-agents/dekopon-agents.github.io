@@ -128,7 +128,7 @@ This is a rule about *function*, and a regex can't see function. So
 pages get a printed count instead, because there a complete list often **is**
 the spec (`UID 65532, no added capabilities, no privilege escalation,
 read-only root filesystems, and RuntimeDefault seccomp` should stay whole).
-Use judgement there; don't gut a specification to satisfy a number.
+Use judgment there; don't gut a specification to satisfy a number.
 
 ### 8. Contractions freely. No emoji, no lowercase affectation
 
@@ -145,7 +145,7 @@ sparingly." That rule was wrong.)*
 Institutional by default — Dekopon and its components are the actors. "I"
 appears only where a human made a tradeoff that needs owning, and even then
 sparingly. It was tried in the security intro and rejected: the third-person
-version was tighter. If you can't name the specific judgement being
+version was tighter. If you can't name the specific judgment being
 defended, don't reach for "I."
 
 ## What is already good — do not "fix" it
@@ -215,6 +215,33 @@ revocable authority around an untrusted model.
 Use the precise internal term when it matters in a "How it works" guide, but
 define it in plain language first.
 
+## Positioning: static and verifiable, not models watching models
+
+This is the load-bearing claim about what Dekopon *is*, and it should show up
+wherever the security story is told. Do not let a rewrite soften it into a
+generic "secure by design."
+
+The authorization path contains no model. Cedar policy and the constraint sets
+are static files; the broker evaluates them in native Rust and reaches the same
+decision every time. Nothing asks a model whether an action looks safe, nothing
+scores intent, and no supervisor model reviews a worker model's proposal.
+
+The receipt is a dependency edge that does not exist: `dekopon-policy` is
+consumed only by `dekopon-broker` and `dekopon-brokerd`, and neither depends on
+`dekopon-model`. Prefer that fact — it is checkable with `cargo tree` — over any
+adjective. Re-verify it against `../dekopon` before repeating it.
+
+**Always carry the caveat.** Admins are encouraged to use a strong model to
+*write* the policy and constraint YAML, then roll it out through gitops like any
+other production config. The position is not "models are untrustworthy"; it is
+"authoring time is where a model belongs, decision time is not." Stating the
+claim without the caveat reads as anti-AI posturing, which is neither true nor
+the point.
+
+**Always carry the cost.** Static rules can't read intent: grant a capability
+and it is granted, whatever the model then does with it. A page that claims the
+verifiability without naming that limit breaks rule 6.
+
 ## Accuracy and security guardrails
 
 Natural writing must remain true. None of the voice rules above may be used
@@ -254,6 +281,9 @@ to justify weakening one of these.
 - The current application publishes 25 public workspace crates to crates.io.
   Homebrew, attested release archives, and the multi-architecture image are
   current install paths; verify remote publication before changing that claim.
+- Never claim the static model "prevents misuse" or "understands" anything. It
+  decides an exact allow/deny against declared entities. Its whole value is that
+  it cannot be talked into a different answer.
 - Prefer scoped claims: "keeps credentials out of prompts and guest code" is
   better than "secrets cannot leak."
 - Measurements need a date, units, and scope. The 200 KiB OpenObserve figure is

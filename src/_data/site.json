@@ -3,7 +3,7 @@
   "wordmark": "dekopon",
   "url": "https://dekopon-agents.github.io",
   "title": "Dekopon — a separate permission broker for self-hosted AI agents",
-  "description": "A harness for self-hosted AI agents that assumes the model is compromised. The model proposes an action; a separate broker decides whether it happens and holds the credentials either way.",
+  "description": "A harness for self-hosted AI agents that assumes the model is compromised. Every outside action is authorized by a separate broker against static policy you can read — never by another model’s judgment.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",

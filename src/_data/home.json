@@ -6,7 +6,7 @@
     "lede": "A self-hosted agent harness where the model holds no credentials and gets no shell. It proposes; a separate broker process authorizes, bounds it, and writes down what happened. Pre-production.",
     "primaryCta": { "label": "See one request end to end", "href": "#one-request" },
     "secondaryCta": { "label": "What does it protect against?", "href": "#security" },
-    "proofs": ["No shell, no host files, no inherited environment", "Four arm64 executables, small enough for a Raspberry Pi"],
+    "proofs": ["No model sits in the authorization path", "No shell, no host files, no inherited environment", "Four arm64 executables, small enough for a Raspberry Pi"],
     "visual": {
       "caption": "One request from an authenticated Slack sender, through the model, to the broker, to a single bounded GitHub call",
       "title": "One request · one authority boundary",
@@ -57,7 +57,7 @@
         "body": "Identity, policy, and credentials all live in a different process. No string, however persuasive, claims to be Alice or adds a host to the allowlist."
       }
     ],
-    "bridge": "The goal is a small blast radius. Whatever the model gets talked into, it can only do the handful of things it was granted by name."
+    "bridge": "A blast radius you can read off a file before anything runs. Whatever the model gets talked into, it can only do what you granted by name — and no second model gets a vote."
   },
   "journey": {
     "kicker": "One request · 5 steps",
@@ -105,7 +105,7 @@
     "link": { "label": "Open the complete policy walkthrough", "href": "/almanac/permissions/" }
   },
   "security": {
-    "kicker": "5 threats · 5 limits",
+    "kicker": "6 threats · 6 limits",
     "title": "Every control here has a limit.",
     "intro": "Dekopon doesn’t detect prompt injection or make a model trustworthy. It shrinks what a successful injection can reach.",
     "rows": [
@@ -128,6 +128,11 @@
         "threat": "Forged identity",
         "control": "Identity comes from the authenticated transport and a mapping you wrote. Never from message text.",
         "limit": "The local dev subject is caller-supplied. It’s off unless you turn it on, and nothing external vouches for it."
+      },
+      {
+        "threat": "A guardrail you can’t audit",
+        "control": "Authorization is a Cedar policy file and owner-authored YAML, evaluated by native Rust. No model reviews, scores, or approves another model’s action.",
+        "limit": "Static rules can’t read intent. Grant a capability and it’s granted — the broker won’t notice that this particular comment was a bad idea."
       },
       {
         "threat": "Unclear or disputed effects",
