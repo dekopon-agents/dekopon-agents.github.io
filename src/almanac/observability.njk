@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/observability/index.html
 pageTitle: Audit and OpenTelemetry — How Dekopon works
-pageDescription: Read one Dekopon CSS trace waterfall from gateway message through model, shell, Cedar, Wasm provider, and HTTP, then learn how audit, traces, and logs differ.
+pageDescription: Follow one message across every process in a single trace, and see what audit, traces, and logs each do that the others can’t.
 bodyClass: almanac-page almanac-article-page almanac-observability-page
 almanacPage: true
 almanacSection: observability
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("05", "Audit & OpenTelemetry", "One message.<br><span>Every layer visible.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in " ~ release.tag) }}
+{{ pageHero("05", "Audit & OpenTelemetry", "One message,<br><span>visible at every layer.</span>", "The gateway emits chat, model, and shell spans. The broker exports its own authority leg. W3C trace context joins them while durable audit keeps a separate record of permission.", "current", "Cross-process traces in " ~ release.tag) }}
 {{ chapterNav("observability", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>05.1 · one real system shape</span>
         <h2>See the thinking, the tools, and the effect in one view.</h2>
-        <p>This CSS rendering follows the current release-backed shape of an HTTP-provider trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
+        <p>This CSS rendering follows the real shape of an HTTP-provider trace: a gateway message wraps one session, several model turns, and two narrow broker calls. Blue spans are orchestration and model work. Green spans are broker-owned authority and I/O.</p>
       </div>
 
       <figure class="otel-waterfall">
@@ -96,7 +96,7 @@ ogType: article
       <div class="invariant-notes">
         <article><span>W3C</span><h3>Telemetry trace ID</h3><p>Joins spans across processes and expires with trace retention.</p></article>
         <article><span>Dekopon</span><h3>Durable trace ID</h3><p>Correlates invocations and audit records independently of telemetry.</p></article>
-        <article><span>strict</span><h3>Malformed context</h3><p>Rejects decoding rather than attaching broker work to a trace that does not exist.</p></article>
+        <article><span>strict</span><h3>Malformed context</h3><p>Refuses to decode rather than attach broker work to a trace that doesn’t exist.</p></article>
       </div>
     </section>
 
@@ -108,20 +108,20 @@ ogType: article
 
       <div class="truth-label-cards">
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker audit</span></div><h3>What was authorized?</h3><p>An owner-only hash-linked JSONL chain records decisions, outcomes, and bounded evidence. Ordinary effects include identity and policy linkage; storage records use keyed commitments instead.</p></article>
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel traces</span></div><h3>What ran, and where did time go?</h3><p>Spans preserve duration, parentage, safe identifiers, outcomes, and the path from chat to HTTP.</p></article>
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel logs</span></div><h3>What should survive a sampled trace?</h3><p>Accounting, refusals, errors, lifecycle facts, and explicitly enabled transcript payloads remain searchable under separate retention.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel traces</span></div><h3>What ran, and where did time go?</h3><p>Spans preserve duration, parentage, outcomes, and the path from chat to HTTP.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel logs</span></div><h3>What should survive a sampled trace?</h3><p>Accounting, refusals, and errors stay searchable under separate retention, along with any transcript payloads you explicitly enable.</p></article>
       </div>
 
       <div class="article-callout callout-warning">
-        <strong>Telemetry is not authorization evidence.</strong>
-        <p>A backend may sample, expire, reject, or lose telemetry. Broker authorization and hash-linked audit continue independently.</p>
+        <strong>Telemetry isn’t authorization evidence.</strong>
+        <p>Your backend can sample, expire, or just lose telemetry. Broker authorization and the hash-linked audit carry on regardless.</p>
       </div>
     </section>
 
     <section id="logs" class="article-section">
       <div class="article-heading">
         <span>05.4 · logs that earn their storage</span>
-        <h2>A span measures time. A log preserves a fact.</h2>
+        <h2>A span measures time; a log preserves a fact.</h2>
       </div>
 
       <div class="comparison-table-wrap">
@@ -136,7 +136,7 @@ ogType: article
         </table>
       </div>
 
-      <p>Start/completed log pairs are absent because a span already has a start, duration, parent, and outcome. Logs do not become a noisier copy of the waterfall.</p>
+      <p>There are no start/completed log pairs — a span already has a start, a duration, and an outcome. Logs aren’t a noisier copy of the waterfall.</p>
     </section>
 
     <section id="privacy" class="article-section">

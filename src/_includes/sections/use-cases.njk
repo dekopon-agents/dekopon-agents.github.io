@@ -3,7 +3,7 @@
   <div class="shell">
     <div class="section-heading split-heading home-providers-heading">
       <div>
-        <span class="section-kicker cyan">{{ home.useCases.kicker }}</span>
+        {% if home.useCases.kicker %}<span class="section-kicker cyan">{{ home.useCases.kicker }}</span>{% endif %}
         <h2 id="home-providers-title">{{ home.useCases.title }}</h2>
       </div>
       <p>{{ home.useCases.intro }}</p>

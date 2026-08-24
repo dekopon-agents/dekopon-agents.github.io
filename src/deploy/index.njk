@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: deploy/index.html
 pageTitle: Deploy Dekopon
-pageDescription: Choose Homebrew, crates.io, attested release archives, the multi-architecture image, or the independently versioned Helm chart.
+pageDescription: Homebrew, crates.io, attested archives, or the image. Every path keeps the same authority split.
 bodyClass: almanac-page deploy-page deploy-overview-page
 almanacPage: true
 ogType: article
@@ -15,7 +15,7 @@ ogType: article
   <div class="shell deploy-hero-grid">
     <div>
       <p class="almanac-kicker">Deploy {{ release.tag }}</p>
-      <h1>Start on one machine.<br><span>Keep the boundary visible.</span></h1>
+      <h1>Start on one machine<br><span>with the boundary still visible.</span></h1>
       <p>Install the four executables directly or run the gateway and broker together. Every current path preserves the same authority split.</p>
       <div class="deploy-hero-status">{{ status("current", "Released") }}<span>Linux arm64 + amd64 · macOS arm64</span></div>
     </div>
@@ -34,7 +34,7 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">01—04</span>
-      <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary. Different operating shape.</h2></div>
+      <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary, different operating shape.</h2></div>
       <p>The current application ships through native package managers, attested archives, and a multi-architecture image. The published Helm chart moves independently and currently trails the application.</p>
     </div>
 
@@ -68,9 +68,9 @@ ogType: article
       <article class="deploy-option-card deploy-option-featured">
         <div><span>04</span>{{ status("direction", "published chart trails app") }}</div>
         <h2>Kubernetes</h2>
-        <p>Published chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}. Chart {{ release.chart.sourceVersion }} for application {{ release.chart.sourceAppVersion }} exists in source but is not yet published.</p>
+        <p>Published chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}. Chart {{ release.chart.sourceVersion }} for application {{ release.chart.sourceAppVersion }} exists in source but isn’t yet published.</p>
         <a class="button button-primary" href="/deploy/kubernetes/">Understand the pod <span aria-hidden="true">→</span></a>
-        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. A source version is not a published install path.</small>
+        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. A source version isn’t a published install path.</small>
       </article>
     </div>
   </div>
@@ -80,14 +80,14 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">∞</span>
-      <div><p class="almanac-kicker">What never changes</p><h2>Packaging does not grant authority.</h2></div>
+      <div><p class="almanac-kicker">What never changes</p><h2>Packaging doesn’t grant authority.</h2></div>
       <p>Every deployment supplies its own identities, Cedar policy, constraint sets, credentials, and state.</p>
     </div>
     <div class="invariant-notes">
-      <article><span>gateway</span><h3>Hears and reasons</h3><p>Chat and model credentials terminate here. Provider credentials and policy do not.</p></article>
+      <article><span>gateway</span><h3>Hears and reasons</h3><p>Chat and model credentials terminate here. Provider credentials and policy don’t.</p></article>
       <article><span>broker</span><h3>Decides and executes</h3><p>Trusted identity, Cedar, execution constraints, provider credentials, evidence, and audit stay here.</p></article>
       <article><span>provider</span><h3>Performs one operation</h3><p>A fresh Wasm instance gets only explicitly linked, authorization-bound host services.</p></article>
-      <article><span>operator</span><h3>Owns the files</h3><p>The deployment must provide safe configuration, credential, socket, and audit paths.</p></article>
+      <article><span>operator</span><h3>Owns the files</h3><p>You provide the configuration, credential, socket, and audit paths.</p></article>
     </div>
   </div>
 </section>

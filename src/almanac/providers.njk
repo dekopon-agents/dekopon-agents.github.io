@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("04", "Wasm providers", "Fresh sandbox.<br><span>One approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in " ~ release.tag) }}
+{{ pageHero("04", "Wasm providers", "A fresh sandbox<br><span>for one approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in " ~ release.tag) }}
 {{ chapterNav("providers", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -32,7 +32,7 @@ ogType: article
     <section id="contract" class="article-section">
       <div class="article-heading">
         <span>04.1 · a small portable boundary</span>
-        <h2>Describe capabilities. Invoke exactly one.</h2>
+        <h2>Describe every capability, invoke exactly one.</h2>
         <p>Every provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure. A command-enabled provider may add the optional pure <code>resolve-command</code> export.</p>
       </div>
 
@@ -54,7 +54,7 @@ ogType: article
         <div class="build-step build-step-final"><span>4</span><strong>Load</strong><small>operator-owned host</small></div>
       </div>
 
-      <p>A component cannot download a native runtime extension or invent a host import. Its requirements are visible before execution, and the host either supplies exactly those interfaces or rejects it.</p>
+      <p>A component can’t download a native runtime extension or invent a host import. Its requirements are visible before it runs, and the host supplies exactly those interfaces or rejects it.</p>
     </section>
 
     <section id="hosts" class="article-section">
@@ -87,7 +87,7 @@ ogType: article
       </div>
 
       <div class="article-callout callout-decision">
-        <strong>Declaring an import is not receiving authority.</strong>
+        <strong>Declaring an import isn’t receiving authority.</strong>
         <p>A component can say it needs <code>dekopon:http@1.0.0</code> or <code>dekopon:storage@0.1.0</code>. Only the broker can connect that import to a constrained native service for one authorized invocation.</p>
       </div>
     </section>
@@ -95,7 +95,7 @@ ogType: article
     <section id="fresh" class="article-section">
       <div class="article-heading">
         <span>04.3 · clean state per operation</span>
-        <h2>Reuse compiled code. Reset the dangerous state.</h2>
+        <h2>Reuse the compiled code, reset the dangerous state.</h2>
       </div>
 
       <div class="store-lifecycle">
@@ -114,7 +114,7 @@ ogType: article
         </div>
       </div>
 
-      <p>Description and command resolution run with HTTP and storage disabled, even in the broker host. Provider code cannot use a host service while advertising or rewriting what it can do.</p>
+      <p>Description and command resolution run with HTTP and storage disabled, even in the broker host. Provider code can’t use a host service while advertising or rewriting what it can do.</p>
     </section>
 
     <section id="http" class="article-section">
@@ -137,7 +137,7 @@ ogType: article
       <div class="article-heading">
         <span>04.5 · durable state without host paths</span>
         <h2>The broker gives storage a namespace, not a filesystem.</h2>
-        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, namespace key, scope directory, or ambient filesystem access.</p>
+        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, the namespace key, or any filesystem access.</p>
       </div>
 
       <div class="provider-envelope">
@@ -147,13 +147,13 @@ ogType: article
         <div><small>commit rule</small><strong>valid successful response</strong><span>otherwise abort the overlay</span></div>
       </div>
 
-      <p>HTTP and storage authority cannot coexist in one v1 capability. Storage mutations commit only after a valid successful provider response. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
+      <p>HTTP and storage authority can’t coexist in one v1 capability. Storage mutations commit only after a valid successful provider response. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
 
       <p>The public <code>dekopon-provider-sdk-testkit</code> lets a provider test its compiled component against this real storage host. It skips Cedar and the constraint catalog by minting test authorization; namespace derivation, quotas, leases, transactions, and the Wasmtime path remain the production implementations.</p>
 
       <div class="article-callout callout-warning">
-        <strong>Durable does not mean encrypted or automatically remembered.</strong>
-        <p>Dekopon does not encrypt stored text at rest, replay it into prompts, or provide deletion and export UX. The namespace key protects derivation and commitments; it is not a content-encryption key.</p>
+        <strong>Durable doesn’t mean encrypted or automatically remembered.</strong>
+        <p>Dekopon doesn’t encrypt stored text at rest, doesn’t replay it into prompts, and has no deletion or export UX. The namespace key protects derivation and commitments; it isn’t a content-encryption key.</p>
       </div>
     </section>
 
@@ -171,19 +171,19 @@ ogType: article
         <div><span>native HTTP engine</span><strong>injects Authorization</strong><small>only at the bound destination</small></div>
       </div>
 
-      <p>The value stays out of prompts, agent config, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request. An allowed endpoint could still return it in the response, which the component receives; destination binding is not an endpoint confidentiality guarantee. Audit records the credential’s owner-authored symbolic name so two organizations’ effects remain distinguishable without recording either token.</p>
+      <p>The value stays out of prompts, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request. An allowed endpoint can still hand it back in the response, and the component will see it — destination binding isn’t an endpoint confidentiality guarantee. Audit records the credential’s owner-authored symbolic name, so two organizations’ effects stay distinguishable without recording either token.</p>
     </section>
 
     <section id="scope" class="article-section">
       <div class="article-heading">
         <span>04.7 · honest isolation claims</span>
-        <h2>Strong provider containment. Not a protected host.</h2>
+        <h2>The provider is contained; the host isn’t.</h2>
       </div>
 
       <div class="truth-label-cards">
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Enforced</span></div><h3>Guest boundaries</h3><p>Declared imports, fresh stores, memory, fuel, input, output, deadlines, and narrow host services are checked in code.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Enforced</span></div><h3>Guest boundaries</h3><p>Declared imports, fresh stores, and the memory, fuel, and deadline ceilings are checked in code.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway and direct runner exclude privileged broker crates. Only the separate broker owns policy, credentials, and effect execution.</p></article>
-        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm does not protect a broker machine, owner UID, binary, toolchain, or dependency set that is already compromised.</p></article>
+        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm doesn’t protect a broker machine, a toolchain, or a dependency set that’s already compromised.</p></article>
       </div>
 
       <div class="article-callout callout-decision">

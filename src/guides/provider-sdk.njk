@@ -74,7 +74,7 @@ ogType: article
         </table>
       </div>
 
-      <p>These versions are distinct, but not freely interchangeable. The host does not negotiate or record the SDK crate version. It strictly decodes manifest and response JSON, requires structurally compatible root exports, and matches the HTTP import by its exact WIT identity. The defaulted <code>commandWords</code> field is one deliberate compatibility rule, not general forward compatibility. Load-testing the finished component with the matching runner or broker is the compatibility proof.</p>
+      <p>These versions are distinct, but not freely interchangeable. The host doesn’t negotiate or record the SDK crate version. It strictly decodes manifest and response JSON, requires structurally compatible root exports, and matches the HTTP import by its exact WIT identity. The defaulted <code>commandWords</code> field is one deliberate compatibility rule, not general forward compatibility. Load-testing the finished component with the matching runner or broker is the compatibility proof.</p>
 
       <p>Dekopon has two provider hosts:</p>
 
@@ -96,13 +96,13 @@ ogType: article
 
       <h3>No general OS shell interface</h3>
 
-      <p>Dekopon’s capability-execution tool is named <code>bash</code>, but it does not pass scripts to <code>/bin/sh</code>. A native Rust evaluator runs fixed builtins and routes capability words either to direct components or to broker requests. It does not provide process spawning, host filesystem access, environment access, or raw sockets. Its optional clock support is a separate, narrow <code>date</code> builtin.</p>
+      <p>Dekopon’s capability-execution tool is named <code>bash</code>, but it doesn’t pass scripts to <code>/bin/sh</code>. A native Rust evaluator runs fixed builtins and routes capability words either to direct components or to broker requests. It doesn’t provide process spawning, host filesystem access, environment access, or raw sockets. Its optional clock support is a separate, narrow <code>date</code> builtin.</p>
 
-      <p>Under the interfaces linked by the current hosts, an import-free component has no host API for files, environment, network, processes, clock, randomness, or credentials. The broker can add exact buffered HTTP or namespace-bound storage imports to a composed component; one v1 capability cannot combine both. Those are explicit, constrained services—not ambient OS execution supplied by Dekopon.</p>
+      <p>Under the interfaces linked by the current hosts, an import-free component has no host API for files, environment, network, processes, clock, randomness, or credentials. The broker can add exact buffered HTTP or namespace-bound storage imports to a composed component; one v1 capability can’t combine both. Those are explicit, constrained services — not ambient OS execution.</p>
 
       <div class="article-callout callout-warning">
-        <strong>Wasm is not an OS-process boundary.</strong>
-        <p>Wasmtime executes components inside the host process. This is not a claim that runtime vulnerabilities, side channels, resource exhaustion, compromised hosts, or malicious processes in the same UID trust domain are solved. The current Unix broker authenticates a UID, so every process under that UID shares its configured peer authority.</p>
+        <strong>Wasm isn’t an OS-process boundary.</strong>
+        <p>Wasmtime executes components inside the host process. None of that solves runtime vulnerabilities, side channels, resource exhaustion, a compromised host, or a hostile process in the same UID trust domain. The current Unix broker authenticates a UID, so every process under that UID shares its configured peer authority.</p>
       </div>
     </section>
 
@@ -160,7 +160,7 @@ dekopon-run --version
 
       <div class="article-callout callout-decision">
         <strong>crates.io can pin the same runner.</strong>
-        <p>The current release publishes all 25 public workspace crates. If you do not need the release archive’s GitHub attestation, install the runner with <code>cargo install --locked --version {{ release.version }} dekopon-run</code>, then verify <code>dekopon-run --version</code>.</p>
+        <p>The current release publishes all 25 public workspace crates. If you don’t need the release archive’s GitHub attestation, install the runner with <code>cargo install --locked --version {{ release.version }} dekopon-run</code>, then verify <code>dekopon-run --version</code>.</p>
       </div>
     </section>
 
@@ -286,9 +286,9 @@ mod tests {
     }
 }</code></pre>
 
-      <p>The JSON Schema is discovery metadata. The hosts require an object-shaped schema declaring <code>type: object</code>, and invocation input must be an object. They do not generally enforce required properties, field types, ranges, combinations, or additional-property rules. Your provider must validate those itself and reject unsupported capability IDs. There is no output schema.</p>
+      <p>The JSON Schema is discovery metadata. The hosts require an object-shaped schema declaring <code>type: object</code>, and invocation input must be an object. They don’t generally enforce required properties, field types, ranges, combinations, or additional-property rules. Your provider must validate those itself and reject unsupported capability IDs. There is no output schema.</p>
 
-      <p>Effect, risk, and idempotency are also declarations. They help routing and authorization, but do not prove what the code or an HTTP endpoint actually does.</p>
+      <p>Effect, risk, and idempotency are also declarations. They help routing and authorization, but they don’t prove what the code or an HTTP endpoint actually does.</p>
 
       <p>Run the native and Wasm checks:</p>
 
@@ -316,7 +316,7 @@ cargo build --locked --target wasm32-unknown-unknown --release</code></pre>
     export invoke: func(capability: string, input-json: string) -&gt; string;
 }</code></pre>
 
-      <p>The strings contain strict JSON manifest and response shapes. WIT defines the component boundary and canonical ABI; it is not a Rust ABI or native plugin interface.</p>
+      <p>The strings contain strict JSON manifest and response shapes. WIT defines the component boundary and canonical ABI; it isn’t a Rust ABI or native plugin interface.</p>
 
       <p>The same WIT package also contains <code>provider-commands</code>, which includes the base world and adds:</p>
 
@@ -336,11 +336,11 @@ wasm-tools component wit text-provider.wasm</code></pre>
       <p>The decoded WIT must show <code>describe</code> and <code>invoke</code> exports and no imports. This <code>wasm-tools</code> command—not <code>dekopon-run inspect</code>—is what proves the final import and export set.</p>
 
       <div class="article-callout callout-warning">
-        <strong>Do not use <code>wasm32-wasip2</code>.</strong>
-        <p>It introduces WASI imports that the current hosts do not link. Any unknown import fails during instantiation, even if the guest did not intend to call it.</p>
+        <strong>Don’t use <code>wasm32-wasip2</code>.</strong>
+        <p>It introduces WASI imports that the current hosts don’t link. Any unknown import fails during instantiation, even if the guest didn’t intend to call it.</p>
       </div>
 
-      <p>The runtime accepts structurally compatible components; it cannot tell whether Rust produced them. Other languages must currently reproduce the SDK’s strict JSON wire shapes because no separate language-neutral schema is published.</p>
+      <p>The runtime accepts structurally compatible components; it can’t tell whether Rust produced them. Other languages must currently reproduce the SDK’s strict JSON wire shapes because no separate language-neutral schema is published.</p>
     </section>
 
     <section id="run-provider" class="article-section">
@@ -371,7 +371,7 @@ dekopon-run invoke \
   text.uppercase \
   --input '{"text":42}'</code></pre>
 
-      <p>It must report <code>invalid-input</code> and exit with status <code>1</code>. <code>dekopon-run inspect</code> calls and validates the provider’s manifest; it does not replace component-interface inspection.</p>
+      <p>It must report <code>invalid-input</code> and exit with status <code>1</code>. <code>dekopon-run inspect</code> calls and validates the provider’s manifest; it doesn’t replace component-interface inspection.</p>
     </section>
 
     <section id="testkit" class="article-section">
@@ -486,7 +486,7 @@ dekopon_provider_sdk::export_provider_with_commands!(
 
       <div class="article-callout callout-warning">
         <strong>Provider command words are broker-only in the current release.</strong>
-        <p>Direct <code>dekopon-run</code> execution does not expose or resolve them. Use the broker path, where command discovery, rewriting, authorization, execution, and audit stay separate.</p>
+        <p>Direct <code>dekopon-run</code> execution doesn’t expose or resolve them. Use the broker path, where command discovery, rewriting, authorization, execution, and audit stay separate.</p>
       </div>
     </section>
 
@@ -496,11 +496,11 @@ dekopon_provider_sdk::export_provider_with_commands!(
         <h2>How the broker loads providers</h2>
       </div>
 
-      <p>In the current release, “dynamic loading” means loading configured local component files—or every top-level <code>*.wasm</code> file in a configured directory—before <code>dekopon-brokerd</code> starts listening. It does not mean package download, runtime OCI discovery, request-time loading, or hot reload.</p>
+      <p>In the current release, “dynamic loading” means loading configured local component files—or every top-level <code>*.wasm</code> file in a configured directory—before <code>dekopon-brokerd</code> starts listening. It doesn’t mean package download, runtime OCI discovery, request-time loading, or hot reload.</p>
 
-      <p>Every configured component load, manifest, or namespace-conflict failure aborts startup. The default <code>strict: false</code> can tolerate some unresolved provider-derived policy or constraint references as inert configuration; it does not make an unrouted invocation executable. Use <code>strict: true</code> for a fixed deployment.</p>
+      <p>Every configured component load, manifest, or namespace-conflict failure aborts startup. The default <code>strict: false</code> can tolerate some unresolved provider-derived policy or constraint references as inert configuration; it doesn’t make an unrouted invocation executable. Use <code>strict: true</code> for a fixed deployment.</p>
 
-      <p>The broker compiles providers in parallel and can use an optional persistent Wasmtime compilation cache. It retains linked instance templates, but each description, command rewrite, and invocation still receives a fresh Wasmtime store and component instance. Guest mutable state does not survive between calls. Restart the broker to load replaced bytes.</p>
+      <p>The broker compiles providers in parallel and can use an optional persistent Wasmtime compilation cache. It retains linked instance templates, but each description, command rewrite, and invocation still receives a fresh Wasmtime store and component instance. Guest mutable state doesn’t survive between calls. Restart the broker to load replaced bytes.</p>
 
       <p>The broker checks a hash around compilation to detect a concurrent file change. It has no configured expected digest, provider-artifact signature or attestation verification, registry provenance, runtime OCI pull, or hot reload. Compilation and artifact hashing are outside invocation fuel and wall-time bounds, and there is no explicit component byte-size ceiling.</p>
     </section>
@@ -560,7 +560,7 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
 
       <p><code>dekopon-provider-http</code> supplies request and response types plus the imported <code>send</code> call. It contains no transport, credentials, destination policy, or ambient I/O. Direct mode rejects the resulting component because its linker is empty.</p>
 
-      <p>Generated <code>wit-bindgen</code> bindings contain generated <code>unsafe</code>. An HTTP or command-world provider cannot blindly apply crate-wide <code>#![forbid(unsafe_code)]</code>, even when its handwritten code contains no unsafe block.</p>
+      <p>Generated <code>wit-bindgen</code> bindings contain generated <code>unsafe</code>. An HTTP or command-world provider can’t blindly apply crate-wide <code>#![forbid(unsafe_code)]</code>, even when its handwritten code contains no unsafe block.</p>
 
       <h3>Who controls an HTTP request?</h3>
 
@@ -576,20 +576,20 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
             <tr><td>Enforce independent header syntax, count, byte, and fixed forbidden-header rules.</td><td>Checks status codes and response shapes, then projects bounded output.</td></tr>
             <tr><td>Require public-address HTTPS, or explicitly allowed loopback plaintext HTTP.</td><td>Should use fixed request shapes instead of URL/method/body passthrough.</td></tr>
             <tr><td>Disable redirects, environment proxies, automatic decompression, and cookie/session flow.</td><td>Should separate semantically different reads and writes into different capabilities.</td></tr>
-            <tr><td>Select and inject one destination-bound <code>Authorization</code> value after validating guest headers.</td><td>Cannot select or directly import the credential value.</td></tr>
+            <tr><td>Select and inject one destination-bound <code>Authorization</code> value after validating guest headers.</td><td>Can’t select or directly import the credential value.</td></tr>
           </tbody>
         </table>
       </div>
 
       <p>Private or special-address HTTPS services are rejected. The host has no configurable ordinary-header allowlist. Guest <code>authorization</code>, <code>cookie</code>, <code>host</code>, framing, proxy, and hop-by-hop headers are refused. An allowed authority is written as <code>host</code> for HTTPS on port 443 and <code>host:port</code> otherwise.</p>
 
-      <p>Cedar sees trusted principal and routing context, provider and capability IDs, and effect/risk/idempotency classifications. It does not see invocation input, paths, queries, bodies, credentials, or execution limits. Owner-authored constraint classifications must exactly match the provider manifest, but neither declaration proves endpoint semantics. The broker cannot infer whether a particular path or body performs a mutation.</p>
+      <p>Cedar sees trusted principal and routing context, provider and capability IDs, and effect/risk/idempotency classifications. It doesn’t see invocation input, paths, queries, bodies, credentials, or execution limits. Owner-authored constraint classifications must exactly match the provider manifest, but neither declaration proves endpoint semantics. The broker can’t infer whether a particular path or body performs a mutation.</p>
 
-      <p>The credential is not passed directly to guest code. An allowed endpoint could still reflect an injected value in its response, so destination binding is not an endpoint confidentiality guarantee. Review provider code and scope the endpoint credential accordingly.</p>
+      <p>The credential never reaches guest code directly. An allowed endpoint could still reflect an injected value in its response, so destination binding isn’t an endpoint confidentiality guarantee. Review provider code and scope the endpoint credential accordingly.</p>
 
-      <p>Audit records authorization, outcomes, policy/evidence/chain digests, and sanitized HTTP method, authority, status, and size metadata. They omit paths, queries, headers, bodies, and plaintext provider input/output. Those digests are not the provider artifact SHA. Audit records what the broker authorized and observed; they are not independent proof of an exact remote mutation, and a remote effect is not rolled back after a later trap, timeout, or audit failure.</p>
+      <p>Audit records authorization, outcomes, policy/evidence/chain digests, and sanitized HTTP method, authority, status, and size metadata. They omit paths, queries, headers, bodies, and plaintext provider input/output. Those digests aren’t the provider artifact SHA. Audit records what the broker authorized and observed; they aren’t independent proof of an exact remote mutation, and a remote effect isn’t rolled back after a later trap, timeout, or audit failure.</p>
 
-      <p>Default broker-host ceilings include a 10-million-unit Wasmtime execution-fuel budget, a 30-second wall limit, 1 MiB serialized invocation input and provider output, and 64 MiB per memory with up to four memories. HTTP ceilings include 32 calls, 1 MiB per request, and 4 MiB per response. These limits do not bound total process RSS or compilation cost.</p>
+      <p>Default broker-host ceilings include a 10-million-unit Wasmtime execution-fuel budget, a 30-second wall limit, 1 MiB serialized invocation input and provider output, and 64 MiB per memory with up to four memories. HTTP ceilings include 32 calls, 1 MiB per request, and 4 MiB per response. These limits don’t bound total process RSS or compilation cost.</p>
 
       <p>For HTTP design, start with the in-tree <code>jsonplaceholder</code> provider. The independently published <a href="https://github.com/dekopon-agents/dekopon-provider-gh"><code>gh</code> provider</a> is the stronger fixed-request-shape example. <code>http-probe</code> is a host fixture, not the recommended production pattern. All are ordinary SDK consumers, not privileged plugins, and use the same WIT, wire, and runtime path. Out-of-tree crates pin the crates.io SDK instead of workspace paths; independent packaging adds no provider-ID policy bypass or direct credential-value channel.</p>
     </section>
@@ -609,8 +609,8 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
             <tr><th scope="row">Import-free read-only execution with <code>dekopon-run</code></th><td><strong>Supported</strong></td><td>Provider artifact only.</td></tr>
             <tr><th scope="row">Any invocation through <code>dekopon-brokerd</code>, including pure computation</th><td><strong>Supported; operator deployment required</strong></td><td>Install the artifact; configure identity, exact constraint metadata, Cedar policy, socket/audit paths, and routing.</td></tr>
             <tr><th scope="row">Narrow buffered public-HTTPS reads or writes, destination-bound <code>Authorization</code>, or external persistence through an HTTP API</th><td><strong>Supported; provider plus operator work</strong></td><td>Compose the HTTP world and configure exact authority, methods, limits, policy, and optional credential. No broker source change.</td></tr>
-            <tr><th scope="row">Namespace-bound JSONL or durable-file provider storage</th><td><strong>Supported; advanced</strong></td><td>Use <code>dekopon-provider-storage</code> with exactly one storage interface, then configure storage host limits, an operator-owned namespace key, capability constraints, policy, and a separate retained volume. One v1 capability cannot combine HTTP and storage.</td></tr>
-            <tr><th scope="row">Provider command words</th><td><strong>Supported on the broker path; advanced</strong></td><td>Include <code>provider-commands</code>, implement <code>resolve_command</code>, use <code>export_provider_with_commands!</code>, and choose a nonreserved, non-capability-shaped, conflict-free word. Direct execution does not expose or resolve provider command words.</td></tr>
+            <tr><th scope="row">Namespace-bound JSONL or durable-file provider storage</th><td><strong>Supported; advanced</strong></td><td>Use <code>dekopon-provider-storage</code> with exactly one storage interface, then configure storage host limits, an operator-owned namespace key, capability constraints, policy, and a separate retained volume. One v1 capability can’t combine HTTP and storage.</td></tr>
+            <tr><th scope="row">Provider command words</th><td><strong>Supported on the broker path; advanced</strong></td><td>Include <code>provider-commands</code>, implement <code>resolve_command</code>, use <code>export_provider_with_commands!</code>, and choose a nonreserved, non-capability-shaped, conflict-free word. Direct execution doesn’t expose or resolve provider command words.</td></tr>
             <tr><th scope="row">Publication and installation of an out-of-tree runnable provider</th><td><strong>Operator-owned</strong></td><td>Build, verify, and install bytes before startup. The broker loads local files only.</td></tr>
             <tr><th scope="row">Ambient host paths, process execution, generic sockets, SSH, database wire protocols, unrestricted clock or randomness, private-network APIs, or proxy-required APIs</th><td><strong>Unsupported</strong></td><td>Storage exposes logical namespace-bound operations, not a host filesystem. Every other item requires new host interfaces plus policy, constraints, audit, and deployment changes.</td></tr>
             <tr><th scope="row">Guest streaming, SSE, WebSockets, broker-managed or guest-resumable background work</th><td><strong>Unsupported</strong></td><td>Requires host lifecycle and interface changes. Existing HTTP may still enqueue work in an external service.</td></tr>
@@ -620,8 +620,8 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
       </div>
 
       <div class="article-callout callout-decision">
-        <strong>An unsupported row is not a roadmap promise.</strong>
-        <p>Adding an import to a provider-owned world cannot extend the shipped linker by itself.</p>
+        <strong>An unsupported row isn’t a roadmap promise.</strong>
+        <p>Adding an import to a provider-owned world can’t extend the shipped linker by itself.</p>
       </div>
     </section>
 
@@ -631,11 +631,11 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
         <h2>Package and install it yourself</h2>
       </div>
 
-      <p>The project distributes bundled runnable components through its releases and stock image, and release archives are provenance-attested. It does not provide a publication service for out-of-tree runnable providers. The <code>wkg</code> registry distributes WIT interface packages, not provider implementations.</p>
+      <p>The project distributes bundled runnable components through its releases and stock image, and release archives are provenance-attested. It doesn’t provide a publication service for out-of-tree runnable providers. The <code>wkg</code> registry distributes WIT interface packages, not provider implementations.</p>
 
       <div class="article-callout callout-warning">
         <strong>Out-of-tree automation is yours to build.</strong>
-        <p>GitHub Actions workflows, GitHub Packages/OCI publication, custom image layering, and pre-start fetching are provider- or operator-owned patterns. Dekopon does not ship platform automation that fetches, verifies, or installs arbitrary runnable components.</p>
+        <p>GitHub Actions workflows, GitHub Packages/OCI publication, custom image layering, and pre-start fetching are provider- or operator-owned patterns. Dekopon doesn’t ship platform automation that fetches, verifies, or installs arbitrary runnable components.</p>
       </div>
 
       <p>For provider CI:</p>
@@ -657,11 +657,11 @@ COPY --chown=65532:65532 --chmod=0644 \
 
 USER 65532:65532</code></pre>
 
-      <p>This packages an artifact; it is not a complete Helm deployment. Point <code>broker.yaml</code> at explicit provider paths and prefer <code>strict: true</code>. Keep runtime UID <code>65532</code> unless the derived image and every installed file deliberately use another matching owner.</p>
+      <p>This packages an artifact; it isn’t a complete Helm deployment. Point <code>broker.yaml</code> at explicit provider paths and prefer <code>strict: true</code>. Keep runtime UID <code>65532</code> unless the derived image and every installed file deliberately use another matching owner.</p>
 
-      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code> and trails the application release. Chart <code>{{ release.chart.sourceVersion }}</code>, naming app <code>{{ release.chart.sourceAppVersion }}</code>, exists in source but is not published. An out-of-tree provider still needs a derived image or pre-start installation path, matching broker configuration and policy, and gateway/catalog routing. The chart places files and processes; it does not infer provider authority.</p>
+      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code> and trails the application release. Chart <code>{{ release.chart.sourceVersion }}</code>, naming app <code>{{ release.chart.sourceAppVersion }}</code>, exists in source but isn’t published. An out-of-tree provider still needs a derived image or pre-start installation path, matching broker configuration and policy, and gateway/catalog routing. The chart places files and processes; it doesn’t infer provider authority.</p>
 
-      <p>Broker credentials must come from the required owner-only <code>0600</code>, single-link file. A raw Kubernetes Secret or ConfigMap symlink mount is not directly acceptable. Record the image digest, provider artifact SHA, and any OCI digest outside broker audit because the current audit does not identify the provider build that executed.</p>
+      <p>Broker credentials must come from the required owner-only <code>0600</code>, single-link file. A raw Kubernetes Secret or ConfigMap symlink mount isn’t directly acceptable. Record the image digest, provider artifact SHA, and any OCI digest outside broker audit because the current audit doesn’t identify the provider build that executed.</p>
     </section>
 
     <section id="coding-agent-prompt" class="article-section">

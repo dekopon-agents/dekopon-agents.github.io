@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: inference/index.html
 pageTitle: Model inference, prompt caching, and conversation memory — Dekopon
-pageDescription: See how Dekopon builds each model request, replays bounded conversations, offers optional durable recall, uses prompt cache hints, and keeps authorization fresh.
+pageDescription: How Dekopon rebuilds the model’s context every turn, what it remembers between messages, and why permission is never cached.
 bodyClass: almanac-page inference-page
 almanacPage: true
 ogType: article
@@ -12,7 +12,7 @@ ogType: article
   <div class="shell inference-hero-grid">
     <div class="inference-hero-copy">
       <p class="inference-eyebrow"><span>{{ release.tag }}</span> Model inference &amp; memory</p>
-      <h1>A conversation grows.<br><span>The model starts fresh.</span></h1>
+      <h1>The conversation grows,<br><span>the model starts fresh every turn.</span></h1>
       <p class="inference-lede">Dekopon sends the model the context it needs for each turn. A persistent route can replay recent exchanges, while every outside action still gets a fresh permission check.</p>
       <div class="inference-actions">
         <a class="button button-primary" href="#request-growth">See a request grow <span aria-hidden="true">↓</span></a>
@@ -24,7 +24,7 @@ ogType: article
     <figure class="inference-context-card">
       <div class="context-card-top"><span>Next model request</span><code>whole context in</code></div>
       <div class="context-stack">
-        <div class="context-layer context-stable"><span>standing prefix</span><strong>Instructions + tool definitions</strong><small>kept stable when configuration does not change</small></div>
+        <div class="context-layer context-stable"><span>standing prefix</span><strong>Instructions + tool definitions</strong><small>kept stable when configuration doesn’t change</small></div>
         <div class="context-layer context-history"><span>bounded replay</span><strong>User 1 → answer 1</strong><small>recent final exchanges on a persistent route</small></div>
         <div class="context-layer context-new"><span>new chat message</span><strong>“What could break?”</strong><small>appended after remembered context</small></div>
       </div>
@@ -66,7 +66,7 @@ ogType: article
     <section id="inference" class="article-section">
       <div class="article-heading">
         <span>01 · one model turn</span>
-        <h2>Agent loops like you know and love.</h2>
+        <h2>The agent loop you already know.</h2>
         <p>Each turn ends one of two ways: the model answers, or it calls <code>bash</code> with a script. Dekopon appends a bounded tool result and asks again.</p>
       </div>
 
@@ -80,11 +80,11 @@ ogType: article
         <div class="request-loop-tool"><span>4 · if needed</span><strong>Run one bounded script</strong><small>Append the tool call and result, then ask again.</small></div>
       </div>
 
-      <p>Rigorous limits on how hard an agent can work. Full power of extensible tools, just like you’d expect from a modern agent system.</p>
+      <p>Hard ceilings on how much work one turn can do, without giving up the extensible tool surface.</p>
 
       <div class="article-callout callout-plain">
         <strong>Context is explicit</strong>
-        <p>Dekopon’s ChatGPT transport sends <code>store: false</code> and the full current <code>input</code>. It does not use <code>previous_response_id</code> or OpenAI Conversations.</p>
+        <p>Dekopon’s ChatGPT transport sends <code>store: false</code> and the full current <code>input</code>. It doesn’t use <code>previous_response_id</code> or OpenAI Conversations.</p>
       </div>
     </section>
 
@@ -160,7 +160,7 @@ ogType: article
         <article class="conversation-mode-persistent">
           <span>Opt in · <code>persistent</code></span>
           <h3>Recent exchanges return</h3>
-          <p>History is keyed by transport, conversation identity, and sender. Two people in one channel do not share remembered answers.</p>
+          <p>History is keyed by transport, conversation identity, and sender. Two people in one channel don’t share remembered answers.</p>
           <ul><li>question-and-final-answer pairs</li><li>oldest whole turns drop first</li><li>one opaque key per live conversation</li></ul>
         </article>
       </div>
@@ -172,8 +172,8 @@ ogType: article
         <div><strong>1,024</strong><span>process-wide conversations</span></div>
       </div>
       <p>These are the gateway defaults after a route chooses <code>persistent</code>. Operators can set the timeout and window. The process-wide count evicts the least recently used entry.</p>
-      <p>History lives only in <code>dekopond</code> memory. It is not written to disk or sent to the broker, and a restart forgets it. Idle eviction is lazy: expired text may remain resident until lookup, capacity pressure, or exit, but it is not replayed.</p>
-      <p>“In memory” describes durability, not isolation. In the current single-UID deployment, other processes under the owner’s user can read that memory. Operating-system paging and core dumps are outside the daemon’s control.</p>
+      <p>History lives only in <code>dekopond</code> memory. It isn’t written to disk or sent to the broker, and a restart forgets it. Idle eviction is lazy: expired text may remain resident until lookup, capacity pressure, or exit, but it isn’t replayed.</p>
+      <p>“In memory” describes durability, not isolation. In the current single-UID deployment, other processes running as your user can read that memory. Paging and core dumps are outside the daemon’s control.</p>
 
       <div class="fresh-check-flow" role="group" aria-label="Fresh authorization on each chat message">
         <div><span>new chat message</span><strong>1</strong></div>
@@ -191,8 +191,8 @@ ogType: article
     <section id="prompt-caching" class="article-section article-section-wide">
       <div class="article-heading">
         <span>04 · prompt caching</span>
-        <h2>Dekopon shapes requests. The provider owns the cache.</h2>
-        <p>Prompt caching can avoid recomputing an exact prefix. It is an inference optimization, not memory, storage, isolation, or authorization.</p>
+        <h2>Dekopon shapes the request; the provider owns the cache.</h2>
+        <p>Prompt caching can avoid recomputing an exact prefix. It’s an inference optimization. Not memory, not storage, not isolation, not authorization.</p>
       </div>
 
       <div class="cache-ownership-grid">
@@ -229,7 +229,7 @@ ogType: article
 
       <div class="article-callout callout-warning private-endpoint-warning">
         <strong>The subscription caveat is load-bearing</strong>
-        <p>Dekopon uses <code>https://chatgpt.com/backend-api/codex/responses</code> for ChatGPT-plan access. OpenAI does not publicly promise the Platform API’s cache behavior, retention, parameters, accounting, or pricing for this private endpoint. Its cache behavior is unknown.</p>
+        <p>Dekopon uses <code>https://chatgpt.com/backend-api/codex/responses</code> for ChatGPT-plan access. OpenAI doesn’t publicly promise the Platform API’s cache behavior, retention, parameters, accounting, or pricing for this private endpoint. Its cache behavior is unknown.</p>
       </div>
     </section>
 
@@ -237,7 +237,7 @@ ogType: article
       <div class="article-heading">
         <span>05 · process lifetime ≠ cache lifetime</span>
         <h2>A long-lived local agent pins no provider cache.</h2>
-        <p>The documented cache lives on provider infrastructure. Client objects and local processes do not hold a lease on it.</p>
+        <p>The documented cache lives on provider infrastructure. Client objects and local processes don’t hold a lease on it.</p>
       </div>
 
       <div class="cache-lifetime-board">
@@ -257,9 +257,9 @@ ogType: article
       <ul class="not-a-lease-list">
         <li><strong>Same process:</strong> keeping <code>dekopond</code> running preserves local history, not provider cache retention.</li>
         <li><strong>Same client or connection:</strong> Dekopon reuses one model client per configured model to avoid repeated connection setup. That still creates no documented cache lease.</li>
-        <li><strong>Same login:</strong> an OAuth token or ChatGPT account authenticates a request. It does not document cache lifetime.</li>
-        <li><strong>Same cache key:</strong> the key helps route likely shared prefixes. By itself it does not create, refresh, delete, isolate, or guarantee a cache entry.</li>
-        <li><strong>Response state:</strong> public API response IDs and Conversations carry context. They are separate from prompt-cache retention, and Dekopon does not use them here.</li>
+        <li><strong>Same login:</strong> an OAuth token or ChatGPT account authenticates a request. It doesn’t document cache lifetime.</li>
+        <li><strong>Same cache key:</strong> the key helps route likely shared prefixes. By itself it doesn’t create, refresh, delete, isolate, or guarantee a cache entry.</li>
+        <li><strong>Response state:</strong> public API response IDs and Conversations carry context. They are separate from prompt-cache retention, and Dekopon doesn’t use them here.</li>
       </ul>
 
       <p>A persistent conversation can outlive a warm provider cache. The next request still works because Dekopon sends the context again; it may simply pay full inference cost.</p>
@@ -304,7 +304,7 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
     <section id="future-memory" class="article-section">
       <div class="article-heading">
         <span>07 · two different memory layers</span>
-        <h2>Automatic replay is short. Durable recall is explicit.</h2>
+        <h2>Automatic replay is short and durable recall is explicit.</h2>
         <p>The current release keeps the in-process conversation window and the optional broker-owned memory provider as separate mechanisms. They solve different problems and never silently merge.</p>
       </div>
 
@@ -339,7 +339,7 @@ model.complete_with(<span class="code-purple">&amp;</span>messages, <span class=
 
 <section class="inference-closing">
   <div class="shell">
-    <div><span>Keep the boundaries clear</span><h2>Context can persist.<br>Permission never does.</h2></div>
+    <div><span>Keep the boundaries clear</span><h2>Context can persist,<br>permission never does.</h2></div>
     <a class="button button-white" href="https://github.com/dekopon-agents/dekopon/blob/{{ release.tag }}/docs/inference.md">Read the full walkthrough <span aria-hidden="true">↗</span></a>
   </div>
 </section>

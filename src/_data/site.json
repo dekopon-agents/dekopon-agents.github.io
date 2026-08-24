@@ -2,8 +2,8 @@
   "name": "Dekopon",
   "wordmark": "dekopon",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon — Useful tools and narrow authority for self-hosted AI agents",
-  "description": "Run self-hosted AI agents with a separate permission broker, narrow capabilities, broker-held credentials, bounded Wasm providers, and durable audit.",
+  "title": "Dekopon — a separate permission broker for self-hosted AI agents",
+  "description": "A harness for self-hosted AI agents that assumes the model is compromised. The model proposes an action; a separate broker decides whether it happens and holds the credentials either way.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",
@@ -51,5 +51,5 @@
     }
   ],
   "copyright": "© 2026 Dekopon contributors.",
-  "footerNote": "Useful tools. Narrow authority. Your hardware."
+  "footerNote": "Your agent can ask. It can’t approve itself."
 }

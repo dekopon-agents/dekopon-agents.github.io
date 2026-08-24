@@ -3,7 +3,7 @@ layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
 pageTitle: What’s new in Dekopon
-pageDescription: The latest Dekopon release adds an interactive console, a fuller sandboxed shell, a provider testkit, and independently released integrations.
+pageDescription: An operator console over the live broker, a much bigger sandboxed shell, and providers that now ship from their own repositories.
 ogType: article
 ---
 <section class="release-hero">
@@ -88,7 +88,7 @@ ogType: article
     <div class="release-section-heading release-details-heading">
       <div>
         <span class="section-kicker orange">Under the hood</span>
-        <h2 id="release-details-title">What {{ release.tag }} brings.</h2>
+        <h2 id="release-details-title">{{ whatsNew.changes | length }} changes in {{ release.tag }}.</h2>
       </div>
       <p>{{ whatsNew.detailsIntro }}</p>
     </div>
@@ -119,7 +119,7 @@ ogType: article
     <div class="release-section-heading release-install-heading">
       <div>
         <span class="section-kicker mint">Available now</span>
-        <h2 id="release-install-title">Pick your starting point.</h2>
+        <h2 id="release-install-title">Install it from Homebrew, crates.io, or the image.</h2>
       </div>
       <p>{{ whatsNew.installIntro }}</p>
     </div>
@@ -151,7 +151,7 @@ ogType: article
     <div class="release-section-heading">
       <div>
         <span class="section-kicker purple">Where {{ release.tag }} stands</span>
-        <h2 id="release-scope-title">Deployable foundation. Still pre-production.</h2>
+        <h2 id="release-scope-title">Deployable, and still pre-production.</h2>
       </div>
       <p>{{ whatsNew.scopeIntro }}</p>
     </div>

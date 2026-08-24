@@ -2,7 +2,7 @@
   <div class="home-deployment-gridlines" aria-hidden="true"></div>
   <div class="shell home-deployment-grid">
     <div class="home-deployment-copy">
-      <span class="section-kicker mint">{{ home.deployment.kicker }}</span>
+      {% if home.deployment.kicker %}<span class="section-kicker mint">{{ home.deployment.kicker }}</span>{% endif %}
       <h2 id="home-deployment-title">{{ home.deployment.title }}</h2>
       <p>{{ home.deployment.intro }}</p>
       <ul>
@@ -39,7 +39,7 @@
       </div>
       <div class="pod-cutaway-state"><span>retained state</span><strong>audit + optional provider storage</strong></div>
       <div class="pod-cutaway-none"><span>default: no Service</span><span>no chart Ingress</span><span>broker: Unix only</span></div>
-      <p class="pod-chart-note">The published chart trails the application release. Chart {{ release.chart.sourceVersion }} with app {{ release.chart.sourceAppVersion }} exists in source but is not yet published.</p>
+      <p class="pod-chart-note">The published chart trails the application release. Chart {{ release.chart.sourceVersion }} with app {{ release.chart.sourceAppVersion }} exists in source but isn’t yet published.</p>
     </div>
   </div>
 

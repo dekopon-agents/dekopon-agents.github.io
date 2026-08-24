@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/one-tool-runtime/index.html
 pageTitle: One-tool runtime — How Dekopon works
-pageDescription: See how Dekopon gives frontier models a familiar bash-flavored workspace without processes, files, inherited environment variables, or sockets.
+pageDescription: How Dekopon gives a model the bash it already knows, with no processes, files, or sockets underneath.
 bodyClass: almanac-page almanac-article-page almanac-runtime-page
 almanacPage: true
 almanacSection: runtime
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("03", "One-tool runtime", "Bash habits.<br><span>No host shell.</span>", "State-of-the-art models are rigorously trained on ordinary shell sessions. Dekopon keeps the discovery, pipes, jq, loops, and exit codes they already know, then replaces the operating system with capability calls.", "current", "Shipping in " ~ release.tag) }}
+{{ pageHero("03", "One-tool runtime", "Bash habits<br><span>with no host shell underneath.</span>", "Models are trained on ordinary shell sessions. Dekopon keeps the pipes, loops, and exit codes they already know, then replaces the operating system with capability calls.", "current", "Shipping in " ~ release.tag) }}
 {{ chapterNav("runtime", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -20,7 +20,7 @@ ogType: article
       <a href="#one-tool">What the model sees</a>
       <a href="#explore">How it explores</a>
       <a href="#commenter">A complete plan</a>
-      <a href="#not-bash">Why it is not bash</a>
+      <a href="#not-bash">Why it isn’t bash</a>
       <a href="#data">Structured data</a>
       <a href="#bounds">Hard limits</a>
     </nav>
@@ -41,19 +41,19 @@ ogType: article
         <div><small>result</small><strong>bounded output + exit code</strong></div>
       </div>
 
-      <p>One script can discover capabilities, inspect schemas, loop over results, filter JSON, and make several calls. Adding a provider does not paste another large function definition into every model turn.</p>
+      <p>One script can discover capabilities, inspect a schema, and make several calls. Adding a provider doesn’t paste another large function definition into every model turn.</p>
 
       <div class="article-callout callout-decision">
         <strong>“bash” names a language the model recognizes.</strong>
-        <p>It does not launch <code>/bin/bash</code>. <code>dekopon-shell</code> is a native Rust parser and interpreter with its own value model, builtins, limits, and one abstract capability seam.</p>
+        <p>It doesn’t launch <code>/bin/bash</code>. <code>dekopon-shell</code> is a native Rust parser and interpreter with its own value model, builtins, limits, and one abstract capability seam.</p>
       </div>
     </section>
 
     <section id="explore" class="article-section">
       <div class="article-heading">
         <span>03.2 · trained exploration</span>
-        <h2>Reuse the bash training models already have.</h2>
-        <p>Models know the rhythm of an unfamiliar host: list what exists, inspect one command, try a narrow operation, read the exit code, and adapt. Dekopon gives that learned behavior a smaller world to explore.</p>
+        <h2>Models already know how to explore an unfamiliar host.</h2>
+        <p>Models know the rhythm of an unfamiliar host: list what exists, inspect one command, try a narrow operation, read the exit code, and adapt. Dekopon gives that habit a much smaller world to explore.</p>
       </div>
 
       <div class="shell-discovery">
@@ -73,7 +73,7 @@ ogType: article
       <div class="article-heading">
         <span>03.3 · several operations, one tool call</span>
         <h2>A PR review becomes one replayable script.</h2>
-        <p>The PR commenter can inspect the request, list changed files, build a concise summary, and leave a comment without another model round trip for every capability.</p>
+        <p>The PR commenter inspects the request, lists changed files, and leaves a comment — without a model round trip for each step.</p>
       </div>
 
       <pre><code><span class="code-comment"># Model-authored Dekopon script</span>
@@ -104,7 +104,7 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
     <section id="not-bash" class="article-section">
       <div class="article-heading">
         <span>03.4 · no operating-system shell</span>
-        <h2>Familiar syntax. Radically smaller authority.</h2>
+        <h2>Familiar syntax over radically smaller authority.</h2>
       </div>
 
       <div class="comparison-table-wrap">
@@ -154,7 +154,7 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
         </div>
       </div>
 
-      <p>Provider schemas help the model discover input, while providers still validate operation-specific values. A schema shown to an untrusted model is useful metadata; it is not an authorization mechanism.</p>
+      <p>Provider schemas help the model discover input, while providers still validate operation-specific values. A schema shown to an untrusted model is useful metadata; it isn’t an authorization mechanism.</p>
     </section>
 
     <section id="bounds" class="article-section">

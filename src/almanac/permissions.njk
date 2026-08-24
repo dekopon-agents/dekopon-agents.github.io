@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/permissions/index.html
 pageTitle: Cedar permissions — How Dekopon works
-pageDescription: Build a complete, redacted PR-commenter example with Dekopon identities, capabilities, Cedar resources, execution constraints, and broker-held credentials.
+pageDescription: Build the complete PR-commenter example — who Alice is, what Cedar allows, and the limits Cedar can’t widen.
 bodyClass: almanac-page almanac-article-page almanac-permissions-page
 almanacPage: true
 almanacSection: permissions
@@ -23,7 +23,7 @@ ogType: article
       <a href="#broker">Identity and constraints</a>
       <a href="#policy">The Cedar policies</a>
       <a href="#decision">One comment decision</a>
-      <a href="#limits">What policy cannot widen</a>
+      <a href="#limits">What policy can’t widen</a>
     </nav>
     {{ sourceStamp(release) }}
   </aside>
@@ -33,7 +33,7 @@ ogType: article
       <div class="article-heading">
         <span>02.1 · four inputs</span>
         <h2>Principal. Action. Resource. Context.</h2>
-        <p>Every Cedar request has the same grammar. Dekopon supplies each value from authenticated transport state, owner-controlled configuration, and the loaded provider manifest—not from message text or provider input.</p>
+        <p>Every Cedar request has the same grammar. Dekopon fills in each value from authenticated transport state, your configuration, and the loaded provider manifest — never from message text or provider input.</p>
       </div>
 
       <div class="cedar-equation" role="group" aria-label="Cedar authorization inputs">
@@ -268,7 +268,7 @@ credentials:
     <section id="policy" class="article-section">
       <div class="article-heading">
         <span>02.5 · two independent grants</span>
-        <h2>Driving the agent does not imply using its capabilities.</h2>
+        <h2>Driving the agent doesn’t imply using its capabilities.</h2>
         <p>The first statement opens the session. The second describes the GitHub surface available inside it. Both require the attested gateway path.</p>
       </div>
 
@@ -342,12 +342,12 @@ when {
     <section id="limits" class="article-section">
       <div class="article-heading">
         <span>02.7 · the separation that matters</span>
-        <h2>A policy edit cannot move the hard walls.</h2>
+        <h2>A policy edit can’t move the hard walls.</h2>
       </div>
 
       <div class="comparison-table-wrap">
         <table class="almanac-table strategy-table">
-          <thead><tr><th scope="col">Cedar may change</th><th scope="col">Cedar cannot change</th></tr></thead>
+          <thead><tr><th scope="col">Cedar may change</th><th scope="col">Cedar can’t change</th></tr></thead>
           <tbody>
             <tr><td>which principal may act</td><td>the destination host or port</td></tr>
             <tr><td>which capability action it may request</td><td>HTTP methods, calls, or byte ceilings</td></tr>
@@ -359,8 +359,8 @@ when {
       </div>
 
       <div class="article-callout callout-warning">
-        <strong>Policy does not currently bind a repository path.</strong>
-        <p>Cedar does not receive provider input, so it cannot say “only repositories under this organization.” Use a GitHub token scoped to the intended repositories; credential scope remains that boundary.</p>
+        <strong>Policy doesn’t currently bind a repository path.</strong>
+        <p>Cedar never sees provider input, so it can’t say “only repositories under this organization.” Scope the GitHub token instead — that’s the boundary.</p>
       </div>
 
       {{ docsCta("Open the current Cedar adapter contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-policy/README.md", "See the generated schema, strict validation, context fields, policy bounds, explanations, and digest rules used by the latest code.") }}

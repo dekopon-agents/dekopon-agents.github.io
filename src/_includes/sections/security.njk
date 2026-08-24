@@ -2,7 +2,7 @@
   <div class="shell">
     <div class="section-heading split-heading home-security-heading">
       <div>
-        <span class="section-kicker orange">{{ home.security.kicker }}</span>
+        {% if home.security.kicker %}<span class="section-kicker orange">{{ home.security.kicker }}</span>{% endif %}
         <h2 id="home-security-title">{{ home.security.title }}</h2>
       </div>
       <p>{{ home.security.intro }}</p>

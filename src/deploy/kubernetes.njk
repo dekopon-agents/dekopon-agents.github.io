@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: deploy/kubernetes/index.html
 pageTitle: Kubernetes deployment — Published Dekopon Helm chart
-pageDescription: Understand Dekopon’s one-pod, two-container Kubernetes design, owner-only Unix socket, init container, persistent audit state, probes, and current limits.
+pageDescription: One pod, two daemons, and an owner-only Unix socket. No broker network service, and the published chart still trails the application.
 bodyClass: almanac-page almanac-article-page deploy-page deploy-kubernetes-page
 almanacPage: true
 ogType: article
@@ -10,7 +10,7 @@ ogType: article
 {% from "components/deploy.njk" import deployNav %}
 {% from "components/almanac.njk" import pageHero, docsCta %}
 
-{{ pageHero("K", "Kubernetes deployment", "One pod. Two daemons.<br><span>No broker network service.</span>", "Published chart " ~ release.chart.publishedVersion ~ " deploys application " ~ release.chart.publishedAppVersion ~ " around an owner-only Unix broker socket. It currently trails application " ~ release.version ~ "; chart " ~ release.chart.sourceVersion ~ " exists in source but is not published.", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
+{{ pageHero("K", "Kubernetes deployment", "One pod, two daemons,<br><span>and no broker network service.</span>", "Published chart " ~ release.chart.publishedVersion ~ " deploys application " ~ release.chart.publishedAppVersion ~ " around an owner-only Unix broker socket. It currently trails application " ~ release.version ~ "; chart " ~ release.chart.sourceVersion ~ " exists in source but is not published.", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
 {{ deployNav("kubernetes", deploy.pages) }}
 
 <div class="almanac-article-shell shell">
@@ -51,7 +51,7 @@ ogType: article
           <div><small>image</small><strong>/opt/dekopon/providers</strong><span>owner-matched Wasm components</span></div>
           <div><small>retained claims</small><strong>/var/lib/dekopon*</strong><span>audit + checkpoint · optional provider storage · ChatGPT credential</span></div>
         </div>
-        <figcaption>One image supplies both commands. Separate containers preserve responsibilities; the shared UID and filesystem namespace satisfy the current authenticated local transport. Provider storage, when enabled, mounts only into the broker.</figcaption>
+        <figcaption>One image supplies both commands. Separate containers keep the roles apart; the shared UID and filesystem namespace are what the current local transport needs. Provider storage, when enabled, mounts only into the broker.</figcaption>
       </figure>
     </section>
 
@@ -65,7 +65,7 @@ ogType: article
         <table class="almanac-table strategy-table">
           <thead><tr><th scope="col">Constraint</th><th scope="col">Kubernetes consequence</th></tr></thead>
           <tbody>
-            <tr><th scope="row">Broker binds a filesystem Unix socket</th><td>Gateway and broker need one shared pod volume; a webhook Service does not replace it.</td></tr>
+            <tr><th scope="row">Broker binds a filesystem Unix socket</th><td>Gateway and broker need one shared pod volume; a webhook Service doesn’t replace it.</td></tr>
             <tr><th scope="row">Socket mode is <code>0600</code></th><td>Both processes run as UID/GID <code>65532:65532</code>.</td></tr>
             <tr><th scope="row">Peer identity uses <code>SO_PEERCRED</code></th><td>A Service or TCP proxy would discard the authenticated transport.</td></tr>
             <tr><th scope="row">Audit has one exclusive writer</th><td>The Deployment is fixed at one replica with <code>Recreate</code>.</td></tr>
@@ -74,13 +74,13 @@ ogType: article
         </table>
       </div>
 
-      <p>Two images would still need the same application version and pod. The chart therefore uses one image containing all four executables. Each container selects its command and retains its own responsibility.</p>
+      <p>Two images would still need the same application version and the same pod, so the chart ships one image with all four executables. Each container picks its command and keeps its own job.</p>
     </section>
 
     <section id="files" class="article-section">
       <div class="article-heading">
         <span>K.3 · fail-closed file hygiene</span>
-        <h2>A Kubernetes Secret mount is not a broker credential file.</h2>
+        <h2>A Kubernetes Secret mount isn’t a broker credential file.</h2>
         <p>Projected ConfigMap and Secret volumes are symlink farms owned by root. The broker deliberately refuses symlinks, wrong owners, multiple links, and unsafe mode bits.</p>
       </div>
 
@@ -121,13 +121,13 @@ ogType: article
         <div><span>single writer</span><strong>checkpoint lock</strong><small>same persistent directory</small></div>
       </div>
 
-      <p>All three audit paths live on one persistent claim because checkpoint replacement stages a sibling file and renames it atomically. The claim carries keep-on-uninstall and Argo CD no-prune annotations. Deleting one file to bypass recovery makes startup fail; deleting both together is a rollback local state cannot detect.</p>
+      <p>All three audit paths live on one persistent claim because checkpoint replacement stages a sibling file and renames it atomically. The claim carries keep-on-uninstall and Argo CD no-prune annotations. Deleting one file to bypass recovery makes startup fail; deleting both together is a rollback local state can’t detect.</p>
 
       <p>Optional provider storage uses a second retained claim and an operator-owned namespace key copied into broker-only memory. The chart refuses to reuse the audit claim for provider data. The gateway mounts neither storage nor its key.</p>
 
       <div class="article-callout callout-warning">
         <strong>Size the volume before creating it.</strong>
-        <p>The target single-node storage class cannot expand. The chart defaults to 2 GiB and lowers the per-record ceiling so the broker’s designed record cap binds before the filesystem fills.</p>
+        <p>The target single-node storage class can’t expand. The chart defaults to 2 GiB and lowers the per-record ceiling so the broker’s designed record cap binds before the filesystem fills.</p>
       </div>
     </section>
 
@@ -180,7 +180,7 @@ ogType: article
         </table>
       </div>
 
-      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Its render and file-mode checks pass in CI, but the project has not yet applied the chart to a live cluster. Do not treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
+      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Its render and file-mode checks pass in CI, but the project has not yet applied the chart to a live cluster. Don’t treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
 
       {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest publication status, values, path contract, probes, storage arithmetic, ChatGPT seeding behavior, and Argo CD instructions before installing.") }}
     </section>

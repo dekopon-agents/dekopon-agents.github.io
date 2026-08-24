@@ -3,7 +3,7 @@
   <div class="closing-mesh" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="shell closing-content">
     {{ largeLogo() }}
-    <span class="section-kicker">{{ home.closing.kicker }}</span>
+    {% if home.closing.kicker %}<span class="section-kicker">{{ home.closing.kicker }}</span>{% endif %}
     <h2>{{ home.closing.title }}<br><span>{{ home.closing.titleAccent }}</span></h2>
     <p>{{ home.closing.body }}</p>
     <div class="closing-buttons">

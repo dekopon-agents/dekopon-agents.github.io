@@ -9,7 +9,7 @@
     "build": "npm run clean && eleventy",
     "serve": "eleventy --serve",
     "check:release": "node scripts/check-release.mjs",
-    "check": "npm run check:release && npm run build && node --check src/assets/site.js && html-validate '_site/**/*.html' && node scripts/check-site.mjs",
+    "check": "npm run check:release && npm run build && node --check src/assets/site.js && html-validate '_site/**/*.html' && node scripts/check-site.mjs && node scripts/check-voice.mjs",
     "test": "npm run check"
   },
   "devDependencies": {

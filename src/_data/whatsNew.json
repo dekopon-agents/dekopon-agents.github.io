@@ -1,10 +1,10 @@
 {
   "hero": {
     "eyebrow": "What’s new",
-    "title": "A real console. A fuller shell. Independent providers.",
-    "lede": "Dekopon 0.11 adds an interactive terminal console, a substantially more capable sandboxed shell, a public provider testkit, and cleaner separation between the core platform and independently released providers. Version 0.11.1 repairs the container runtime base without changing crate behavior."
+    "title": "An operator console, a much bigger shell, and providers that ship on their own.",
+    "lede": "The console is a TUI over the running broker, the sandboxed shell now picks up most of the bash you actually write, and providers ship from their own repositories. 0.11.1 repairs the container base and nothing else."
   },
-  "summary": "The core rule is unchanged: models propose and the broker authorizes. The new console makes that boundary visible while you work, and the richer shell gives models more room to plan inside it.",
+  "summary": "The core rule is unchanged: models propose, the broker authorizes. The console just makes that boundary visible while you work.",
   "metrics": [
     { "value": "1", "label": "interactive operator console" },
     { "value": "25", "label": "public crates published" },
@@ -15,29 +15,29 @@
     {
       "number": "01",
       "kicker": "Operator console",
-      "title": "Watch one agent session without moving authority into the CLI.",
-      "body": "A bare dekopon command on a terminal opens a TUI over the running broker. It shows the selected agent, effective capabilities, scripts, inputs, and results while keeping its local execution leg empty.",
+      "title": "A TUI over the broker that holds no authority of its own.",
+      "body": "Run dekopon with no arguments and you get a TUI over the running broker: the selected agent, what it can actually do, and every script and result as they land. Its own execution leg stays empty.",
       "points": ["Attested local development subjects are explicit and off by default", "Every capability still reaches the separate broker", "Render-time control stripping and field-level secret redaction"]
     },
     {
       "number": "02",
       "kicker": "Sandboxed shell",
-      "title": "Use more real shell habits without launching a host process.",
-      "body": "The homemade interpreter now supports defensive options, richer parameter expansion, compound pipelines, read, getopts, double brackets, and script-addressable output streams.",
+      "title": "set -e, getopts, and PIPESTATUS now work.",
+      "body": "The homemade interpreter picked up defensive options, compound pipelines, and richer parameter expansion. Still no host process behind any of it.",
       "points": ["set -e, set -u, pipefail, and PIPESTATUS", "if, loops, case, groups, functions, and redirections compose", "No host files, inherited environment, subprocesses, or ambient sockets"]
     },
     {
       "number": "03",
       "kicker": "Provider ecosystem",
-      "title": "Test and release integrations outside the core repository.",
+      "title": "Providers now test and ship outside the core repo.",
       "body": "The public testkit runs a component against the real storage host. GitHub moved to its own repository, and a SQLite-compatible Turso provider now ships independently.",
       "points": ["FakeBroker for end-to-end provider storage tests", "GitHub component with nineteen narrow capabilities", "Independent provider tags, assets, checksums, and provenance"]
     }
   ],
   "path": {
     "kicker": "One console turn",
-    "title": "See the request. Keep the decision elsewhere.",
-    "body": "The console observes the same agent loop used by chat. It can display proposals and results, but it links no policy, provider credential store, or provider host.",
+    "title": "The console watches; the broker still decides.",
+    "body": "The console watches the same agent loop chat uses. It shows proposals and results. It links no policy, no credential store, no provider host.",
     "ariaLabel": "How one Dekopon console turn reaches the separate broker",
     "steps": [
       { "name": "Select", "detail": "one catalog agent" },
@@ -51,26 +51,26 @@
   "changes": [
     {
       "tag": "dekopon console",
-      "title": "The operator gets an interactive view over a live broker session.",
-      "body": "The TUI shows declared and effectively granted capabilities, then folds each turn’s scripts and broker calls. Observation decorators cannot influence the session, and the CLI retains no local provider execution path.",
+      "title": "dekopon with no arguments opens a TUI over the live broker.",
+      "body": "It shows what the agent declares against what it was actually granted, then folds each turn’s scripts and broker calls. Watching can’t change the session, and the CLI keeps no local provider execution path.",
       "link": { "label": "Read the console contract", "href": "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-tui/README.md" }
     },
     {
       "tag": "Shell language",
-      "title": "Common defensive and compositional shell patterns now work.",
-      "body": "Models can use read-shaped loops, getopts, double brackets, real errexit and nounset behavior, pipefail, richer parameter expansion, grouped pipeline stages, and bounded in-memory redirection.",
+      "title": "The defensive shell options models reach for now behave.",
+      "body": "Real errexit and nounset behavior, pipefail, getopts. Grouped pipeline stages and bounded in-memory redirection compose the way you’d expect.",
       "link": { "label": "See the sandboxed shell", "href": "/almanac/one-tool-runtime/" }
     },
     {
       "tag": "Provider testing",
       "title": "Storage-backed providers can test against the real host without standing up Cedar.",
-      "body": "dekopon-provider-sdk-testkit mints test authorization and exercises the production StorageHost over a temporary root. It is a provider-development harness, not runtime authority.",
+      "body": "dekopon-provider-sdk-testkit mints test authorization and drives the production StorageHost over a temporary root. It’s a development harness, not runtime authority.",
       "link": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
     },
     {
       "tag": "Independent providers",
       "title": "GitHub and SQL move at their own release cadence.",
-      "body": "The GitHub component left the core tree with its PR-review walkthrough. Turso SQL adds SQLite-compatible durable storage through the existing exact storage interface. Nothing in core depends on either component.",
+      "body": "The GitHub component left the core tree, walkthrough and all. Turso SQL adds SQLite-compatible durable storage through the storage interface that already existed. Core depends on neither.",
       "link": { "label": "Browse the provider ecosystem", "href": "/#providers" }
     },
     {
@@ -86,11 +86,11 @@
       "link": { "label": "Open the GitHub release", "release": true }
     }
   ],
-  "detailsIntro": "The console, shell, provider testkit, and independently shipped integrations keep the same proposal, policy, constraint, execution, and evidence path. The patch release changes only image compatibility.",
+  "detailsIntro": "None of this changes the path a proposal takes. The patch release changes only image compatibility.",
   "telemetry": {
     "value": "0",
     "title": "authority moved to the console, gateway, or model",
-    "body": "The console holds a model credential and observes one agent loop. Cedar, execution constraints, provider credentials, provider execution, replay protection, and durable audit remain inside the separate broker.",
+    "body": "The console holds a model credential and watches one agent loop. Cedar, the credentials, and the audit all stay inside the separate broker.",
     "note": "The current local deployment still treats one Unix UID as a trust domain. Dekopon remains pre-production."
   },
   "packages": [
@@ -107,10 +107,10 @@
     {
       "name": "Container",
       "role": "Linux arm64 + amd64",
-      "body": "The Debian 13 distroless multi-architecture image is published for the broker, gateway, runner, or operator CLI."
+      "body": "The Debian 13 distroless multi-architecture image carries all four executables."
     }
   ],
-  "installIntro": "The application release is available through Homebrew, crates.io, attested GitHub archives, and the multi-architecture image. The latest published Helm chart remains 0.2.0 with application 0.10.0; chart 0.2.1 is present in source but not published.",
+  "installIntro": "Homebrew and crates.io are current, as are the attested archives and the multi-architecture image. The latest published Helm chart is still 0.2.0, carrying application 0.10.0 — chart 0.2.1 exists in source and has not been published.",
   "scope": {
     "current": [
       "Interactive terminal console over one broker-authorized agent session",
@@ -128,16 +128,16 @@
       "Further production hardening and incident-response automation"
     ]
   },
-  "scopeIntro": "The full local path includes gateway or console attestation, Cedar, broker-managed credentials, Wasm providers, audit, and telemetry. Stronger process isolation and audit anchoring remain.",
+  "scopeIntro": "The whole local path works today, from attestation through to telemetry. Stronger process isolation and an independent audit anchor don’t.",
   "previous": {
     "version": "v0.10.0",
     "title": "Durable provider storage, WhatsApp, images, and hardening",
-    "body": "Version 0.10 added broker-owned storage, explicit durable chat recall, a signed text-only WhatsApp transport, bounded generated-image replies, and a deep reliability pass.",
+    "body": "Version 0.10 added broker-owned storage, durable chat recall, and a signed text-only WhatsApp transport.",
     "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0",
     "label": "View 0.10"
   },
   "closing": {
-    "title": "Run it. Watch the boundary work.",
-    "body": "Choose a deployment path, or open the system guide for a clear tour from authenticated request to audited effect."
+    "title": "Pick a way to run it.",
+    "body": "Pick a deployment path, or take the guided tour from authenticated request to audited effect."
   }
 }

@@ -3,7 +3,7 @@
   <div class="authority-glow authority-glow-two" aria-hidden="true"></div>
   <div class="shell authority-shell">
     <div class="section-heading dark-heading">
-      <span class="section-kicker cyan">{{ home.authority.kicker }}</span>
+      {% if home.authority.kicker %}<span class="section-kicker cyan">{{ home.authority.kicker }}</span>{% endif %}
       <h2 id="cedar-policy-title">{{ home.authority.title }}<br><span>{{ home.authority.titleAccent }}</span></h2>
       <p>{{ home.authority.intro }}</p>
     </div>

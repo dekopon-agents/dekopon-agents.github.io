@@ -2,7 +2,7 @@
   <div class="shell">
     <div class="section-heading split-heading broker-config-heading">
       <div>
-        <span class="section-kicker orange">{{ home.broker.kicker }}</span>
+        {% if home.broker.kicker %}<span class="section-kicker orange">{{ home.broker.kicker }}</span>{% endif %}
         <h2 id="broker-config-title">{{ home.broker.title }}</h2>
       </div>
       <p>{{ home.broker.intro }}</p>

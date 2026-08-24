@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/index.html
 pageTitle: How Dekopon works
-pageDescription: A clear guide to Dekopon trusted identity, Cedar permissions, one-tool scripting, Wasm providers, audit, and OpenTelemetry.
+pageDescription: How Dekopon gets from an authenticated chat message to one authorized HTTP request, and what stops it going further.
 bodyClass: almanac-page almanac-atlas-page
 almanacPage: true
 almanacSection: atlas
@@ -15,8 +15,8 @@ ogType: article
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
       <div class="almanac-overline"><span>How it works / {{ release.tag }}</span><code>edition 11</code></div>
-      <h1>Let the model ask.<br><span>Keep authority elsewhere.</span></h1>
-      <p class="almanac-home-lede">A release-backed tour of chat or console identity, one homemade shell tool, Cedar policy, bounded Wasm providers, broker-held credentials, and one trace across the system.</p>
+      <h1>Every request the model makes<br><span>crosses one boundary.</span></h1>
+      <p class="almanac-home-lede">A release-backed tour from an authenticated chat message to one authorized HTTP request, and the trace that connects them.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status">
         {{ status("current", "Shipping now") }}
         {{ status("direction", "Current limit") }}
@@ -67,7 +67,7 @@ ogType: article
       </div>
       <div class="cutaway-readout">
         <span>The core rule</span>
-        <p>A gateway role may vouch for a subject. The model may propose an action. Only the broker can map identity, permit, constrain, execute, and record it.</p>
+        <p>A gateway can vouch for a subject and the model can propose an action. Everything after that happens in the broker.</p>
       </div>
     </div>
   </div>
@@ -79,8 +79,8 @@ ogType: article
   <div class="shell">
     <div class="almanac-section-heading">
       <span class="almanac-section-index">01—05</span>
-      <div><p class="almanac-kicker">Choose a guide</p><h2>Five concepts. One working system.</h2></div>
-      <p>Each page gives you the complete public explanation first. A final link takes you to the repository for exact current fields and implementation limits.</p>
+      <div><p class="almanac-kicker">Choose a guide</p><h2>Five guides to one system.</h2></div>
+      <p>Each page explains the whole mechanism before sending you to the repository for the exact current fields.</p>
     </div>
 
     <div class="atlas-card-grid atlas-card-grid-five">
@@ -110,15 +110,15 @@ ogType: article
     <div class="mental-model-copy">
       <p class="almanac-kicker">The 90-second tour</p>
       <h2>Six facts explain Dekopon.</h2>
-      <p>These are the boundaries every deeper detail preserves.</p>
+      <p>Nothing on the deeper pages contradicts these.</p>
     </div>
     <ol class="mental-model-list">
       <li><span>01</span><div><strong>The request starts with a subject.</strong><p>A chat transport supplies an authenticated sender. The local console uses an explicit opt-in development subject. Neither is already a principal.</p></div></li>
       <li><span>02</span><div><strong>The broker owns identity.</strong><p>It authenticates the gateway, checks its attestor grant, and alone maps subject to principal.</p></div></li>
-      <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell can explore and combine granted capabilities but cannot reach the operating system.</p></div></li>
+      <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell combines granted capabilities and can’t reach the operating system.</p></div></li>
       <li><span>04</span><div><strong>Cedar permits; constraint sets limit.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach.</p></div></li>
       <li><span>05</span><div><strong>Credentials stay with the broker.</strong><p>The native HTTP engine injects a destination-bound value after provider headers are checked.</p></div></li>
-      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization history stays durable while OpenTelemetry explains flow, timing, cost, and failures.</p></div></li>
+      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization history is durable. OpenTelemetry explains timing, cost, and failures.</p></div></li>
     </ol>
   </div>
 </section>
@@ -127,12 +127,12 @@ ogType: article
   <div class="shell truth-labels-grid">
     <div>
       <p class="almanac-kicker">Where {{ release.tag }} stands</p>
-      <h2>Capable now. Honest about the boundary.</h2>
+      <h2>What works now, and what doesn’t.</h2>
     </div>
     <div class="truth-label-cards">
-      <article><div>{{ status("current", "Released") }}</div><h3>Four executables and a container image</h3><p>The release carries the operator CLI, runner, broker, gateway, and checked-in provider components for arm64 and amd64 Linux.</p></article>
-      <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation, Cedar, broker-owned credentials, bounded provider HTTP or storage, hash-linked audit, and cross-process traces are current.</p></article>
-      <article><div>{{ status("direction", "Current limit") }}</div><h3>One Unix UID is one trust domain</h3><p>The Kubernetes gateway and broker share one UID and socket. A dedicated gateway UID and stronger audit anchoring remain future work.</p></article>
+      <article><div>{{ status("current", "Released") }}</div><h3>Four executables and a container image</h3><p>Four executables plus the checked-in provider components, for arm64 and amd64 Linux.</p></article>
+      <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation through to cross-process traces. All of it works today.</p></article>
+      <article><div>{{ status("direction", "Current limit") }}</div><h3>One Unix UID is one trust domain</h3><p>The Kubernetes gateway and broker share one UID and socket. A dedicated gateway UID and a real audit anchor are still future work.</p></article>
     </div>
   </div>
 </section>

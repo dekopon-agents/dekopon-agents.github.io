@@ -3,7 +3,7 @@
   <div class="shell">
     <div class="section-heading split-heading home-journey-heading">
       <div>
-        <span class="section-kicker mint">{{ home.journey.kicker }}</span>
+        {% if home.journey.kicker %}<span class="section-kicker mint">{{ home.journey.kicker }}</span>{% endif %}
         <h2 id="home-journey-title">{{ home.journey.title }}</h2>
       </div>
       <p>{{ home.journey.intro }}</p>

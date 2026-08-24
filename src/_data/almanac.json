@@ -1,6 +1,6 @@
 {
   "title": "How Dekopon works",
-  "description": "A clear, release-backed guide to the current Dekopon authority path: trusted identity, Cedar policy, one-tool scripting, Wasm providers, audit, and OpenTelemetry.",
+  "description": "A release-backed guide to the current Dekopon authority path, from an authenticated chat message to one authorized HTTP request.",
   "chapters": [
     {
       "number": "00",
@@ -9,7 +9,7 @@
       "shortLabel": "Start",
       "href": "/almanac/",
       "title": "See the whole system",
-      "description": "Meet the chat or console gateway, model workspace, broker, Cedar policy, Wasm providers, audit trail, and telemetry in one map."
+      "description": "Every part of the system in one map, from the gateway through to the audit trail."
     },
     {
       "number": "01",
@@ -18,7 +18,7 @@
       "shortLabel": "Identify",
       "href": "/almanac/identity/",
       "title": "Where does identity come from?",
-      "description": "Follow an authenticated chat sender through gateway attestation, broker mapping, Cedar context, and durable audit."
+      "description": "Follow an authenticated chat sender from the transport to the audit record."
     },
     {
       "number": "02",
@@ -27,7 +27,7 @@
       "shortLabel": "Permit",
       "href": "/almanac/permissions/",
       "title": "How does Cedar decide?",
-      "description": "Build a complete PR-commenter example from principal, action, resource, context, constraints, and a redacted credential."
+      "description": "Build the complete PR-commenter example, from principal and action to the redacted credential."
     },
     {
       "number": "03",
@@ -36,7 +36,7 @@
       "shortLabel": "Explore",
       "href": "/almanac/one-tool-runtime/",
       "title": "Why give the model homemade bash?",
-      "description": "Use the shell habits frontier models already know while keeping processes, files, environment variables, and sockets absent."
+      "description": "Use the shell habits models already have, with no processes, files, or sockets underneath."
     },
     {
       "number": "04",
@@ -54,7 +54,7 @@
       "shortLabel": "Observe",
       "href": "/almanac/observability/",
       "title": "How do you see the whole run?",
-      "description": "Read a CSS waterfall from chat message to HTTP request, then give audit, traces, and logs their separate jobs."
+      "description": "Read one waterfall from chat message to HTTP request, then see what audit, traces, and logs each do."
     }
   ]
 }
