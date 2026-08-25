@@ -10,7 +10,7 @@
   "releaseNotes": "/whats-new/",
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
-    { "label": "Why Dekopon", "href": "/#why" },
+    { "label": "Architecture", "href": "/architecture/" },
     { "label": "How it works", "href": "/almanac/" },
     { "label": "Providers", "href": "/#providers" },
     { "label": "Models & memory", "href": "/inference/" },
@@ -24,6 +24,7 @@
         { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
         { "label": "Latest release", "href": "https://github.com/dekopon-agents/dekopon/releases/latest" },
         { "label": "What’s new", "href": "/whats-new/" },
+        { "label": "Architecture comparison", "href": "/architecture/" },
         { "label": "How Dekopon works", "href": "/almanac/" },
         { "label": "Deployment guides", "href": "/deploy/" }
       ]

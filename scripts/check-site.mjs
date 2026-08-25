@@ -5,6 +5,7 @@ import process from "node:process";
 const outputDirectory = path.resolve("_site");
 const failures = [];
 const release = JSON.parse(await readFile(path.resolve("src", "_data", "release.json"), "utf8"));
+const architecture = JSON.parse(await readFile(path.resolve("src", "_data", "architecture.json"), "utf8"));
 
 const walk = async (directory) => {
     const entries = await readdir(directory, { withFileTypes: true });
@@ -79,11 +80,42 @@ if (!homepage.includes(release.installCommand)) {
     failures.push(`index.html: missing current install command for ${release.tag}`);
 }
 
-for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {
+for (const relativeFile of ["architecture/index.html", "deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {
     const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
     if (!html.includes(release.tag)) {
         failures.push(`${relativeFile}: missing current release ${release.tag}`);
     }
+}
+
+const architecturePage = await readFile(path.join(outputDirectory, "architecture", "index.html"), "utf8");
+for (const id of ["runtime-map", "comparison", "limits", "sources"]) {
+    if (!architecturePage.includes(`id="${id}"`)) {
+        failures.push(`architecture/index.html: missing section #${id}`);
+    }
+}
+
+const comparisonKeys = architecture.criteria.map((criterion) => criterion.key);
+if (new Set(comparisonKeys).size !== comparisonKeys.length) {
+    failures.push("architecture.json: duplicate comparison criterion keys");
+}
+const comparisonStates = new Set(["yes", "partial", "no", "unknown"]);
+for (const runtime of architecture.runtimes) {
+    const markKeys = Object.keys(runtime.marks);
+    const missing = comparisonKeys.filter((key) => !markKeys.includes(key));
+    const extra = markKeys.filter((key) => !comparisonKeys.includes(key));
+    if (missing.length > 0 || extra.length > 0) {
+        failures.push(`architecture.json: ${runtime.name} marks mismatch (missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"})`);
+    }
+    for (const [key, mark] of Object.entries(runtime.marks)) {
+        if (!comparisonStates.has(mark.state) || typeof mark.note !== "string" || mark.note.length === 0) {
+            failures.push(`architecture.json: ${runtime.name}.${key} needs a valid state and note`);
+        }
+    }
+}
+const comparisonRuntimeKeys = architecture.runtimes.map((runtime) => runtime.key).sort();
+const comparisonSourceKeys = architecture.sources.map((source) => source.key).sort();
+if (JSON.stringify(comparisonRuntimeKeys) !== JSON.stringify(comparisonSourceKeys)) {
+    failures.push("architecture.json: runtime and source keys differ");
 }
 
 for (const file of htmlFiles) {

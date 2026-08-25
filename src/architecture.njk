@@ -1,0 +1,286 @@
+---
+layout: layouts/base.njk
+permalink: architecture/index.html
+pageTitle: Architecture and agent runtime comparison — Dekopon
+pageDescription: See Dekopon’s gateway, permission broker, Wasm provider host, and build path, then compare its trust boundaries with OpenClaw, Hermes Agent, Amazon Bedrock Agents, and Google Agent Platform.
+bodyClass: almanac-page architecture-page
+almanacPage: true
+architecturePage: true
+ogType: article
+---
+{% from "components/almanac.njk" import docsCta %}
+
+{% macro matrixMark(mark) %}
+  {% if mark.state == "yes" %}
+    {% set markLabel = "Built in" %}
+    {% set markSymbol = "✓" %}
+  {% elif mark.state == "partial" %}
+    {% set markLabel = "Partial or adjacent" %}
+    {% set markSymbol = "◐" %}
+  {% elif mark.state == "no" %}
+    {% set markLabel = "Not in this scope" %}
+    {% set markSymbol = "—" %}
+  {% else %}
+    {% set markLabel = "Not established by current sources" %}
+    {% set markSymbol = "?" %}
+  {% endif %}
+  <span class="matrix-mark matrix-mark-{{ mark.state }}" title="{{ mark.note }}"><span aria-hidden="true">{{ markSymbol }}</span><span class="sr-only">{{ markLabel }}: {{ mark.note }}</span></span>
+{% endmacro %}
+
+<header class="architecture-hero">
+  <div class="architecture-hero-gridlines" aria-hidden="true"></div>
+  <div class="shell architecture-hero-copy">
+    <p class="architecture-eyebrow"><span>{{ release.tag }}</span> System architecture</p>
+    <h1>The gateway runs the model;<br><span>the broker authorizes effects.</span></h1>
+    <p class="architecture-lede">The gateway handles chat and model inference. A separate broker authenticates the request, applies static Cedar policy and hard execution limits, then runs one Wasm provider operation.</p>
+    <div class="architecture-actions">
+      <a class="button button-primary" href="#runtime-map">See the runtime path <span aria-hidden="true">↓</span></a>
+      <a class="button button-secondary" href="#comparison">Compare agent runtimes <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="architecture-proof" role="group" aria-label="Architecture summary">
+      <div><strong>1</strong><span>proposal boundary</span></div>
+      <div><strong>2</strong><span>daemon processes</span></div>
+      <div><strong>3</strong><span>broker host interfaces</span></div>
+      <div><strong>0</strong><span>models in authorization</span></div>
+    </div>
+    <p class="architecture-release-note"><strong>Pre-production:</strong> the Dekopon diagram and row are pinned to the published {{ release.tag }} release. Competitor sources were checked <time datetime="{{ architecture.checkedDateIso }}">{{ architecture.checkedDate }}</time>.</p>
+  </div>
+</header>
+
+<section class="architecture-map-section" id="runtime-map">
+  <div class="shell">
+    <div class="architecture-section-heading">
+      <p class="section-kicker">Runtime on the left · provider supply chain on the right</p>
+      <h2>WIT labels a boundary; <code>wkg</code> never enters the request path.</h2>
+      <p>Cedar and Wasmtime aren’t successive layers. The broker uses Cedar to decide, constraint sets to bind the allowed reach, and Wasmtime to execute the selected component.</p>
+    </div>
+
+    <figure class="architecture-system-map" aria-labelledby="architecture-map-title">
+      <figcaption id="architecture-map-title" class="sr-only">Dekopon runtime and provider supply-chain architecture</figcaption>
+      <div class="architecture-runtime-map">
+        <div class="map-topline">
+          <span>runtime / authority path</span>
+          <code>request ↓ &nbsp; result ↑</code>
+        </div>
+
+        <div class="map-surfaces">
+          <span>request surfaces</span>
+          <div>
+            <strong>Slack</strong><strong>Discord</strong><strong>Telegram</strong><strong>WhatsApp</strong><strong>console</strong>
+          </div>
+        </div>
+        <div class="map-arrow" aria-hidden="true"><i></i><span>authenticated envelope</span></div>
+
+        <div class="map-process map-gateway-process">
+          <div class="map-process-heading">
+            <span>gateway role · no provider authority</span>
+            <strong><code>dekopond</code> or <code>dekopon console</code></strong>
+          </div>
+          <div class="map-gateway-grid">
+            <div class="map-node">
+              <small>route</small>
+              <strong>transport → agent</strong>
+              <span>sender, channel, conversation</span>
+            </div>
+            <div class="map-node map-node-agent">
+              <small>agent session</small>
+              <strong><code>bash({ script })</code></strong>
+              <span>JSON-native shell · bounded loop</span>
+            </div>
+            <div class="map-node map-node-model">
+              <small>external model API</small>
+              <strong>answer or script</strong>
+              <span>gateway holds chat/model credentials</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-boundary" role="separator" aria-label="Authenticated proposal boundary">
+          <span>proposal + attested subject</span>
+          <strong>permission boundary · Unix socket</strong>
+          <span>bounded result</span>
+        </div>
+
+        <div class="map-process map-broker-process">
+          <div class="map-process-heading">
+            <span>trusted effect authority</span>
+            <strong><code>dekopon-brokerd</code></strong>
+          </div>
+          <div class="map-decision-grid">
+            <div class="map-node map-node-identity"><small>01 · identity</small><strong>peer + subject mapping</strong><span>the payload can’t name its principal</span></div>
+            <div class="map-node map-node-cedar"><small>02 · Cedar</small><strong>who may act?</strong><span>principal × action × resource × context</span></div>
+            <div class="map-node map-node-limits"><small>03 · constraint set</small><strong>how far may it go?</strong><span>host · methods · calls · bytes · deadline</span></div>
+          </div>
+          <div class="map-broker-services">
+            <div><span>replay protection</span><span>credential selection</span><span>evidence + audit</span></div>
+            <strong>one single-use authorized invocation</strong>
+          </div>
+          <div class="map-provider-host">
+            <div class="map-provider-host-label"><span>provider registry → fresh Wasmtime store</span><code>fuel · memory · wall time</code></div>
+            <div class="map-provider-component">
+              <small>portable implementation</small>
+              <strong>Wasm provider component</strong>
+              <span>one named capability · one fresh instance</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-wit-seam"><span>only the WIT import granted for this invocation</span></div>
+        <div class="map-host-services">
+          <article><small><code>dekopon:http@1</code></small><strong>native HTTP</strong><span>DNS pinning · no redirects · late credential</span></article>
+          <article><small><code>storage/jsonl</code></small><strong>JSONL</strong><span>opaque namespace · quota · transaction</span></article>
+          <article><small><code>storage/durable-files</code></small><strong>durable files</strong><span>logical names · quota · transaction</span></article>
+          <article><small>no import</small><strong>pure compute</strong><span>Python · ripgrep · transforms</span></article>
+        </div>
+        <div class="map-world-row">
+          <span>external APIs</span>
+          <i aria-hidden="true"></i>
+          <span>broker-owned volume</span>
+        </div>
+      </div>
+
+      <aside class="architecture-build-rail" aria-label="Provider build and distribution path">
+        <div class="build-rail-top"><span>build / ship</span><code>offline from requests</code></div>
+        <ol>
+          <li><span>01</span><div><strong>Provider source</strong><small>Rust SDK + manifest + tests</small></div></li>
+          <li><span>02</span><div><strong>WIT packages</strong><small><code>wkg</code> fetches versioned interfaces</small></div></li>
+          <li><span>03</span><div><strong><code>wasm32-unknown-unknown</code></strong><small>dependencies close at build time</small></div></li>
+          <li><span>04</span><div><strong><code>wasm-tools component</code></strong><small>componentize + inspect imports</small></div></li>
+          <li><span>05</span><div><strong>Test the real boundary</strong><small>direct host or provider SDK testkit</small></div></li>
+          <li class="build-rail-artifact"><span>06</span><div><strong><code>provider.wasm</code></strong><small>checksum · provenance · OCI artifact</small></div></li>
+        </ol>
+        <div class="build-rail-install"><span aria-hidden="true">←</span><strong>operator stages bytes before broker startup</strong></div>
+        <p>The broker loads local component files. It doesn’t pull OCI artifacts, verify attestations, or hot-reload providers yet.</p>
+      </aside>
+    </figure>
+
+    <div class="architecture-role-grid">
+      <article class="reveal"><span>policy</span><h3>Cedar decides who may act.</h3><p>It reads trusted principal and routing context. It doesn’t read message text, provider input, destinations, credentials, or byte ceilings.</p></article>
+      <article class="reveal reveal-delay-1"><span>limits</span><h3>Constraint sets bound the effect.</h3><p>One owner-authored entry fixes the provider route, host or storage scope, credential, call count, bytes, and deadline.</p></article>
+      <article class="reveal reveal-delay-2"><span>runtime</span><h3>Wasmtime contains provider code.</h3><p>The broker reuses compiled code and creates a fresh store, instance, memory, and single-use grant for each invocation.</p></article>
+      <article class="reveal reveal-delay-3"><span>contract</span><h3>WIT makes host access inspectable.</h3><p>A component may declare HTTP or storage. Only the broker can connect that import to a native service after authorization.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="runtime-comparison-section" id="comparison">
+  <div class="shell">
+    <div class="architecture-section-heading comparison-heading">
+      <p class="section-kicker">5 systems · 11 architectural properties</p>
+      <h2>Five runtimes make different trust trades.</h2>
+      <p>This is not a feature score. The columns ask where code runs, who holds authority, and what evidence survives. A partial mark means the property is optional, narrower than the header, or supplied by an adjacent service.</p>
+    </div>
+
+    <div class="matrix-legend" role="group" aria-label="Comparison mark legend">
+      <span><i class="matrix-mark matrix-mark-yes" aria-hidden="true">✓</i> built in</span>
+      <span><i class="matrix-mark matrix-mark-partial" aria-hidden="true">◐</i> partial or adjacent</span>
+      <span><i class="matrix-mark matrix-mark-no" aria-hidden="true">—</i> not in this scope</span>
+      <span><i class="matrix-mark matrix-mark-unknown" aria-hidden="true">?</i> current sources don’t establish it</span>
+    </div>
+    <p class="matrix-scope-warning"><strong>AWS renamed Bedrock Agents to Bedrock Agents Classic.</strong> It entered maintenance mode and closed to new customers on 30 July 2026. The row below compares the product requested here, not AgentCore.</p>
+
+    <div class="runtime-matrix-wrap" tabindex="0" aria-label="Scrollable agent runtime comparison">
+      <table class="runtime-matrix">
+        <caption class="sr-only">Dekopon, OpenClaw, Hermes Agent, Amazon Bedrock Agents, and Google Agent Platform compared across eleven architecture properties</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="runtime-column">Agent system</th>
+            {% for criterion in architecture.criteria %}
+              <th scope="col"><span>{{ criterion.short }}</span><small>{{ criterion.label }}</small></th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for runtime in architecture.runtimes %}
+            <tr{% if runtime.featured %} class="runtime-featured"{% endif %}>
+              <th scope="row" class="runtime-column">
+                <a href="#sources-{{ runtime.key }}">{{ runtime.name }}</a>
+                <small>{{ runtime.scope }}</small>
+              </th>
+              {% for criterion in architecture.criteria %}
+                {% set mark = runtime.marks[criterion.key] %}
+                <td>{{ matrixMark(mark) }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="matrix-scroll-note">The first column stays fixed while the eleven properties scroll. Hover a mark for its note; every reason is also written below.</p>
+
+    <details class="criteria-disclosure">
+      <summary>Read the exact definition behind every column</summary>
+      <div class="criteria-grid">
+        {% for criterion in architecture.criteria %}
+          <article><span>{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</span><h3>{{ criterion.label }}</h3><p>{{ criterion.description }}</p></article>
+        {% endfor %}
+      </div>
+    </details>
+
+    <div class="score-notes">
+      <h3>Every mark has a written reason.</h3>
+      <p>The table stays scannable; these disclosures preserve the qualification behind each symbol.</p>
+      {% for runtime in architecture.runtimes %}
+        <details>
+          <summary><strong>{{ runtime.name }}</strong><span>{{ runtime.scope }}</span></summary>
+          <dl>
+            {% for criterion in architecture.criteria %}
+              {% set mark = runtime.marks[criterion.key] %}
+              <div><dt>{{ criterion.label }}</dt><dd><span class="score-state score-state-{{ mark.state }}">{{ mark.state }}</span>{{ mark.note }}</dd></div>
+            {% endfor %}
+          </dl>
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="architecture-limits-section" id="limits">
+  <div class="shell">
+    <div class="architecture-section-heading architecture-limits-heading">
+      <p class="section-kicker">Current limits in {{ release.tag }}</p>
+      <h2>Dekopon’s checked row doesn’t make it production-ready.</h2>
+      <p>The marks describe implemented boundaries. They don’t erase the deployment and product gaps below.</p>
+    </div>
+    <div class="architecture-limit-grid">
+      <article><span>UID</span><h3>One Unix UID is one trust domain.</h3><p>The gateway and broker are separate processes, but a hostile process already running as that UID can act as the configured peer. A dedicated gateway UID is still future work.</p></article>
+      <article><span>audit</span><h3>The audit anchor is local.</h3><p>The chain detects mutation and prefix rollback relative to its checkpoint. Anyone who can roll back both local files can defeat that comparison.</p></article>
+      <article><span>memory</span><h3>Durable recall stays on demand.</h3><p>Dekopon has no automatic durable replay, semantic or vector memory, cross-agent sharing, deletion/export UI, or content-encryption claim.</p></article>
+      <article><span>providers</span><h3>Operators stage provider bytes.</h3><p>The broker loads local files at startup. It doesn’t pull from OCI, pin an expected digest, verify artifact provenance, or reload a replacement live.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="architecture-sources-section" id="sources">
+  <div class="shell architecture-sources-layout">
+    <div class="architecture-sources-intro">
+      <p class="section-kicker">Primary sources · checked {{ architecture.checkedDate }}</p>
+      <h2>Product scopes stay narrower than their brand names.</h2>
+      <p>Open-source rows pin exact commits. AWS and Google publish living documentation, so their rows carry the check date instead. “Not documented” remains different from “no.”</p>
+    </div>
+    <div class="architecture-source-list">
+      {% for source in architecture.sources %}
+        <article id="sources-{{ source.key }}">
+          <div><span>0{{ loop.index }}</span><div><h3>{{ source.name }}</h3><code>{{ source.stamp }}</code></div></div>
+          <p>{{ source.summary }}</p>
+          <ul>
+            {% for link in source.links %}<li><a href="{{ link.href }}">{{ link.label }} <span aria-hidden="true">↗</span></a></li>{% endfor %}
+          </ul>
+        </article>
+      {% endfor %}
+    </div>
+
+    {{ docsCta("Open the current architecture document", "https://github.com/dekopon-agents/dekopon/blob/main/docs/architecture.md", "See the latest crate boundaries, process responsibilities, provider host details, and deployment limits after the pinned release shown here.") }}
+  </div>
+</section>
+
+<section class="architecture-closing">
+  <div class="shell">
+    <span>Continue through one real request</span>
+    <h2>Follow Alice’s PR comment from Slack to the audit chain.</h2>
+    <div>
+      <a class="button button-primary" href="/almanac/">Open How Dekopon works <span aria-hidden="true">→</span></a>
+      <a class="button button-secondary" href="/guides/provider-sdk/">Build a Wasm provider <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>

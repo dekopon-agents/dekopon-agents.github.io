@@ -1,0 +1,228 @@
+{
+  "checkedDate": "25 August 2026",
+  "checkedDateIso": "2026-08-25",
+  "criteria": [
+    {
+      "key": "selfHost",
+      "label": "Full runtime self-hosts",
+      "short": "Self-host",
+      "description": "The agent loop and execution runtime can run on infrastructure the operator controls; an SDK alone does not count."
+    },
+    {
+      "key": "channels",
+      "label": "First-party chat gateways",
+      "short": "Chat",
+      "description": "The compared runtime connects directly to chat services rather than requiring a separate application for every channel."
+    },
+    {
+      "key": "models",
+      "label": "Multiple model routes",
+      "short": "Models",
+      "description": "The runtime supports more than one model route or provider without replacing the agent architecture."
+    },
+    {
+      "key": "memory",
+      "label": "Durable cross-session memory",
+      "short": "Memory",
+      "description": "The runtime offers memory that can survive a process or session boundary. This says nothing about whether recall is automatic or safe."
+    },
+    {
+      "key": "defaultIsolation",
+      "label": "Tool isolation is the default",
+      "short": "Isolated by default",
+      "description": "Tool implementation starts without ambient host files, processes, network, environment, or credentials. Optional sandbox modes receive a partial mark."
+    },
+    {
+      "key": "separateAuthority",
+      "label": "Effect authority is separate",
+      "short": "Separate authority",
+      "description": "A process or managed service outside model orchestration owns the final permission transition and privileged effect execution."
+    },
+    {
+      "key": "staticActionPolicy",
+      "label": "Static policy names each action",
+      "short": "Action policy",
+      "description": "A deterministic rule outside the prompt decides whether a named action may run. Broad runtime roles or an optional shell allowlist count only partially."
+    },
+    {
+      "key": "hiddenCredentials",
+      "label": "Credentials enter outside tool code",
+      "short": "Brokered secrets",
+      "description": "The runtime can present a service credential after tool code has formed its request, without placing the value in the prompt or tool implementation."
+    },
+    {
+      "key": "hardEnvelope",
+      "label": "Each call has a hard I/O envelope",
+      "short": "Per-call bounds",
+      "description": "Trusted state binds destinations, methods or storage scope, call counts, byte ceilings, and a deadline to one operation. General quotas count only partially."
+    },
+    {
+      "key": "portableArtifact",
+      "label": "Tools ship as isolated portable artifacts",
+      "short": "Portable tools",
+      "description": "A reusable tool implementation ships as a sandboxed, host-architecture-independent artifact with an inspectable host interface—not as trusted in-process plugin code."
+    },
+    {
+      "key": "durableAudit",
+      "label": "Permission and result share a durable record",
+      "short": "Effect audit",
+      "description": "Durable metadata correlates the actor, permission decision, attempted action, and terminal result. Traces or general cloud API logs count only partially."
+    }
+  ],
+  "runtimes": [
+    {
+      "key": "dekopon",
+      "name": "Dekopon",
+      "scope": "v0.11.1 gateway + broker + Wasm providers",
+      "featured": true,
+      "marks": {
+        "selfHost": { "state": "yes", "note": "Four installable executables and a multi-architecture image." },
+        "channels": { "state": "yes", "note": "Slack, Discord, Telegram, WhatsApp, local socket, and terminal console." },
+        "models": { "state": "yes", "note": "OpenAI-compatible endpoints plus an isolated ChatGPT subscription route." },
+        "memory": { "state": "yes", "note": "Bounded in-process replay plus optional broker-owned on-demand durable chat memory." },
+        "defaultIsolation": { "state": "yes", "note": "The shell has no OS underneath; providers begin import-free or receive only an exact Dekopon host interface." },
+        "separateAuthority": { "state": "yes", "note": "dekopond and the console propose; dekopon-brokerd alone authorizes and executes effects." },
+        "staticActionPolicy": { "state": "yes", "note": "Cedar decides named actions; separate constraint sets bind execution." },
+        "hiddenCredentials": { "state": "yes", "note": "The native HTTP engine injects a destination-bound value after guest-header validation." },
+        "hardEnvelope": { "state": "yes", "note": "One authorization binds host or storage scope, calls, bytes, fuel, memory, and deadline." },
+        "portableArtifact": { "state": "yes", "note": "Providers are WebAssembly Components with versioned WIT imports and fresh Wasmtime stores." },
+        "durableAudit": { "state": "yes", "note": "Hash-linked metadata joins identity, Cedar decision, execution outcome, and evidence." }
+      }
+    },
+    {
+      "key": "openclaw",
+      "name": "OpenClaw",
+      "scope": "OpenClaw Gateway at main@935c555",
+      "marks": {
+        "selfHost": { "state": "yes", "note": "The Gateway installs on operator-owned macOS, Linux, Windows, containers, and companion devices." },
+        "channels": { "state": "yes", "note": "First-party integrations include WhatsApp, Telegram, Slack, Discord, Signal, iMessage, and others." },
+        "models": { "state": "yes", "note": "Hosted and local model providers share the Gateway runtime." },
+        "memory": { "state": "yes", "note": "Workspace Markdown, SQLite-backed search, semantic recall, and optional memory plugins." },
+        "defaultIsolation": { "state": "no", "note": "Official docs say sandbox mode defaults to off and main-session tools run on the host unless configured otherwise." },
+        "separateAuthority": { "state": "no", "note": "The Gateway owns the model runtime, tool policy, credentials, plugins, and most execution inside one operator trust domain." },
+        "staticActionPolicy": { "state": "partial", "note": "Tool policy and host-exec allowlists are deterministic, but they are not a universal per-integration effect policy and trusted defaults can allow host exec." },
+        "hiddenCredentials": { "state": "partial", "note": "SecretRefs, sentinels, and an opt-in destination-bound egress proxy reduce exposure; native plugins still share Gateway process privileges." },
+        "hardEnvelope": { "state": "partial", "note": "Sandbox network settings, tool policy, approvals, and tool-specific timeouts exist, but no one envelope covers every effectful integration." },
+        "portableArtifact": { "state": "no", "note": "Plugins load in-process as trusted code; skills and package installs do not form an isolated component ABI." },
+        "durableAudit": { "state": "partial", "note": "A bounded metadata-only SQLite audit ledger and decision receipts exist, but writes are best-effort and the ledger is not authorization evidence or a compliance archive." }
+      }
+    },
+    {
+      "key": "hermes",
+      "name": "Hermes Agent",
+      "scope": "NousResearch/hermes-agent at main@bc47fcd",
+      "marks": {
+        "selfHost": { "state": "yes", "note": "Runs locally, in Docker, over SSH, and on several remote or serverless terminal backends." },
+        "channels": { "state": "yes", "note": "The gateway advertises Telegram, Discord, Slack, WhatsApp, Signal, email, and CLI." },
+        "models": { "state": "yes", "note": "Supports Nous Portal, OpenRouter, OpenAI, custom endpoints, and other providers." },
+        "memory": { "state": "yes", "note": "Persistent memory, session search, user modelling, and skill learning are first-class features." },
+        "defaultIsolation": { "state": "no", "note": "The security policy says the default terminal backend executes on the host; OS-level terminal or whole-process isolation is an operator choice." },
+        "separateAuthority": { "state": "no", "note": "The Python agent process owns model orchestration, plugins, credentials, hooks, and ordinary tool dispatch." },
+        "staticActionPolicy": { "state": "partial", "note": "Command allowlists and approval prompts catch mistakes, but the project explicitly calls them in-process heuristics rather than a security boundary." },
+        "hiddenCredentials": { "state": "partial", "note": "Child environments strip credentials by default and OpenShell can inject from a Provider store; in-process plugins can still read agent credentials." },
+        "hardEnvelope": { "state": "partial", "note": "Docker, SSH, cloud sandboxes, or OpenShell can bound selected execution paths; no universal per-tool effect envelope applies in the default runtime." },
+        "portableArtifact": { "state": "no", "note": "Skills, plugins, MCP servers, Python dependencies, and terminal backends are reviewed operator code rather than one isolated provider artifact." },
+        "durableAudit": { "state": "unknown", "note": "Official sources reviewed here describe logs and install review, but do not establish a durable permission-to-effect audit record." }
+      }
+    },
+    {
+      "key": "bedrock",
+      "name": "Amazon Bedrock Agents Classic",
+      "scope": "Maintenance mode · existing customers · AgentCore excluded",
+      "marks": {
+        "selfHost": { "state": "no", "note": "AWS operates the managed orchestration runtime; custom software using Bedrock APIs is a different scope." },
+        "channels": { "state": "no", "note": "The native surface is an API and console test interface; chat or voice channels come from an application or another AWS service." },
+        "models": { "state": "partial", "note": "An agent selects from the Bedrock model catalog frozen for Agents Classic on 30 July 2026." },
+        "memory": { "state": "yes", "note": "Optional summarized memory can retain sessions under a memory ID for up to 365 days." },
+        "defaultIsolation": { "state": "partial", "note": "Built-in Code Interpreter is managed; action code normally runs in adjacent Lambda or in the caller after return-control." },
+        "separateAuthority": { "state": "partial", "note": "IAM and the service role sit outside model reasoning, but Bedrock Agents has no documented per-effect broker equivalent." },
+        "staticActionPolicy": { "state": "partial", "note": "Action-group schemas, IAM, and optional user confirmation constrain execution without forming one per-call action policy." },
+        "hiddenCredentials": { "state": "partial", "note": "The agent uses an AWS service role; Lambda or the return-control application owns action-specific credentials." },
+        "hardEnvelope": { "state": "unknown", "note": "Public docs reviewed here do not establish customer-authored destination, byte, call-count, and deadline bounds for each action." },
+        "portableArtifact": { "state": "no", "note": "The extension unit is action-group configuration plus Lambda or caller code, not a portable isolated provider component." },
+        "durableAudit": { "state": "partial", "note": "InvokeAgent traces and optional CloudTrail data events exist, but they do not document one durable permission-and-remote-effect receipt." }
+      }
+    },
+    {
+      "key": "google",
+      "name": "Google Agent Platform",
+      "scope": "ADK + managed Agent Platform Runtime",
+      "marks": {
+        "selfHost": { "state": "partial", "note": "Open-source ADK applications can run on chosen infrastructure; Agent Platform Runtime, Memory Bank, and managed services stay on Google Cloud." },
+        "channels": { "state": "no", "note": "Production chat and voice surfaces require a custom client or an adjacent Google product." },
+        "models": { "state": "partial", "note": "ADK is Gemini-first and supports other model adapters; managed-runtime feature parity varies." },
+        "memory": { "state": "yes", "note": "Managed sessions and Memory Bank store conversational state and long-term user facts." },
+        "defaultIsolation": { "state": "partial", "note": "Managed Code Execution uses an isolated sandbox, but that does not establish the same boundary for every ADK tool or agent process." },
+        "separateAuthority": { "state": "partial", "note": "IAM and service accounts live outside model reasoning, but they govern cloud resources rather than every model-selected tool call." },
+        "staticActionPolicy": { "state": "partial", "note": "IAM Conditions can narrow agents, sessions, and memory resources; no universal per-tool action policy was established." },
+        "hiddenCredentials": { "state": "partial", "note": "Workload identity, API keys, OAuth, and adjacent Secret Manager can hold credentials; no universal broker-late injection boundary was established." },
+        "hardEnvelope": { "state": "partial", "note": "Managed sandboxes and service quotas apply to some execution, not one customer-authored envelope around every tool call." },
+        "portableArtifact": { "state": "no", "note": "ADK tools, OpenAPI tools, MCP servers, and deployed agents do not form one isolated cross-runtime provider artifact." },
+        "durableAudit": { "state": "partial", "note": "Cloud Trace, Logging, and audit services provide operational evidence without one documented permission-to-effect receipt." }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "key": "dekopon",
+      "name": "Dekopon",
+      "stamp": "v0.11.1 · 62d2185 · 23 August 2026",
+      "summary": "The matrix uses the published release, not current roadmap prose.",
+      "links": [
+        { "label": "Design and component boundaries", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.11.1/docs/design.md" },
+        { "label": "Broker HTTP, policy, credentials, and audit", "href": "https://github.com/dekopon-agents/dekopon/blob/v0.11.1/docs/broker-http.md" },
+        { "label": "Provider SDK guide", "href": "/guides/provider-sdk/" }
+      ]
+    },
+    {
+      "key": "openclaw",
+      "name": "OpenClaw",
+      "stamp": "main · 935c555 · checked 25 August 2026",
+      "summary": "The row follows OpenClaw's documented single-operator Gateway trust model and current optional sandbox, secrets, and audit systems.",
+      "links": [
+        { "label": "Project and Gateway overview", "href": "https://github.com/openclaw/openclaw/tree/935c555c98d6b38af76faa6a0b1370353d1828df" },
+        { "label": "Sandbox modes and defaults", "href": "https://github.com/openclaw/openclaw/blob/935c555c98d6b38af76faa6a0b1370353d1828df/docs/gateway/sandboxing.md" },
+        { "label": "Security and plugin trust model", "href": "https://github.com/openclaw/openclaw/blob/935c555c98d6b38af76faa6a0b1370353d1828df/SECURITY.md" },
+        { "label": "Secrets and destination-bound egress", "href": "https://github.com/openclaw/openclaw/blob/935c555c98d6b38af76faa6a0b1370353d1828df/docs/gateway/secrets.md" },
+        { "label": "Metadata-only audit history", "href": "https://github.com/openclaw/openclaw/blob/935c555c98d6b38af76faa6a0b1370353d1828df/docs/gateway/audit.md" }
+      ]
+    },
+    {
+      "key": "hermes",
+      "name": "Hermes Agent",
+      "stamp": "main · bc47fcd · checked 25 August 2026",
+      "summary": "The row means Nous Research's Hermes Agent runtime, not the Hermes model family.",
+      "links": [
+        { "label": "Runtime overview and supported surfaces", "href": "https://github.com/NousResearch/hermes-agent/tree/bc47fcd3f927abcd1ec281078bc56348e37a2ec0" },
+        { "label": "OS isolation and plugin trust model", "href": "https://github.com/NousResearch/hermes-agent/blob/bc47fcd3f927abcd1ec281078bc56348e37a2ec0/SECURITY.md" }
+      ]
+    },
+    {
+      "key": "bedrock",
+      "name": "Amazon Bedrock Agents Classic",
+      "stamp": "maintenance mode · living AWS docs · checked 25 August 2026",
+      "summary": "AWS renamed the product Bedrock Agents Classic and closed it to new customers on 30 July 2026. The row compares the product the user named, not its AgentCore successor; Lambda, CloudTrail, Knowledge Bases, and Guardrails remain adjacent services.",
+      "links": [
+        { "label": "Agents Classic maintenance mode", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html" },
+        { "label": "Agents for Amazon Bedrock", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html" },
+        { "label": "Action groups, Lambda, return-control, and confirmation", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-action-add.html" },
+        { "label": "Agent service role", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-permissions.html" },
+        { "label": "Agent memory", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-memory.html" },
+        { "label": "CloudTrail coverage", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html" }
+      ]
+    },
+    {
+      "key": "google",
+      "name": "Google Agent Platform",
+      "stamp": "living Google docs · checked 25 August 2026",
+      "summary": "The row scopes Google's changing Agent Builder name to open-source ADK plus the managed Agent Platform Runtime; adjacent channel products stay outside it.",
+      "links": [
+        { "label": "Agent Platform product scope", "href": "https://cloud.google.com/products/agent-builder" },
+        { "label": "Agent Platform Runtime overview", "href": "https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview" },
+        { "label": "ADK tools", "href": "https://google.github.io/adk-docs/tools/" },
+        { "label": "Managed Code Execution", "href": "https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/code-execution/overview" },
+        { "label": "Memory Bank", "href": "https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/memory-bank/overview" }
+      ]
+    }
+  ]
+}
