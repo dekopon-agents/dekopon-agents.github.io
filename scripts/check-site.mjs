@@ -117,6 +117,16 @@ const comparisonSourceKeys = architecture.sources.map((source) => source.key).so
 if (JSON.stringify(comparisonRuntimeKeys) !== JSON.stringify(comparisonSourceKeys)) {
     failures.push("architecture.json: runtime and source keys differ");
 }
+if (!comparisonKeys.includes("existingTools")) {
+    failures.push("architecture.json: missing existing-tool reuse criterion");
+}
+const dekoponRuntime = architecture.runtimes.find((runtime) => runtime.key === "dekopon");
+if (dekoponRuntime?.marks.existingTools?.state !== "no") {
+    failures.push("architecture.json: Dekopon must remain explicit about lacking drop-in existing-tool reuse");
+}
+if (!architecture.runtimes.some((runtime) => runtime.key === "agentcore")) {
+    failures.push("architecture.json: missing the separate Amazon Bedrock AgentCore row");
+}
 
 for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");

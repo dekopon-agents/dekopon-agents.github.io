@@ -166,8 +166,8 @@ ogType: article
 <section class="runtime-comparison-section" id="comparison">
   <div class="shell">
     <div class="architecture-section-heading comparison-heading">
-      <p class="section-kicker">5 systems · 11 architectural properties</p>
-      <h2>Five runtimes make different trust trades.</h2>
+      <p class="section-kicker">{{ architecture.runtimes | length }} systems · {{ architecture.criteria | length }} architectural properties</p>
+      <h2>Agent runtimes make different trust trades.</h2>
       <p>This is not a feature score. The columns ask where code runs, who holds authority, and what evidence survives. A partial mark means the property is optional, narrower than the header, or supplied by an adjacent service.</p>
     </div>
 
@@ -177,11 +177,12 @@ ogType: article
       <span><i class="matrix-mark matrix-mark-no" aria-hidden="true">—</i> not in this scope</span>
       <span><i class="matrix-mark matrix-mark-unknown" aria-hidden="true">?</i> current sources don’t establish it</span>
     </div>
-    <p class="matrix-scope-warning"><strong>AWS renamed Bedrock Agents to Bedrock Agents Classic.</strong> It entered maintenance mode and closed to new customers on 30 July 2026. The row below compares the product requested here, not AgentCore.</p>
+    <p class="matrix-scope-warning"><strong>AWS renamed Bedrock Agents to Bedrock Agents Classic.</strong> It entered maintenance mode and closed to new customers on 30 July 2026. AgentCore now has its own row; the Classic row doesn’t inherit AgentCore capabilities.</p>
+    <p class="matrix-tradeoff-note"><strong>Dekopon is marked “no” for tool reuse.</strong> It is not a general-purpose isolation environment. Existing CLIs, SDK tools, MCP servers, and plugins need a purpose-built Wasm provider or adapter before the broker can host them.</p>
 
     <div class="runtime-matrix-wrap" tabindex="0" aria-label="Scrollable agent runtime comparison">
       <table class="runtime-matrix">
-        <caption class="sr-only">Dekopon, OpenClaw, Hermes Agent, Amazon Bedrock Agents, and Google Agent Platform compared across eleven architecture properties</caption>
+        <caption class="sr-only">{% for runtime in architecture.runtimes %}{{ runtime.name }}{% if not loop.last %}, {% endif %}{% endfor %} compared across {{ architecture.criteria | length }} architecture properties</caption>
         <thead>
           <tr>
             <th scope="col" class="runtime-column">Agent system</th>
@@ -206,7 +207,7 @@ ogType: article
         </tbody>
       </table>
     </div>
-    <p class="matrix-scroll-note">The first column stays fixed while the eleven properties scroll. Hover a mark for its note; every reason is also written below.</p>
+    <p class="matrix-scroll-note">The first column stays fixed while the properties scroll. Hover a mark for its note; every reason is also written below.</p>
 
     <details class="criteria-disclosure">
       <summary>Read the exact definition behind every column</summary>

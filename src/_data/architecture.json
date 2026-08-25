@@ -57,6 +57,12 @@
       "description": "Trusted state binds destinations, methods or storage scope, call counts, byte ceilings, and a deadline to one operation. General quotas count only partially."
     },
     {
+      "key": "existingTools",
+      "label": "Existing tools work with little adaptation",
+      "short": "Reuse tools",
+      "description": "Existing scripts, CLIs, functions, APIs, or MCP servers can enter the runtime without being rewritten against a dedicated component ABI. A yes favors adoption speed; it does not imply stronger isolation."
+    },
+    {
       "key": "portableArtifact",
       "label": "Tools ship as isolated portable artifacts",
       "short": "Portable tools",
@@ -85,6 +91,7 @@
         "staticActionPolicy": { "state": "yes", "note": "Cedar decides named actions; separate constraint sets bind execution." },
         "hiddenCredentials": { "state": "yes", "note": "The native HTTP engine injects a destination-bound value after guest-header validation." },
         "hardEnvelope": { "state": "yes", "note": "One authorization binds host or storage scope, calls, bytes, fuel, memory, and deadline." },
+        "existingTools": { "state": "no", "note": "Existing CLIs, SDK tools, MCP servers, and plugins do not drop in; they need a purpose-built Wasm provider or adapter against Dekopon's narrow WIT host interfaces." },
         "portableArtifact": { "state": "yes", "note": "Providers are WebAssembly Components with versioned WIT imports and fresh Wasmtime stores." },
         "durableAudit": { "state": "yes", "note": "Hash-linked metadata joins identity, Cedar decision, execution outcome, and evidence." }
       }
@@ -103,6 +110,7 @@
         "staticActionPolicy": { "state": "partial", "note": "Tool policy and host-exec allowlists are deterministic, but they are not a universal per-integration effect policy and trusted defaults can allow host exec." },
         "hiddenCredentials": { "state": "partial", "note": "SecretRefs, sentinels, and an opt-in destination-bound egress proxy reduce exposure; native plugins still share Gateway process privileges." },
         "hardEnvelope": { "state": "partial", "note": "Sandbox network settings, tool policy, approvals, and tool-specific timeouts exist, but no one envelope covers every effectful integration." },
+        "existingTools": { "state": "yes", "note": "Skills, shell commands, CLIs, plugins, and external tool servers fit the Gateway without a new portable component ABI." },
         "portableArtifact": { "state": "no", "note": "Plugins load in-process as trusted code; skills and package installs do not form an isolated component ABI." },
         "durableAudit": { "state": "partial", "note": "A bounded metadata-only SQLite audit ledger and decision receipts exist, but writes are best-effort and the ledger is not authorization evidence or a compliance archive." }
       }
@@ -121,14 +129,34 @@
         "staticActionPolicy": { "state": "partial", "note": "Command allowlists and approval prompts catch mistakes, but the project explicitly calls them in-process heuristics rather than a security boundary." },
         "hiddenCredentials": { "state": "partial", "note": "Child environments strip credentials by default and OpenShell can inject from a Provider store; in-process plugins can still read agent credentials." },
         "hardEnvelope": { "state": "partial", "note": "Docker, SSH, cloud sandboxes, or OpenShell can bound selected execution paths; no universal per-tool effect envelope applies in the default runtime." },
+        "existingTools": { "state": "yes", "note": "Existing CLIs, Python packages, MCP servers, skills, and remote shell environments fit its terminal-first model." },
         "portableArtifact": { "state": "no", "note": "Skills, plugins, MCP servers, Python dependencies, and terminal backends are reviewed operator code rather than one isolated provider artifact." },
         "durableAudit": { "state": "unknown", "note": "Official sources reviewed here describe logs and install review, but do not establish a durable permission-to-effect audit record." }
       }
     },
     {
+      "key": "agentcore",
+      "name": "Amazon Bedrock AgentCore",
+      "scope": "Managed Runtime + Gateway + Policy + Identity",
+      "marks": {
+        "selfHost": { "state": "no", "note": "AWS operates AgentCore's managed services; bringing a container, framework, or model does not make the control plane self-hosted." },
+        "channels": { "state": "no", "note": "Runtime and Gateway expose APIs and protocols; Slack and other packaged integrations are outbound tool targets, not inbound chat gateways." },
+        "models": { "state": "yes", "note": "Runtime supports any model and framework; Harness supports Bedrock, OpenAI, Gemini, and OpenAI-compatible providers with per-invocation switching." },
+        "memory": { "state": "yes", "note": "AgentCore Memory provides managed short-term events and long-term records that persist across sessions." },
+        "defaultIsolation": { "state": "partial", "note": "Each Runtime or Harness session gets a dedicated microVM, but agent and inline tool code share that session; Browser and Code Interpreter are separate services." },
+        "separateAuthority": { "state": "yes", "note": "For the integrated path scored here, Gateway invokes the target and Policy evaluates the tool call outside agent code; direct calls that bypass Gateway do not inherit this mark." },
+        "staticActionPolicy": { "state": "yes", "note": "AgentCore Policy uses Cedar or Dogwood to evaluate named tools and inputs at Gateway before target invocation." },
+        "hiddenCredentials": { "state": "yes", "note": "Gateway and Identity inject IAM, OAuth, or API-key credentials for a target without exposing raw values to agent code." },
+        "hardEnvelope": { "state": "partial", "note": "Policy can bind inputs and session counts or budgets, while Gateway can rate-limit traffic and concurrency; public docs do not show one fail-closed per-call byte and deadline envelope, and rate limits fail open." },
+        "existingTools": { "state": "yes", "note": "Gateway converts OpenAPI, Smithy, Lambda, existing MCP servers, and packaged integrations into tools without a new tool implementation." },
+        "portableArtifact": { "state": "no", "note": "Runtime containers, Lambda functions, APIs, and MCP targets are heterogeneous deployment units, not one host-independent sandboxed tool artifact." },
+        "durableAudit": { "state": "partial", "note": "Policy decisions have CloudWatch logs, Gateway calls can be CloudTrail data events, and OTEL traces capture steps; the docs do not establish one permission-and-terminal-result receipt." }
+      }
+    },
+    {
       "key": "bedrock",
       "name": "Amazon Bedrock Agents Classic",
-      "scope": "Maintenance mode · existing customers · AgentCore excluded",
+      "scope": "Maintenance mode · existing customers · AgentCore separate",
       "marks": {
         "selfHost": { "state": "no", "note": "AWS operates the managed orchestration runtime; custom software using Bedrock APIs is a different scope." },
         "channels": { "state": "no", "note": "The native surface is an API and console test interface; chat or voice channels come from an application or another AWS service." },
@@ -139,6 +167,7 @@
         "staticActionPolicy": { "state": "partial", "note": "Action-group schemas, IAM, and optional user confirmation constrain execution without forming one per-call action policy." },
         "hiddenCredentials": { "state": "partial", "note": "The agent uses an AWS service role; Lambda or the return-control application owns action-specific credentials." },
         "hardEnvelope": { "state": "unknown", "note": "Public docs reviewed here do not establish customer-authored destination, byte, call-count, and deadline bounds for each action." },
+        "existingTools": { "state": "partial", "note": "Existing Lambda functions or APIs need action-group schemas and Lambda event/response adaptation, or the caller must execute return-control actions." },
         "portableArtifact": { "state": "no", "note": "The extension unit is action-group configuration plus Lambda or caller code, not a portable isolated provider component." },
         "durableAudit": { "state": "partial", "note": "InvokeAgent traces and optional CloudTrail data events exist, but they do not document one durable permission-and-remote-effect receipt." }
       }
@@ -157,6 +186,7 @@
         "staticActionPolicy": { "state": "partial", "note": "IAM Conditions can narrow agents, sessions, and memory resources; no universal per-tool action policy was established." },
         "hiddenCredentials": { "state": "partial", "note": "Workload identity, API keys, OAuth, and adjacent Secret Manager can hold credentials; no universal broker-late injection boundary was established." },
         "hardEnvelope": { "state": "partial", "note": "Managed sandboxes and service quotas apply to some execution, not one customer-authored envelope around every tool call." },
+        "existingTools": { "state": "yes", "note": "ADK can wrap ordinary functions and connect OpenAPI operations and MCP servers without a dedicated portable component ABI." },
         "portableArtifact": { "state": "no", "note": "ADK tools, OpenAPI tools, MCP servers, and deployed agents do not form one isolated cross-runtime provider artifact." },
         "durableAudit": { "state": "partial", "note": "Cloud Trace, Logging, and audit services provide operational evidence without one documented permission-to-effect receipt." }
       }
@@ -198,10 +228,26 @@
       ]
     },
     {
+      "key": "agentcore",
+      "name": "Amazon Bedrock AgentCore",
+      "stamp": "living AWS docs · checked 25 August 2026",
+      "summary": "The row scores an integrated managed path through Runtime or Harness, Memory, Gateway, Identity, and Policy. These services are modular: an agent call that bypasses Gateway does not inherit the Gateway, Policy, credential, or audit marks.",
+      "links": [
+        { "label": "AgentCore product and modular service scope", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html" },
+        { "label": "Runtime session microVMs and identity", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html" },
+        { "label": "Gateway targets, existing tools, and credential exchange", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html" },
+        { "label": "Deterministic Gateway policy enforcement", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy.html" },
+        { "label": "Gateway outbound authorization", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-outbound-auth.html" },
+        { "label": "Short- and long-term memory", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html" },
+        { "label": "Gateway rate limits and fail-open behavior", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-rate-limits.html" },
+        { "label": "Observability and CloudWatch storage", "href": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html" }
+      ]
+    },
+    {
       "key": "bedrock",
       "name": "Amazon Bedrock Agents Classic",
       "stamp": "maintenance mode · living AWS docs · checked 25 August 2026",
-      "summary": "AWS renamed the product Bedrock Agents Classic and closed it to new customers on 30 July 2026. The row compares the product the user named, not its AgentCore successor; Lambda, CloudTrail, Knowledge Bases, and Guardrails remain adjacent services.",
+      "summary": "AWS renamed the product Bedrock Agents Classic and closed it to new customers on 30 July 2026. This row does not borrow capabilities from the separate AgentCore row; Lambda, CloudTrail, Knowledge Bases, and Guardrails remain adjacent services.",
       "links": [
         { "label": "Agents Classic maintenance mode", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html" },
         { "label": "Agents for Amazon Bedrock", "href": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html" },

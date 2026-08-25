@@ -847,6 +847,22 @@
   color: #934d2d;
 }
 
+.matrix-tradeoff-note {
+  max-width: 950px;
+  margin: -8px 0 18px;
+  padding: 13px 15px;
+  color: #4f5471;
+  background: #f5f3ff;
+  border: 1px solid #ddd8ff;
+  border-radius: 9px;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.matrix-tradeoff-note strong {
+  color: #4f45b8;
+}
+
 .matrix-mark {
   width: 34px;
   height: 34px;
