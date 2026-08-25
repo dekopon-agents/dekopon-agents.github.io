@@ -50,9 +50,9 @@ ogType: article
 <section class="architecture-map-section" id="runtime-map">
   <div class="shell">
     <div class="architecture-section-heading">
-      <p class="section-kicker">Runtime on the left · provider supply chain on the right</p>
-      <h2>WIT labels a boundary; <code>wkg</code> never enters the request path.</h2>
-      <p>Cedar and Wasmtime aren’t successive layers. The broker uses Cedar to decide, constraint sets to bind the allowed reach, and Wasmtime to execute the selected component.</p>
+      <p class="section-kicker">Process state · Tokio tasks · provider calls</p>
+      <h2>The gateway shares process state and spawns one session task per message.</h2>
+      <p>The diagram separates daemon-lifetime state from per-message and per-call state. Cedar decides over startup-fixed policy, constraint sets bind the allowed reach, and Wasmtime creates a fresh store and component instance for each authorized provider call.</p>
     </div>
 
     <figure class="architecture-system-map" aria-labelledby="architecture-map-title">
@@ -63,73 +63,119 @@ ogType: article
           <code>request ↓ &nbsp; result ↑</code>
         </div>
 
-        <div class="map-surfaces">
-          <span>request surfaces</span>
+        <div class="map-surfaces map-integrations">
+          <span>gateway integrations · one reader task each</span>
           <div>
-            <strong>Slack</strong><strong>Discord</strong><strong>Telegram</strong><strong>WhatsApp</strong><strong>console</strong>
+            <strong>Slack</strong><strong>Discord</strong><strong>Telegram</strong><strong>WhatsApp</strong><strong>local socket</strong>
           </div>
+          <p>Service integrations authenticate their connection or envelope and derive a canonical subject plus chat coordinates; the owner-only local development socket instead trusts its caller to declare a <code>dev.*</code> subject. <code>dekopon console</code> joins at the session loop without a transport reader or router.</p>
         </div>
-        <div class="map-arrow" aria-hidden="true"><i></i><span>authenticated envelope</span></div>
+        <div class="map-arrow" aria-hidden="true"><i></i><span>bounded mpsc · transport-derived event</span></div>
 
         <div class="map-process map-gateway-process">
           <div class="map-process-heading">
-            <span>gateway role · no provider authority</span>
-            <strong><code>dekopond</code> or <code>dekopon console</code></strong>
+            <span>gateway · injects integration-derived subject, never principal</span>
+            <strong><code>dekopond</code></strong>
           </div>
-          <div class="map-gateway-grid">
-            <div class="map-node">
-              <small>route</small>
-              <strong>transport → agent</strong>
-              <span>sender, channel, conversation</span>
-            </div>
-            <div class="map-node map-node-agent">
-              <small>agent session</small>
-              <strong><code>bash({ script })</code></strong>
-              <span>JSON-native shell · bounded loop</span>
-            </div>
-            <div class="map-node map-node-model">
-              <small>external model API</small>
-              <strong>answer or script</strong>
-              <span>gateway holds chat/model credentials</span>
+          <div class="map-shared-state">
+            <small>shared process state · one per daemon</small>
+            <div>
+              <span>routing table</span><span>bounded inbound queue</span><span>session semaphore</span><span>conversation + asset stores</span><span>model client cache + connection pools</span>
             </div>
           </div>
+          <div class="map-flow-stack map-gateway-flow">
+            <article class="map-node map-flow-node">
+              <small>01 · routing loop</small>
+              <strong>one event → one routed message</strong>
+              <span>First-match routing and address checks run on the central loop; its <code>JoinSet</code> spawns one async session task for each accepted chat message.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-agent">
+              <small>02 · async session task</small>
+              <strong>admit, attest, then seed</strong>
+              <span>A process semaphore bounds concurrency; an in-flight set serializes the same transport/channel/thread. A fresh <code>capabilitiesForChat</code> broker call precedes model spend, then optional history and assets are loaded.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-model">
+              <small>03 · blocking prompt loop</small>
+              <strong>shared model client ↔ external API</strong>
+              <span><code>spawn_blocking</code> keeps synchronous model and shell work off Tokio workers. Each model turn sends instructions, optional history, the message, and tool definitions through one lazily cached client and connection pool. The route default is eight model turns; one turn may return at most ten tool calls.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-shell">
+              <small>04 · each <code>bash</code> call</small>
+              <strong>one fresh script interpreter</strong>
+              <span>Scripts may use loops, conditionals, functions, builtins, and provider command words. The interpreter starts no OS processes; capability words become broker proposals. Work is bounded: the defaults cap one script at 100,000 steps and 30 seconds, while one session shares a 16-capability-call budget across every script.</span>
+            </article>
+          </div>
+          <div class="map-loop-note"><span>bounded repeat</span><strong>model request → <code>bash</code> script → tool results → next model request</strong><small>until a final answer, cancellation, refusal, or budget exhaustion</small></div>
         </div>
 
-        <div class="map-boundary" role="separator" aria-label="Authenticated proposal boundary">
-          <span>proposal + attested subject</span>
-          <strong>permission boundary · Unix socket</strong>
-          <span>bounded result</span>
+        <div class="map-boundary" role="separator" aria-label="Untrusted proposal boundary">
+          <span>untrusted <code>InvocationRequest</code> proposal + <code>ChatAttestation</code></span>
+          <strong>one bounded Unix request per connection</strong>
+          <span><code>InvocationResult</code> · never authority</span>
         </div>
 
         <div class="map-process map-broker-process">
           <div class="map-process-heading">
-            <span>trusted effect authority</span>
+            <span>tool execution · authorization + provider host</span>
             <strong><code>dekopon-brokerd</code></strong>
           </div>
-          <div class="map-decision-grid">
-            <div class="map-node map-node-identity"><small>01 · identity</small><strong>peer + subject mapping</strong><span>the payload can’t name its principal</span></div>
-            <div class="map-node map-node-cedar"><small>02 · Cedar</small><strong>who may act?</strong><span>principal × action × resource × context</span></div>
-            <div class="map-node map-node-limits"><small>03 · constraint set</small><strong>how far may it go?</strong><span>host · methods · calls · bytes · deadline</span></div>
+          <div class="map-shared-state map-broker-state">
+            <small>startup-fixed process state · shared by every connection task</small>
+            <div>
+              <span>UID → peer + attestor map</span><span>Cedar <code>PolicyEngine</code> + digest</span><span>constraint + credential catalogs</span><span>replay ledger + audit writer</span><span>one Wasmtime <code>Engine</code> + <code>Linker</code></span><span>one compiled <code>InstancePre</code> per provider</span>
+            </div>
+          </div>
+          <div class="map-flow-stack map-broker-flow">
+            <article class="map-node map-flow-node map-node-connection">
+              <small>01 · Tokio connection task</small>
+              <strong>authenticate peer + decode frame</strong>
+              <span>The listener admits under a connection semaphore, spawns one task, reads OS peer credentials, maps the UID, and strict-decodes one size- and deadline-bounded request.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-identity">
+              <small>02 · identity envelope</small>
+              <strong>validate attestation → derive context</strong>
+              <span>The broker binds proposal ID to attestation, checks chat scope and the gateway’s attestor grant, then maps the integration-derived subject to a principal, Agent actor, <code>via</code>, and chat context. The payload cannot name its principal.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-cedar">
+              <small>03 · Cedar request</small>
+              <strong>trusted context + capability → policy input</strong>
+              <span>After replay reservation and constraint lookup, the broker constructs principal × action × provider × trusted routing context. Message text and provider JSON input do not enter Cedar.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-limits">
+              <small>04 · startup-fixed policy</small>
+              <strong>evaluate → deny or bind constraints</strong>
+              <span>Policies parse and strict-validate once before the listener binds. Per proposal, Cedar returns allow or deny; an allow is bound to owner-authored provider, host, method, call, byte, and deadline constraints as one broker-only <code>AuthorizedInvocation</code>. Symbolic credential selection stays alongside it, never inside it.</span>
+            </article>
+            <article class="map-node map-flow-node map-node-runtime">
+              <small>05 · provider dispatch</small>
+              <strong>route authorization to compiled provider</strong>
+              <span>The decision is audited before execution. The broker selects the capability route and optional destination-bound credential, then passes the single-use authorization to the Wasmtime host.</span>
+            </article>
           </div>
           <div class="map-broker-services">
-            <div><span>replay protection</span><span>credential selection</span><span>evidence + audit</span></div>
-            <strong>one single-use authorized invocation</strong>
+            <div><span>replay protection</span><span>credential selection</span><span>decision + terminal audit</span></div>
+            <strong>one authorization · one provider invocation</strong>
           </div>
           <div class="map-provider-host">
-            <div class="map-provider-host-label"><span>provider registry → fresh Wasmtime store</span><code>fuel · memory · wall time</code></div>
+            <div class="map-provider-host-label"><span>Wasmtime lifecycle</span><code>compile once · instantiate per authorized call</code></div>
+            <div class="map-provider-lifecycle">
+              <div><small>broker startup</small><strong><code>provider.wasm</code> → Cranelift → <code>InstancePre</code></strong><span><code>Component::new</code> compiles; <code>instantiate_pre</code> resolves imports once. An optional content-addressed cache can skip recompilation after restart.</span></div>
+              <i aria-hidden="true">→</i>
+              <div><small>each allowed proposal</small><strong>fresh <code>Store</code> + component instance</strong><span>Fuel, memory, host calls, bytes, and wall time start fresh; <code>instantiate_async</code> reuses the compiled pre-instantiation.</span></div>
+            </div>
             <div class="map-provider-component">
-              <small>portable implementation</small>
-              <strong>Wasm provider component</strong>
-              <span>one named capability · one fresh instance</span>
+              <small>host world · <code>dekopon:broker-provider/provider@0.2.0</code></small>
+              <strong><code>invoke(capability, input-json)</code></strong>
+              <span>Calls the <code>dekopon:provider/provider@0.2.0</code> export. Only declared Dekopon imports are linked; generic WASI is absent.</span>
             </div>
           </div>
         </div>
 
-        <div class="map-wit-seam"><span>only the WIT import granted for this invocation</span></div>
+        <div class="map-wit-seam"><span>only declared WIT imports, under this invocation’s exact grant</span></div>
         <div class="map-host-services">
-          <article><small><code>dekopon:http@1</code></small><strong>native HTTP</strong><span>DNS pinning · no redirects · late credential</span></article>
-          <article><small><code>storage/jsonl</code></small><strong>JSONL</strong><span>opaque namespace · quota · transaction</span></article>
-          <article><small><code>storage/durable-files</code></small><strong>durable files</strong><span>logical names · quota · transaction</span></article>
+          <article><small><code>dekopon:http/client@1.0.0</code></small><strong>native HTTP</strong><span>DNS pinning · no redirects · late credential injection</span></article>
+          <article><small><code>dekopon:storage/jsonl@0.1.0</code></small><strong>JSONL</strong><span>opaque namespace · quota · transaction</span></article>
+          <article><small><code>dekopon:storage/durable-files@0.1.0</code></small><strong>durable files</strong><span>logical names · quota · transaction</span></article>
           <article><small>no import</small><strong>pure compute</strong><span>Python · ripgrep · transforms</span></article>
         </div>
         <div class="map-world-row">
@@ -155,10 +201,10 @@ ogType: article
     </figure>
 
     <div class="architecture-role-grid">
-      <article class="reveal"><span>policy</span><h3>Cedar decides who may act.</h3><p>It reads trusted principal and routing context. It doesn’t read message text, provider input, destinations, credentials, or byte ceilings.</p></article>
-      <article class="reveal reveal-delay-1"><span>limits</span><h3>Constraint sets bound the effect.</h3><p>One owner-authored entry fixes the provider route, host or storage scope, credential, call count, bytes, and deadline.</p></article>
-      <article class="reveal reveal-delay-2"><span>runtime</span><h3>Wasmtime contains provider code.</h3><p>The broker reuses compiled code and creates a fresh store, instance, memory, and single-use grant for each invocation.</p></article>
-      <article class="reveal reveal-delay-3"><span>contract</span><h3>WIT makes host access inspectable.</h3><p>A component may declare HTTP or storage. Only the broker can connect that import to a native service after authorization.</p></article>
+      <article class="reveal"><span>gateway lifetime</span><h3>Gateway state outlives messages.</h3><p>Transport readers, routes, admission, history, assets, and lazily built model connection pools are shared process state rather than rebuilt for each chat message.</p></article>
+      <article class="reveal reveal-delay-1"><span>message lifetime</span><h3>A chat thread is state, not a task.</h3><p>Every routed message gets a new async session task and a blocking prompt worker. The in-flight registry serializes one conversation; persistent history remains bounded data in the gateway.</p></article>
+      <article class="reveal reveal-delay-2"><span>broker lifetime</span><h3>Each broker operation gets one connection task.</h3><p>Every capability proposal uses a fresh one-request Unix connection. All connection tasks share the broker’s fixed identity, policy, constraints, credentials, audit, and compiled provider registry.</p></article>
+      <article class="reveal reveal-delay-3"><span>call lifetime</span><h3>Provider code compiles once and instantiates per call.</h3><p>Compilation or cache loading and import resolution happen at broker startup. An allowed proposal gets a fresh Wasmtime store and component instance before the exported <code>invoke</code> function runs.</p></article>
     </div>
   </div>
 </section>

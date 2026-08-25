@@ -332,6 +332,18 @@
   font-size: 8px;
 }
 
+.map-integrations > p {
+  max-width: 720px;
+  margin: 11px 0 0;
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 7px;
+  line-height: 1.5;
+}
+
+.map-integrations > p code {
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .map-arrow {
   height: 42px;
   display: flex;
@@ -425,6 +437,129 @@
   color: var(--alm-violet);
 }
 
+.map-shared-state {
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.17);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+}
+
+.map-shared-state > small {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.43);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  font-weight: 720;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.map-shared-state > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.map-shared-state span {
+  padding: 4px 6px;
+  color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 6px;
+  line-height: 1.35;
+}
+
+.map-broker-state {
+  border-color: rgba(201, 245, 107, 0.14);
+}
+
+.map-broker-state > small {
+  color: rgba(201, 245, 107, 0.64);
+}
+
+.map-flow-stack {
+  display: grid;
+  gap: 7px;
+}
+
+.map-flow-node {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 112px minmax(150px, 0.72fr) minmax(0, 1.55fr);
+  align-items: center;
+  gap: 13px;
+  padding: 11px 13px;
+}
+
+.map-flow-node small,
+.map-flow-node strong {
+  margin: 0;
+}
+
+.map-flow-node strong {
+  font-size: 11px;
+}
+
+.map-flow-node > span {
+  font-size: 7px;
+  line-height: 1.55;
+}
+
+.map-flow-node code {
+  color: rgba(255, 255, 255, 0.72);
+  overflow-wrap: anywhere;
+}
+
+.map-node-shell {
+  background: linear-gradient(135deg, rgba(255, 128, 100, 0.12), rgba(149, 143, 255, 0.06));
+  border-color: rgba(255, 128, 100, 0.22);
+}
+
+.map-node-shell small { color: var(--alm-coral); }
+.map-node-connection small { color: var(--alm-blue); }
+.map-node-runtime small { color: var(--alm-coral); }
+
+.map-loop-note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  background: linear-gradient(90deg, rgba(95, 224, 255, 0.08), rgba(149, 143, 255, 0.08));
+  border: 1px solid rgba(95, 224, 255, 0.16);
+  border-radius: 8px;
+}
+
+.map-loop-note > span {
+  grid-row: 1 / span 2;
+  color: var(--alm-blue);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.map-loop-note strong {
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.map-loop-note small {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 6.5px;
+}
+
+.map-loop-note code {
+  color: var(--alm-violet);
+}
+
 .map-boundary {
   height: 58px;
   display: grid;
@@ -468,6 +603,11 @@
 
 .map-boundary span:last-child {
   justify-self: start;
+}
+
+.map-boundary code {
+  color: inherit;
+  font-size: inherit;
 }
 
 .map-broker-process {
@@ -535,6 +675,58 @@
   font-size: 6px;
 }
 
+.map-provider-lifecycle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.map-provider-lifecycle > div {
+  min-width: 0;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
+}
+
+.map-provider-lifecycle > i {
+  align-self: center;
+  color: rgba(149, 143, 255, 0.65);
+  font-size: 13px;
+  font-style: normal;
+}
+
+.map-provider-lifecycle small {
+  display: block;
+  color: var(--alm-violet);
+  font-family: var(--font-mono);
+  font-size: 6px;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.map-provider-lifecycle strong {
+  display: block;
+  margin: 7px 0 5px;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.map-provider-lifecycle span {
+  display: block;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 6.5px;
+  line-height: 1.5;
+}
+
+.map-provider-lifecycle code {
+  color: rgba(255, 255, 255, 0.72);
+  overflow-wrap: anywhere;
+}
+
 .map-provider-component {
   padding: 14px;
   text-align: center;
@@ -556,6 +748,12 @@
 .map-provider-component > span {
   color: rgba(255, 255, 255, 0.44);
   font-size: 7px;
+  line-height: 1.5;
+}
+
+.map-provider-component code {
+  color: inherit;
+  overflow-wrap: anywhere;
 }
 
 .map-wit-seam {
@@ -1553,6 +1751,38 @@
     grid-template-columns: 1fr;
   }
 
+  .map-flow-node {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 13px;
+  }
+
+  .map-flow-node strong {
+    font-size: 12px;
+  }
+
+  .map-flow-node > span {
+    font-size: 7.5px;
+  }
+
+  .map-loop-note {
+    grid-template-columns: 1fr;
+  }
+
+  .map-loop-note > span {
+    grid-row: auto;
+  }
+
+  .map-provider-lifecycle {
+    grid-template-columns: 1fr;
+  }
+
+  .map-provider-lifecycle > i {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
   .map-node {
     min-height: 88px;
   }
@@ -1574,8 +1804,10 @@
   }
 
   .map-boundary {
+    min-height: 104px;
+    height: auto;
     grid-template-columns: 1fr;
-    height: 72px;
+    padding: 12px 0;
   }
 
   .map-boundary span:first-child,

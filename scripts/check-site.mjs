@@ -93,6 +93,18 @@ for (const id of ["runtime-map", "comparison", "limits", "sources"]) {
         failures.push(`architecture/index.html: missing section #${id}`);
     }
 }
+for (const lifecycleClaim of [
+    "gateway integrations · one reader task each",
+    "one async session task for each accepted chat message",
+    "InvocationRequest",
+    "startup-fixed process state",
+    "fresh <code>Store</code> + component instance",
+    "dekopon:broker-provider/provider@0.2.0",
+]) {
+    if (!architecturePage.includes(lifecycleClaim)) {
+        failures.push(`architecture/index.html: missing lifecycle claim ${lifecycleClaim}`);
+    }
+}
 
 const comparisonKeys = architecture.criteria.map((criterion) => criterion.key);
 if (new Set(comparisonKeys).size !== comparisonKeys.length) {
