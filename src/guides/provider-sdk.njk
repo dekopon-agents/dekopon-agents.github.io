@@ -18,8 +18,7 @@ ogType: article
         <span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Supported in {{ release.tag }}</span>
       </div>
       <h1>Build and test a Wasm provider with Rust</h1>
-      <p><strong>Supported in {{ release.tag }}, pre-production.</strong> You will write an import-free <code>text.uppercase</code> provider, compile it as a WebAssembly Component, prove its interface with <code>wasm-tools</code>, and run it against the real Wasmtime host through the testkit’s fake broker.</p>
-      <p>Broker HTTP, broker-owned storage, and command words are build deltas at the end, not a second tutorial.</p>
+      <p><strong>Supported in {{ release.tag }}, pre-production.</strong> You’ll write an import-free <code>text.uppercase</code> provider, componentize it and prove its interface with <code>wasm-tools</code>, then run it against the real Wasmtime host through the testkit’s fake broker. Broker HTTP, broker-owned storage, and command words are build deltas at the end.</p>
     </div>
   </div>
 </header>
@@ -73,17 +72,17 @@ ogType: article
         </table>
       </div>
 
-      <p>The host doesn’t negotiate or record the SDK crate version. It strictly decodes manifest and response JSON, requires structurally compatible root exports, and matches each import by its exact WIT identity. Components built against <code>dekopon:provider@0.1.0</code> or <code>0.2.0</code> keep loading. The compatibility proof is loading the finished component: in a test through the fake broker, then in <code>dekopon-brokerd</code>.</p>
+      <p>The host never records the SDK crate version. It strictly decodes manifest and response JSON, requires structurally compatible root exports, and matches each import by exact WIT identity, so components built against <code>dekopon:provider@0.1.0</code> or <code>0.2.0</code> keep loading.</p>
 
-      <p>There is one provider host, the broker’s. After Cedar allows an invocation, <code>dekopon-brokerd</code> links exactly the imports the grant names: buffered HTTP, namespace-bound storage, and the grant-free wall clock. An import-free component gets nothing else: no files, environment, network, processes, randomness, or credentials. One v1 capability can’t combine HTTP and storage.</p>
+      <p>There’s one provider host, the broker’s. After Cedar allows an invocation, <code>dekopon-brokerd</code> links exactly the imports the grant names: buffered HTTP, namespace-bound storage, and the grant-free wall clock. An import-free component gets nothing else: no files, environment, network, processes, randomness, or credentials.</p>
 
-      <p>The build flow is:</p>
+      <p>The build flow:</p>
 
       <pre><code>src/lib.rs → wasm32 core module → Component Model component → FakeBroker test → dekopon-brokerd</code></pre>
 
       <div class="article-callout callout-warning">
         <strong>Wasm isn’t an OS-process boundary.</strong>
-        <p>Wasmtime executes components inside the broker process. It doesn’t solve runtime vulnerabilities, side channels, or a hostile process running as the broker’s UID. Production-sandbox claims for Wasmtime are a stated non-goal.</p>
+        <p>Wasmtime runs components inside the broker process. It doesn’t solve runtime vulnerabilities, side channels, or a hostile process running as the broker’s UID, and production-sandbox claims are a stated non-goal.</p>
       </div>
     </section>
 
@@ -101,7 +100,7 @@ ogType: article
 
 cargo +{{ providerSdk.versions.rust }} install wasm-tools --version {{ providerSdk.versions.wasmTools }} --locked</code></pre>
 
-      <p>Nothing else is installed. The fake broker is a dev-dependency, and the real broker is only needed for the load test at the end.</p>
+      <p>Nothing else. The fake broker is a dev-dependency; the real broker only matters for the load test at the end.</p>
     </section>
 
     <section id="create-provider" class="article-section">
@@ -227,7 +226,7 @@ mod tests {
     }
 }</code></pre>
 
-      <p>The JSON Schema is discovery metadata. The host requires an object-shaped schema and an object input; it doesn’t enforce required properties, types, or ranges. Your provider validates those and rejects unknown capability IDs itself. Effect and risk are declarations that Cedar sees and the constraint set must match byte for byte; they don’t prove what the code does.</p>
+      <p>The JSON Schema is discovery metadata. The host requires an object-shaped schema and an object input; it doesn’t check required properties, types, or ranges. Your provider does, and rejects unknown capability IDs. Cedar reads the effect and risk declarations and the constraint set must match them byte for byte, but neither proves what the code does.</p>
 
       <p>Run the native and Wasm checks:</p>
 
@@ -246,14 +245,14 @@ cargo build --locked --target wasm32-unknown-unknown --release</code></pre>
         <h2>Build the component</h2>
       </div>
 
-      <p>The compiler emits a core <code>wasm32-unknown-unknown</code> module with the SDK’s embedded Component Model metadata. <code>wasm-tools component new</code> turns it into the component. The base <code>dekopon:provider@{{ providerSdk.versions.providerWit }}</code> world is:</p>
+      <p>The compiler emits a core <code>wasm32-unknown-unknown</code> module carrying the SDK’s embedded Component Model metadata; <code>wasm-tools component new</code> turns it into the component. The base <code>dekopon:provider@{{ providerSdk.versions.providerWit }}</code> world:</p>
 
       <pre><code>world provider {
     export describe: func() -&gt; string;
     export invoke: func(capability: string, input-json: string) -&gt; string;
 }</code></pre>
 
-      <p>The same package holds <code>provider-cli</code>, which adds <code>run-command: func(argv: list&lt;string&gt;, stdin: option&lt;string&gt;) -&gt; string</code>, and the older <code>provider-commands</code> with <code>resolve-command</code>. A manifest that declares <code>commandWords</code> must export one of the two; a host that finds both calls <code>run-command</code>. This first build stays on the two-export base world.</p>
+      <p>The same package holds <code>provider-cli</code>, which adds <code>run-command: func(argv: list&lt;string&gt;, stdin: option&lt;string&gt;) -&gt; string</code>, and the older <code>provider-commands</code> with <code>resolve-command</code>. A manifest declaring <code>commandWords</code> must export one; a host finding both calls <code>run-command</code>. This build stays on the base world.</p>
 
       <pre><code>wasm-tools component new \
   target/wasm32-unknown-unknown/release/dekopon_text_provider.wasm \
@@ -262,11 +261,11 @@ cargo build --locked --target wasm32-unknown-unknown --release</code></pre>
 wasm-tools validate text-provider.wasm
 wasm-tools component wit text-provider.wasm</code></pre>
 
-      <p>The decoded WIT must show <code>describe</code> and <code>invoke</code> and no imports. This <code>wasm-tools</code> output is what proves the final import and export set; nothing in Dekopon inspects a component for you before the host loads it.</p>
+      <p>The decoded WIT must show <code>describe</code>, <code>invoke</code>, and no imports. That output is the only proof of the final import and export set; nothing else inspects a component before the host loads it.</p>
 
       <div class="article-callout callout-warning">
         <strong>Don’t use <code>wasm32-wasip2</code>.</strong>
-        <p>It introduces WASI imports the broker host doesn’t link. Any unknown import fails at instantiation, even if the guest never calls it.</p>
+        <p>It adds WASI imports the broker host doesn’t link, and any unknown import fails at instantiation even if the guest never calls it.</p>
       </div>
     </section>
 
@@ -274,7 +273,7 @@ wasm-tools component wit text-provider.wasm</code></pre>
       <div class="article-heading">
         <span>05 · the real host in a test</span>
         <h2>Run it against the fake broker</h2>
-        <p><code>FakeBroker</code> skips Cedar and the constraint catalog by minting its own authorization. Everything beneath that line is real: the same Wasmtime host, the same limits, the same storage host a deployment runs.</p>
+        <p><code>FakeBroker</code> mints its own authorization, skipping Cedar and the constraint catalog. Everything beneath that line is real: the same Wasmtime host, limits, and storage host a deployment runs.</p>
       </div>
 
       <pre><code><span class="code-comment">// tests/component.rs</span>
@@ -303,7 +302,7 @@ async fn uppercases_through_the_real_host() {
     assert_eq!(error.provider_failure().map(|(code, _)| code), Some("invalid-input"));
 }</code></pre>
 
-      <p>Build the component before <code>cargo test</code> runs this file, and pass <code>.compile_cache(dir)</code> when a suite loads the same component repeatedly: Cranelift is the whole of a cold start.</p>
+      <p>Build the component before <code>cargo test</code> runs this file, and pass <code>.compile_cache(dir)</code> when a suite reloads the same component: Cranelift is the whole of a cold start.</p>
 
       <div class="article-callout callout-warning">
         <strong>Use a multi-thread Tokio test runtime.</strong>
@@ -315,7 +314,7 @@ async fn uppercases_through_the_real_host() {
       <div class="article-heading">
         <span>06 · storage in a test</span>
         <h2>Test a storage provider end to end</h2>
-        <p>A storage provider needs the host import that exists only when the real component runs. Ask the fake broker for exactly one storage interface and it links the production <code>StorageHost</code> over a temporary root.</p>
+        <p>A storage provider needs a host import that exists only when the real component runs. Ask the fake broker for one storage interface and it links the production <code>StorageHost</code> over a temporary root.</p>
       </div>
 
       <pre><code>let broker = FakeBroker::builder()
@@ -328,17 +327,17 @@ async fn uppercases_through_the_real_host() {
 broker.invoke("my-provider.write", json!({"value": 1})).await?;
 let result = broker.invoke("my-provider.read", json!({})).await?;</code></pre>
 
-      <p>Each call gets a fresh grant with identical scope material, so successive invocations reach one namespace. A quota a test trips here is a quota production would have tripped. The testkit links storage, not HTTP: test an HTTP provider natively with an injected transport, then load-test the component in the broker.</p>
+      <p>Every call gets a fresh grant with identical scope material, so successive invocations reach one namespace, and a quota a test trips here is one production would have tripped. The testkit links storage, not HTTP: test an HTTP provider natively with an injected transport, then load-test the component in the broker.</p>
     </section>
 
     <section id="command-words" class="article-section">
       <div class="article-heading">
         <span>07 · provider commands inside bash</span>
         <h2>Expose the provider as a shell word</h2>
-        <p>The model still receives one tool named <code>bash</code>. A provider can add a word inside that sandbox, so an agent writes <code>uppercase "Hello"</code> instead of assembling a raw capability call, and <code>uppercase --help</code> answers like a real CLI.</p>
+        <p>The model still receives one tool named <code>bash</code>. A provider adds a word inside that sandbox, so an agent writes <code>uppercase "Hello"</code> instead of a raw capability call, and <code>uppercase --help</code> answers like a real CLI.</p>
       </div>
 
-      <p>Command words use the <code>provider-cli</code> world. Add caller-generated bindings and fetch the exact provider WIT package:</p>
+      <p>Command words use the <code>provider-cli</code> world. Add caller-generated bindings and fetch the provider WIT package:</p>
 
       <pre><code><span class="code-comment"># Cargo.toml</span>
 wit-bindgen = { version = "={{ providerSdk.versions.witBindgen }}", default-features = false, features = ["macros", "realloc"] }
@@ -397,9 +396,9 @@ mod bindings {
 
 dekopon_provider_sdk::export_provider_with_cli!(TextProvider, bindings);</code></pre>
 
-      <p>Regenerate <code>Cargo.lock</code>, then repeat the build, componentization, and WIT inspection from step 04. The component must export <code>describe</code>, <code>invoke</code>, and <code>run-command</code> with zero imports. In a test, <code>broker.run_command("uppercase", &amp;argv, None)</code> returns the <code>CommandRunOutcome</code> the host decoded: a proposal, rendered text with its status, or a decline. A proposal is the rewrite, not its result; pass it to <code>invoke</code> to close the loop.</p>
+      <p>Regenerate <code>Cargo.lock</code>, then repeat step 04. The component must now export <code>describe</code>, <code>invoke</code>, and <code>run-command</code> with zero imports. In a test, <code>broker.run_command("uppercase", &amp;argv, None)</code> returns a decoded <code>CommandRunOutcome</code>: a proposal, rendered text with its status, or a decline. A proposal is the rewrite, not its result — pass it to <code>invoke</code> to close the loop.</p>
 
-      <p>The optional <code>clap</code> feature does the argv handling for you: <code>dekopon_provider_sdk::cli::run_command</code> parses against a declared <code>clap::Command</code> tree and renders <code>--help</code>, <code>--version</code>, and usage errors as the upstream tool’s <code>main</code> would, compiled without <code>env</code> or <code>color</code> so no argument reads a process environment and no escape sequence reaches the model.</p>
+      <p>The optional <code>clap</code> feature handles argv for you: <code>dekopon_provider_sdk::cli::run_command</code> renders <code>--help</code>, <code>--version</code>, and usage errors from a declared <code>clap::Command</code> tree, compiled without <code>env</code> or <code>color</code> so no argument reads a process environment and no escape sequence reaches the model.</p>
 
       <div class="provider-command-journey" role="group" aria-label="Provider command run and authorization">
         <div><small>agent script</small><strong><code>uppercase "Hello"</code></strong><span>familiar command syntax</span></div>
@@ -409,7 +408,7 @@ dekopon_provider_sdk::export_provider_with_cli!(TextProvider, bindings);</code><
         <div><small>normal authority path</small><strong>Cedar + constraints</strong><span>allow or deny the proposal</span></div>
       </div>
 
-      <p><code>run-command</code> grants nothing. It runs before authorization, pure and import-free, and a rendered help page charges no capability call. A missing grant still denies the proposal. A declared word that collides with a builtin, control word, or another provider’s word aborts broker startup, every collision listed at once.</p>
+      <p><code>run-command</code> grants nothing. It runs before authorization, pure and import-free, so a rendered help page charges no capability call, and a missing grant still denies the proposal. A word that collides with a builtin, control word, or another provider’s word aborts broker startup, every collision listed at once.</p>
     </section>
 
     <section id="broker-loading" class="article-section">
@@ -418,9 +417,9 @@ dekopon_provider_sdk::export_provider_with_cli!(TextProvider, bindings);</code><
         <h2>How the broker loads providers</h2>
       </div>
 
-      <p><code>dekopon-brokerd</code> loads components before it listens: either the local files <code>providers:</code> names, or the exact-reference OCI set that <code>dekopon-brokerd provider sync</code> materialized into a lock and a store beforehand. The daemon itself performs no registry request, and there is no request-time loading or hot reload; restart the broker to load replaced bytes.</p>
+      <p><code>dekopon-brokerd</code> loads components before it listens: the local files <code>providers:</code> names, or the exact-reference OCI set <code>dekopon-brokerd provider sync</code> already materialized into a lock and a store. The daemon makes no registry request, and nothing loads at request time or hot-reloads — restart the broker to pick up replaced bytes.</p>
 
-      <p>Every load, manifest, or command-word conflict failure aborts startup. The broker compiles providers in parallel with an optional persistent Wasmtime compilation cache, retains linked instance templates, and still gives each description, command run, and invocation a fresh store and instance. A locked component’s length and SHA-256 are compared against the same read buffer Wasmtime consumes. A digest proves byte identity, not publisher identity: the manager verifies no attestation.</p>
+      <p>Any load, manifest, or command-word conflict aborts startup. The broker compiles providers in parallel behind an optional persistent Wasmtime cache and keeps linked instance templates, but every description, command run, and invocation still gets a fresh store and instance. It checks a locked component’s length and SHA-256 against the same read buffer Wasmtime consumes. That proves byte identity, not publisher identity: the manager verifies no attestation.</p>
     </section>
 
     <section id="broker-http" class="article-section">
@@ -458,7 +457,7 @@ world provider {
 
 dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</code></pre>
 
-      <p><code>dekopon-provider-http</code> supplies request and response types plus the imported <code>send</code> call. It contains no transport, credential, destination policy, or ambient I/O. Generated bindings contain generated <code>unsafe</code>, so a composed provider can’t apply a crate-wide <code>#![forbid(unsafe_code)]</code>.</p>
+      <p><code>dekopon-provider-http</code> supplies request and response types plus the imported <code>send</code> call — no transport, credential, destination policy, or ambient I/O. Its generated bindings contain <code>unsafe</code>, so a composed provider can’t apply a crate-wide <code>#![forbid(unsafe_code)]</code>.</p>
 
       <h3>Who controls an HTTP request?</h3>
 
@@ -476,11 +475,11 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
         </table>
       </div>
 
-      <p>Cedar sees the trusted principal and routing context, the provider and capability IDs, and the effect and risk classifications. It never sees invocation input, paths, queries, bodies, credentials, or limits, so it can’t say “only repositories under this organization”; scope the token instead. The broker can’t infer whether a path or body performs a mutation.</p>
+      <p>Cedar sees the trusted principal and routing context, the provider and capability IDs, and the effect and risk classifications — never invocation input, paths, queries, bodies, credentials, or limits. So it can’t say “only repositories under this organization”; scope the token instead. The broker can’t tell whether a path or body mutates anything.</p>
 
-      <p>The audit record carries the sanitized HTTP evidence: method, authority, status, accounted bytes, and whether a credential was injected. It omits paths, queries, headers, and bodies, and it isn’t proof of an exact remote mutation; a remote effect isn’t rolled back after a later trap or timeout.</p>
+      <p>The audit record carries sanitized HTTP evidence: method, authority, status, accounted bytes, and whether a credential was injected. It omits paths, queries, headers, and bodies, so it can’t prove an exact remote mutation, and nothing rolls a remote effect back after a later trap or timeout.</p>
 
-      <p>Default broker-host ceilings: a 10-million-unit fuel budget, 30 seconds of wall time, 1 MiB of invocation input and provider output, 64 MiB per memory, and 256 MiB across every concurrent store. HTTP ceilings: 32 calls, 1 MiB per request, 4 MiB per response. The independently published <a href="https://github.com/dekopon-agents/dekopon-provider-gh"><code>gh</code> provider</a> is the fixed-request-shape example to copy.</p>
+      <p>Default broker-host ceilings: a 10-million-unit fuel budget, 30 seconds of wall time, 1 MiB of invocation input and provider output, 64 MiB per memory, and 256 MiB across every concurrent store. HTTP ceilings: 32 calls, 1 MiB per request, 4 MiB per response. Copy the independently published <a href="https://github.com/dekopon-agents/dekopon-provider-gh"><code>gh</code> provider</a> for fixed request shapes.</p>
     </section>
 
     <section id="capability-matrix" class="article-section">
@@ -512,7 +511,7 @@ dekopon_provider_sdk::export_provider_with_bindings!(YourProvider, bindings);</c
         <h2>Package and install it yourself</h2>
       </div>
 
-      <p>Dekopon provides no publication service for out-of-tree providers; the <code>wkg</code> registry distributes WIT packages, not implementations. Two install paths exist, both operator-owned. An exact-reference OCI set, pinned by tag or manifest digest, that <code>dekopon-brokerd provider sync</code> resolves into a lock and a store:</p>
+      <p>Dekopon publishes nothing for out-of-tree providers; the <code>wkg</code> registry distributes WIT packages, not implementations. Both install paths are operator-owned. One is an exact-reference OCI set that <code>dekopon-brokerd provider sync</code> resolves into a lock and a store:</p>
 
       <pre><code><span class="code-comment"># providers.yaml</span>
 apiVersion: dekopon.dev/provider-set/v1alpha1
@@ -530,9 +529,9 @@ COPY --chown=65532:65532 --chmod=0644 \
 
 USER 65532:65532</code></pre>
 
-      <p>For provider CI: pin the compiler, dependencies, WIT files, and <code>wasm-tools</code>; commit <code>Cargo.lock</code>; run the native tests and the fake-broker test; componentize the exact release artifact and inspect its final imports and exports; publish the SHA-256 and a provenance attestation. The independently released providers do exactly this from their own repositories.</p>
+      <p>For provider CI: pin the compiler, dependencies, WIT files, and <code>wasm-tools</code>; commit <code>Cargo.lock</code>; run the native and fake-broker tests; componentize the release artifact and inspect its final imports and exports; publish the SHA-256 and a provenance attestation. The released providers do this from their own repositories.</p>
 
-      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code>. The chart places files and processes; it doesn’t infer provider authority. Record the image digest and the provider artifact SHA outside the audit record, which names the policy that authorized a call and not the build that executed it.</p>
+      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code>. It places files and processes; it infers no provider authority. Record the image digest and the provider artifact SHA yourself — the audit record names the policy that authorized a call, not the build that ran it.</p>
     </section>
 
     <section id="coding-agent-prompt" class="article-section">
@@ -541,7 +540,7 @@ USER 65532:65532</code></pre>
         <h2>Prompt a coding agent</h2>
       </div>
 
-      <p>Replace the bracketed fields, paste it into your coding agent, and review its code and command output before you trust the artifact.</p>
+      <p>Replace the bracketed fields, paste it into your coding agent, and review the code and command output before you trust the artifact.</p>
 
       <pre><code>Build a Rust Dekopon provider for [behavior]. Use provider ID [provider-id]
 and capability ID [provider-id.capability].

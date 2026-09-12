@@ -89,7 +89,7 @@
       "tag": "Credentials",
       "title": "chatgptSubscription is a broker credential kind.",
       "body": "The broker refreshes it 60 seconds before expiry through the one implementation in dekopon-model, under an advisory lock, and never charges the renewal to the invocation. Give the broker its own auth file: sharing one with the gateway revokes the token family for both.",
-      "link": { "label": "See how credentials reach the broker", "href": "/deploy/credentials/" }
+      "link": { "label": "See how credentials reach the broker", "href": "/deploy/kubernetes/#credentials" }
     },
     {
       "tag": "Executables",

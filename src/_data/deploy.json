@@ -1,7 +1,6 @@
 {
   "pages": [
     { "key": "overview", "label": "Choose a path", "href": "/deploy/" },
-    { "key": "kubernetes", "label": "Kubernetes", "href": "/deploy/kubernetes/" },
-    { "key": "credentials", "label": "Credentials", "href": "/deploy/credentials/" }
+    { "key": "kubernetes", "label": "Kubernetes", "href": "/deploy/kubernetes/" }
   ]
 }
