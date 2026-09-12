@@ -532,7 +532,7 @@ USER 65532:65532</code></pre>
 
       <p>For provider CI: pin the compiler, dependencies, WIT files, and <code>wasm-tools</code>; commit <code>Cargo.lock</code>; run the native tests and the fake-broker test; componentize the exact release artifact and inspect its final imports and exports; publish the SHA-256 and a provenance attestation. The independently released providers do exactly this from their own repositories.</p>
 
-      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code>; chart <code>{{ release.chart.sourceVersion }}</code>, naming app <code>{{ release.chart.sourceAppVersion }}</code>, exists in source and isn’t published. The chart places files and processes; it doesn’t infer provider authority. Record the image digest and the provider artifact SHA outside the audit record, which names the policy that authorized a call and not the build that executed it.</p>
+      <p>Published chart <code>{{ release.chart.publishedVersion }}</code> declares <code>appVersion: {{ release.chart.publishedAppVersion }}</code>. The chart places files and processes; it doesn’t infer provider authority. Record the image digest and the provider artifact SHA outside the audit record, which names the policy that authorized a call and not the build that executed it.</p>
     </section>
 
     <section id="coding-agent-prompt" class="article-section">

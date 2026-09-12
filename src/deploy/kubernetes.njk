@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: deploy/kubernetes/index.html
 pageTitle: Kubernetes deployment — Published Dekopon Helm chart
-pageDescription: One pod, two UIDs, and a broker-owned Unix socket. No broker network service, and the published chart still trails the application.
+pageDescription: One pod, two UIDs, and a broker-owned Unix socket. No broker network service.
 bodyClass: almanac-page almanac-article-page deploy-page deploy-kubernetes-page
 almanacPage: true
 ogType: article
@@ -10,7 +10,7 @@ ogType: article
 {% from "components/deploy.njk" import deployNav %}
 {% from "components/almanac.njk" import pageHero, docsCta %}
 
-{{ pageHero("K", "Kubernetes deployment", "One pod, two daemons,<br><span>and no broker network service.</span>", "Chart " ~ release.chart.sourceVersion ~ " in the " ~ release.tag ~ " tree runs the broker and gateway as different UIDs around a broker-owned Unix socket. The published chart is still " ~ release.chart.publishedVersion ~ ", deploying application " ~ release.chart.publishedAppVersion ~ ".", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
+{{ pageHero("K", "Kubernetes deployment", "One pod, two daemons,<br><span>and no broker network service.</span>", "Chart " ~ release.chart.publishedVersion ~ " deploys application " ~ release.chart.publishedAppVersion ~ " with the broker and gateway as different UIDs around a broker-owned Unix socket.", "current", "Published chart " ~ release.chart.publishedVersion ~ " · app " ~ release.chart.publishedAppVersion) }}
 {{ deployNav("kubernetes", deploy.pages) }}
 
 <div class="almanac-article-shell shell">
@@ -36,7 +36,7 @@ ogType: article
       </div>
 
       <figure class="kubernetes-cutaway">
-        <div class="k8s-cutaway-title"><span>Chart {{ release.chart.sourceVersion }} · app {{ release.chart.sourceAppVersion }} · replicas: 1 · Recreate</span><code>runAsUser: 65532 · 65533</code></div>
+        <div class="k8s-cutaway-title"><span>Chart {{ release.chart.publishedVersion }} · app {{ release.chart.publishedAppVersion }} · replicas: 1 · Recreate</span><code>runAsUser: 65532 · 65533</code></div>
         <div class="k8s-init-row">
           <article><small>init container · root + CHOWN/FOWNER only</small><strong>prepare-files</strong><span>projected inputs → real 0600 files, the broker’s as 65532 and the gateway’s as 65533</span></article>
           <i aria-hidden="true">finishes before daemons start ↓</i>
@@ -173,12 +173,11 @@ ogType: article
           <tbody>
             <tr><th scope="row">Current application <code>{{ release.version }}</code></th><td><code>{{ release.tag }}</code></td><td>crates, archives, container image, Homebrew</td></tr>
             <tr><th scope="row">Published chart <code>{{ release.chart.publishedVersion }}</code></th><td><code>dekopon-chart-{{ release.chart.publishedVersion }}</code></td><td>OCI Helm package; defaults to app {{ release.chart.publishedAppVersion }}</td></tr>
-            <tr><th scope="row">Chart source <code>{{ release.chart.sourceVersion }}</code></th><td>no tag</td><td>Not published; names app {{ release.chart.sourceAppVersion }}</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Don’t treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
+      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. The chart moves on its own tag, <code>dekopon-chart-&lt;version&gt;</code>, and its <code>appVersion</code> moves with the application in the release-prep commit.</p>
 
       {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest publication status, values, path contract, probes, storage arithmetic, ChatGPT seeding behavior, and Argo CD instructions before installing.") }}
     </section>

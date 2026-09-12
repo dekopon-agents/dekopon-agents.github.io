@@ -279,10 +279,10 @@ to justify weakening one of these.
   copying a version into page data. This is why the hero proof chips say "two
   arm64 executables" and not a byte count — `home.json` must not pin a version.
 - Distinguish the current application from the independently versioned chart.
-  As of 12 September 2026, published chart 0.2.0 still deploys application
-  0.10.0; chart 0.5.0 naming application 0.13.0 exists in source but is not
-  published, and it is the first chart that runs the gateway (65533) and the
-  broker (65532) as different UIDs over a 0660 socket.
+  As of 12 September 2026, published chart 0.5.0 deploys application 0.13.0
+  and is the first chart that runs the gateway (65533) and the broker (65532)
+  as different UIDs over a 0660 socket. Verify GHCR's tag list before moving
+  `release.chart.publishedVersion`.
   A source version is not an install path, and a published chart is not proof
   of a live-cluster deployment.
 - Say "every public crate", never a crate count. Verify crates.io before

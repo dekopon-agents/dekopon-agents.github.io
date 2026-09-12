@@ -128,7 +128,7 @@
       "body": "The Debian 13 distroless multi-architecture image carries both executables and the pinned provider components."
     }
   ],
-  "installIntro": "Current install paths: Homebrew, crates.io, the attested archives, and the multi-architecture image. The published Helm chart trails the application.",
+  "installIntro": "Current install paths: Homebrew, crates.io, the attested archives, the multi-architecture image, and the Helm chart.",
   "scope": {
     "current": [
       "Credentials are unleakable: secret bytes exist only inside the broker",
@@ -137,13 +137,12 @@
       "Two executables, the public crates, and a multi-architecture image"
     ],
     "next": [
-      "Publish the chart already prepared in source",
       "Public DRNs replace the credential and credentialByAgent bindings",
       "Argument values on shell.command spans, not only their count",
       "Delete the one-release compatibility shim for a manifest that still says idempotency"
     ]
   },
-  "scopeIntro": "The whole local path works today, from transport receipt to an audited HTTP call. The chart with separate gateway and broker UIDs exists in source and is not yet published.",
+  "scopeIntro": "The whole local path works today, from transport receipt to an audited HTTP call, and the published chart runs the gateway and broker as separate UIDs.",
   "previous": {
     "version": "v0.12.0",
     "title": "Public secret DRNs, the OCI provider manager, and the console’s move",

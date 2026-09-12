@@ -35,7 +35,7 @@ ogType: article
     <div class="almanac-section-heading">
       <span class="almanac-section-index">01—04</span>
       <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary, different operating shape.</h2></div>
-      <p>The current application ships through native package managers, attested archives, and a multi-architecture image. The published Helm chart moves independently and currently trails the application. The interactive operator console is a sibling project, <a href="https://github.com/dekopon-agents/dekopon-console">dekopon-console</a>, on its own release cadence.</p>
+      <p>The current application ships through native package managers, attested archives, and a multi-architecture image. The Helm chart is versioned independently and its current release deploys this application. The interactive operator console is a sibling project, <a href="https://github.com/dekopon-agents/dekopon-console">dekopon-console</a>, on its own release cadence.</p>
     </div>
 
     <div class="deploy-option-grid">
@@ -65,11 +65,11 @@ ogType: article
       </article>
 
       <article class="deploy-option-card deploy-option-featured">
-        <div><span>04</span>{{ status("direction", "published chart trails app") }}</div>
+        <div><span>04</span>{{ status("current", "published chart") }}</div>
         <h2>Kubernetes</h2>
-        <p>Published chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}. Chart {{ release.chart.sourceVersion }} for application {{ release.chart.sourceAppVersion }} exists in source but isn’t yet published.</p>
+        <p>Chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}: one pod, the broker as UID 65532 and the gateway as 65533, a broker-owned socket between them.</p>
         <a class="button button-primary" href="/deploy/kubernetes/">Understand the pod <span aria-hidden="true">→</span></a>
-        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. A source version isn’t a published install path.</small>
+        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>, tag <code>dekopon-chart-{{ release.chart.publishedVersion }}</code>.</small>
       </article>
     </div>
   </div>

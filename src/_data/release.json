@@ -17,8 +17,8 @@
     "brokerSize": "26.3 MiB"
   },
   "chart": {
-    "publishedVersion": "0.2.0",
-    "publishedAppVersion": "0.10.0",
+    "publishedVersion": "0.5.0",
+    "publishedAppVersion": "0.13.0",
     "sourceVersion": "0.5.0",
     "sourceAppVersion": "0.13.0"
   }
