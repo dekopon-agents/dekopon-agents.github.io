@@ -70,13 +70,20 @@ for (const file of htmlFiles) {
 }
 
 const homepage = await readFile(path.join(outputDirectory, "index.html"), "utf8");
-for (const id of ["why", "one-request", "security", "providers"]) {
+for (const id of ["constitution", "one-request", "security", "providers"]) {
     if (!homepage.includes(`id="${id}"`)) {
         failures.push(`index.html: missing orientation section #${id}`);
     }
 }
-if (!homepage.includes(release.installCommand)) {
-    failures.push(`index.html: missing current install command for ${release.tag}`);
+for (const goal of ["Credentials are unleakable", "One trace, complete", "Extensible through Wasm providers"]) {
+    if (!homepage.includes(goal)) {
+        failures.push(`index.html: missing constitution goal "${goal}"`);
+    }
+}
+
+const whatsNew = await readFile(path.join(outputDirectory, "whats-new", "index.html"), "utf8");
+if (!whatsNew.includes(release.installCommand)) {
+    failures.push(`whats-new/index.html: missing current install command for ${release.tag}`);
 }
 
 for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {

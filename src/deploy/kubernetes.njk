@@ -20,6 +20,7 @@ ogType: article
       <a href="#pod">The pod cutaway</a>
       <a href="#one-pod">Why one pod</a>
       <a href="#files">Why files are copied</a>
+      <a href="#credentials">Credential delivery</a>
       <a href="#state">Audit and storage</a>
       <a href="#startup">Startup and shutdown</a>
       <a href="#security">Security posture</a>
@@ -32,7 +33,7 @@ ogType: article
       <div class="article-heading">
         <span>K.1 · the complete deployment shape</span>
         <h2>Everything with authority is visible in the pod.</h2>
-        <p>The default chart creates no Service or Ingress. The broker’s only control endpoint is a <code>0660</code> socket in a <code>0710</code> broker-owned directory on a memory-backed volume; the gateway can connect to it and can’t replace it. An opt-in ClusterIP can target a gateway webhook; it never exposes the broker.</p>
+        <p>The default chart creates no Service or Ingress. The broker’s only control endpoint is a <code>0660</code> socket in a <code>0710</code> broker-owned directory on a memory-backed volume, so the gateway can connect to it and can’t replace it. An opt-in ClusterIP reaches a gateway webhook, never the broker.</p>
       </div>
 
       <figure class="kubernetes-cutaway">
@@ -51,7 +52,7 @@ ogType: article
           <div><small>image</small><strong>/opt/dekopon/providers</strong><span>owner-matched Wasm components</span></div>
           <div><small>retained claims</small><strong>/var/lib/dekopon*</strong><span>optional provider storage · ChatGPT credential</span></div>
         </div>
-        <figcaption>One image supplies both commands. Separate containers and separate UIDs keep the roles apart; the shared filesystem namespace is what the Unix socket needs. Provider storage, when enabled, mounts only into the broker.</figcaption>
+        <figcaption>One image supplies both commands, separate UIDs keep the roles apart, and the shared filesystem namespace is what the Unix socket needs. Provider storage mounts only into the broker.</figcaption>
       </figure>
     </section>
 
@@ -74,7 +75,7 @@ ogType: article
         </table>
       </div>
 
-      <p>Two images would still need the same application version and the same pod, so the chart ships one image with both executables. Each container picks its command and keeps its own job.</p>
+      <p>Two images would still need the same version in the same pod, so one image ships both executables and each container picks its command.</p>
     </section>
 
     <section id="files" class="article-section">
@@ -104,34 +105,82 @@ ogType: article
         </table>
       </div>
 
-      <p>The projected source is visible only to <code>prepare-files</code>. The two daemons mount the materialized output, not the Kubernetes projection.</p>
+      <p>Only <code>prepare-files</code> sees the projected source. The daemons mount its output.</p>
+    </section>
+
+    <section id="credentials" class="article-section">
+      <div class="article-heading">
+        <span>K.4 · terminate each secret where it is needed</span>
+        <h2>Four secrets, and the one process that owns each.</h2>
+        <p>No secret belongs in the image, the catalog, the policy, or the prompt, and not in a component, a command line, a span, or an audit record either.</p>
+      </div>
+
+      <div class="credential-map">
+        <article><span>provider token</span><strong>broker only</strong><p>Owner-only file → destination-bound native HTTP injection.</p><code>github-comment-token</code></article>
+        <article><span>chat token</span><strong>gateway only</strong><p>Environment variable named by gateway configuration.</p><code>DEKOPOND_SLACK_BOT_TOKEN</code></article>
+        <article><span>telemetry token</span><strong>each exporter</strong><p>Standard OpenTelemetry headers environment variable.</p><code>OTEL_EXPORTER_OTLP_HEADERS</code></article>
+        <article><span>ChatGPT subscription</span><strong>writable gateway state</strong><p>Seed once, rotate in place, never restore a stale copy.</p><code>chatgpt-auth.json</code></article>
+      </div>
+
+      <pre><code><span class="code-comment"># broker-credentials.yaml — materialized, never committed</span>
+apiVersion: dekopon.dev/broker-credentials/v1alpha1
+credentials:
+  - name: github-comment-token
+    kind: bearerToken
+    scheme: Bearer
+    destinations: [api.github.com]
+    secret: [REDACTED]</code></pre>
+
+      <p>The init container copies that Secret into an owner-only <code>0600</code> file. Startup then proves that every constraint set selecting the credential permits only destinations in its binding; guest code can’t supply its own <code>Authorization</code> header and can’t read the injected one.</p>
+
+      <pre><code><span class="code-comment"># dekopond.yaml</span>
+transports:
+  - name: workspace-slack
+    kind: slackSocketMode
+    appTokenEnv: DEKOPOND_SLACK_APP_TOKEN
+    botTokenEnv: DEKOPOND_SLACK_BOT_TOKEN
+
+models:
+  - name: hosted-reasoning
+    kind: openaiCompatible
+    endpoint: https://api.openai.com/v1
+    model: gpt-5
+    apiKeyEnv: OPENAI_API_KEY</code></pre>
+
+      <p>Gateway configuration names environment variables, never values, and the chart fills them with ordinary <code>secretKeyRef</code> entries. Discord, Telegram, and WhatsApp work the same way. A field holding a token instead of a valid variable name is a startup failure.</p>
+
+      <pre><code><span class="code-comment"># Pod environment, sourced from a Secret</span>
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20[REDACTED],organization=default,stream-name=dekopon</code></pre>
+
+      <p>The ingest credential stays in the standard headers variable, so it never reaches parsed YAML, process arguments, span fields, or logs. The broker’s audit records leave through this exporter: lose it and you lose the audit.</p>
+
+      <pre><code><span class="code-comment"># Local export to a Kubernetes Secret manifest</span>
+dekopond auth chatgpt export \
+  --expose-credential \
+  --namespace dekopon | kubectl apply -f -</code></pre>
+
+      <p>A ChatGPT subscription needs a human at a browser once, and the gateway then rotates its refresh token in place on a persistent volume, writing a temporary sibling and renaming it over the credential. Copy the seed in only when the destination is absent. Restore that exported Secret over a live credential and you break a working gateway: after the first refresh the volume holds the only valid token, and re-seeding means a fresh login. Give the broker its own auth file — sharing one revokes the token family for both.</p>
+
+      <p>External Secrets delivers a value into the namespace; it doesn’t change projected-volume symlinks, ownership, group readability, or the ChatGPT lifecycle, so the init container stays the materialization boundary. <a href="https://github.com/dekopon-agents/dekopon/blob/main/docs/1password-eso.md">Read the current 1Password and External Secrets guide <span aria-hidden="true">↗</span></a></p>
     </section>
 
     <section id="state" class="article-section">
       <div class="article-heading">
-        <span>K.4 · what persists</span>
+        <span>K.5 · what persists</span>
         <h2>Audit leaves the pod; provider storage stays.</h2>
       </div>
 
-      <div class="audit-volume-map">
-        <div><span>every decision</span><strong>broker.decision</strong><small>log record on the message’s trace</small></div>
-        <i aria-hidden="true">stdout always →</i>
-        <div><span>with telemetry</span><strong>OTLP logs</strong><small>the same record, exported</small></div>
-        <i aria-hidden="true">retained by →</i>
-        <div><span>your receiver</span><strong>OpenObserve</strong><small>outside the pod</small></div>
-      </div>
-
-      <p>There is no audit volume. The audit record is the log record the broker emits inside the trace, so a pod restart keeps exactly what the telemetry receiver kept; a deployment that wants audit past a restart configures <code>telemetry</code>. Optional provider storage uses one retained claim mounted only into the broker. Storage names are unkeyed SHA-256, so there is no key Secret to retain, and a corrupt namespace is reset by the grant that finds it rather than quarantined at startup.</p>
+      <p>There is no audit volume. The audit record is the <code>broker.decision</code> log record the broker emits inside the trace — stdout always, OTLP logs when <code>telemetry</code> is configured — so a restart keeps whatever your receiver kept. Optional provider storage uses one retained claim mounted only into the broker; its names are unkeyed SHA-256, so no key Secret needs retaining, and a corrupt namespace is reset by the grant that finds it.</p>
 
       <div class="article-callout callout-warning">
         <strong>Size the storage volume before creating it.</strong>
-        <p>The target single-node storage class can’t expand. Inactive namespace generations stay charged to the root quota until you remove them offline with the daemons stopped.</p>
+        <p>The target single-node storage class can’t expand, and inactive namespace generations stay charged to the root quota until you remove them offline with the daemons stopped.</p>
       </div>
     </section>
 
     <section id="startup" class="article-section">
       <div class="article-heading">
-        <span>K.5 · ordering without fake HTTP health</span>
+        <span>K.6 · ordering without fake HTTP health</span>
         <h2>A real broker request is the broker readiness check.</h2>
       </div>
 
@@ -143,12 +192,12 @@ ogType: article
         <li><span>05</span><div><strong>Drain in reverse.</strong><p>Gateway sessions stop first. The broker then finishes in-flight effects and flushes its exporters.</p></div></li>
       </ol>
 
-      <p>There is no liveness probe. An automatic restart could kill a broker mid-invocation and would not repair an external dependency. Readiness reports truth without manufacturing that risk.</p>
+      <p>There is no liveness probe: an automatic restart could kill a broker mid-invocation and wouldn’t repair an external dependency anyway.</p>
     </section>
 
     <section id="security" class="article-section">
       <div class="article-heading">
-        <span>K.6 · pod security posture</span>
+        <span>K.7 · pod security posture</span>
         <h2>Root exists for one bounded setup job.</h2>
       </div>
 
@@ -158,12 +207,12 @@ ogType: article
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Current limit</span></div><h3>A gateway lane, not tenant isolation</h3><p>A compromised gateway can still vouch for any subject inside its attestor grant. Broker-UID or host compromise is outside the boundary.</p></article>
       </div>
 
-      <p>Wasmtime JIT compilation requires executable memory operations allowed by RuntimeDefault seccomp. A hand-written tighter profile must prove a real component still loads.</p>
+      <p>Wasmtime JIT compilation needs the executable memory operations RuntimeDefault seccomp allows. Tighten that profile by hand and you must prove a real component still loads.</p>
     </section>
 
     <section id="status" class="article-section">
       <div class="article-heading">
-        <span>K.7 · two release numbers</span>
+        <span>K.8 · two release numbers</span>
         <h2>The app and chart move independently.</h2>
       </div>
 
@@ -177,14 +226,14 @@ ogType: article
         </table>
       </div>
 
-      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. The chart moves on its own tag, <code>dekopon-chart-&lt;version&gt;</code>, and its <code>appVersion</code> moves with the application in the release-prep commit.</p>
+      <p>The chart is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. It moves on its own tag, <code>dekopon-chart-&lt;version&gt;</code>, and its <code>appVersion</code> moves with the application in the release-prep commit.</p>
 
-      {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest publication status, values, path contract, probes, storage arithmetic, ChatGPT seeding behavior, and Argo CD instructions before installing.") }}
+      {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest values, path contract, probes, storage arithmetic, and Argo CD instructions before installing.") }}
     </section>
 
     <nav class="chapter-pager" aria-label="Adjacent deployment guides">
       <a class="chapter-pager-link chapter-pager-previous" href="/deploy/"><span>← Deployment overview</span><strong>Choose a path</strong></a>
-      <a class="chapter-pager-link chapter-pager-next" href="/deploy/credentials/"><span>Next →</span><strong>Credential delivery</strong></a>
+      <a class="chapter-pager-link chapter-pager-next" href="/almanac/identity/"><span>Continue learning →</span><strong>Trusted identity</strong></a>
     </nav>
   </article>
 </div>

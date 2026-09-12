@@ -1,0 +1,34 @@
+<section class="constitution-section section" id="constitution" aria-labelledby="constitution-title">
+  <div class="shell">
+    <div class="section-heading split-heading constitution-heading">
+      <div>
+        {% if home.constitution.kicker %}<span class="section-kicker purple">{{ home.constitution.kicker }}</span>{% endif %}
+        <h2 id="constitution-title">{{ home.constitution.title }}</h2>
+      </div>
+      <p>{{ home.constitution.intro }}</p>
+    </div>
+
+    <ol class="constitution-goals">
+      {% for goal in home.constitution.goals %}
+        <li class="constitution-goal reveal{% if loop.index > 1 %} reveal-delay-{{ loop.index - 1 }}{% endif %}">
+          <span aria-hidden="true">0{{ loop.index }}</span>
+          <div>
+            <h3>{{ goal.title }}</h3>
+            <p>{{ goal.body }}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+
+    <aside class="constitution-non-goals reveal" aria-labelledby="constitution-non-goals-title">
+      <div class="constitution-non-goals-copy">
+        <h3 id="constitution-non-goals-title">{{ home.constitution.nonGoals.title }}</h3>
+        <p>{{ home.constitution.nonGoals.note }}</p>
+        <a class="text-link" href="{{ home.constitution.link.href }}">{{ home.constitution.link.label }} <span aria-hidden="true">↗</span></a>
+      </div>
+      <ul>
+        {% for item in home.constitution.nonGoals.items %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+    </aside>
+  </div>
+</section>

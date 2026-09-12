@@ -16,7 +16,7 @@ ogType: article
     <div>
       <p class="almanac-kicker">Deploy {{ release.tag }}</p>
       <h1>Start on one machine<br><span>with the boundary still visible.</span></h1>
-      <p>Install the two executables directly or run the gateway and broker together in one pod. Every current path preserves the same authority split.</p>
+      <p>Install the two executables directly, or run them together in one pod.</p>
       <div class="deploy-hero-status">{{ status("current", "Released") }}<span>Linux arm64 + amd64 · macOS arm64</span></div>
     </div>
     <div class="deploy-release-box">
@@ -35,7 +35,7 @@ ogType: article
     <div class="almanac-section-heading">
       <span class="almanac-section-index">01—04</span>
       <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary, different operating shape.</h2></div>
-      <p>The current application ships through native package managers, attested archives, and a multi-architecture image. The Helm chart is versioned independently and its current release deploys this application. The interactive operator console is a sibling project, <a href="https://github.com/dekopon-agents/dekopon-console">dekopon-console</a>, on its own release cadence.</p>
+      <p>The chart is versioned independently, and the operator console ships from the sibling repository <a href="https://github.com/dekopon-agents/dekopon-console">dekopon-console</a>.</p>
     </div>
 
     <div class="deploy-option-grid">
@@ -44,15 +44,15 @@ ogType: article
         <h2>Homebrew</h2>
         <p>Install <code>dekopond</code> and <code>dekopon-brokerd</code> from the organization tap.</p>
         <pre><code>brew install dekopon-agents/tap/dekopon</code></pre>
-        <small>The generated formula is pinned to the current attested release archives.</small>
+        <small>Pinned to the current attested release archives.</small>
       </article>
 
       <article class="deploy-option-card">
         <div><span>02</span>{{ status("current", "pinned Rust install") }}</div>
         <h2>crates.io</h2>
-        <p>The release workflow publishes every public crate at the application version: the provider SDK, its testkit, and the guest bindings. Pin the exact version.</p>
+        <p>Every public crate ships at the application version.</p>
         <pre><code>dekopon-provider-sdk = "={{ release.version }}"</code></pre>
-        <small>Attested archives remain available for macOS arm64 and Linux arm64/amd64 on the GitHub release.</small>
+        <small>Attested archives for macOS arm64 and Linux arm64/amd64 are on the GitHub release.</small>
       </article>
 
       <article class="deploy-option-card">
@@ -84,16 +84,15 @@ ogType: article
     </div>
     <div class="invariant-notes">
       <article><span>gateway</span><h3>Hears and reasons</h3><p>Chat and model credentials terminate here. Provider credentials and policy don’t.</p></article>
-      <article><span>broker</span><h3>Decides and executes</h3><p>Trusted identity, Cedar, execution constraints, provider credentials, evidence, and audit stay here.</p></article>
-      <article><span>provider</span><h3>Performs one operation</h3><p>A fresh Wasm instance gets only explicitly linked, authorization-bound host services.</p></article>
-      <article><span>operator</span><h3>Owns the files</h3><p>You provide the configuration, credential, and socket paths, and the telemetry receiver that keeps the audit.</p></article>
+      <article><span>broker</span><h3>Decides and executes</h3><p>Trusted identity, Cedar, execution constraints, credentials, and audit stay here.</p></article>
+      <article><span>provider</span><h3>Performs one operation</h3><p>A fresh Wasm instance gets only authorization-bound host services.</p></article>
+      <article><span>operator</span><h3>Owns the files</h3><p>You supply the config, credential, and socket paths — plus the telemetry receiver that keeps the audit.</p></article>
     </div>
   </div>
 </section>
 
 <section class="almanac-closing-band deploy-closing-band">
   <div class="shell">
-    <span>The most constrained deployment is also the most interesting</span>
     <h2>See why Kubernetes uses one pod.</h2>
     <a class="button button-primary" href="/deploy/kubernetes/">Open the Kubernetes guide <span aria-hidden="true">→</span></a>
   </div>

@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/providers/index.html
 pageTitle: Wasm providers — How Dekopon works
-pageDescription: See how Dekopon runs each provider operation in a fresh Wasm sandbox and links only broker-owned, constrained HTTP or storage interfaces.
+pageDescription: Dekopon runs each provider operation in a fresh Wasm sandbox and links only broker-owned, constrained HTTP or storage interfaces.
 bodyClass: almanac-page almanac-article-page almanac-providers-page
 almanacPage: true
 almanacSection: providers
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("04", "Wasm providers", "A fresh sandbox<br><span>for one approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges. Dekopon decides which host functions exist, starts each call clean, and keeps credentials and storage paths in broker-owned code.", "current", "Shipping in " ~ release.tag) }}
+{{ pageHero("04", "Wasm providers", "A fresh sandbox<br><span>for one approved operation.</span>", "A provider is portable integration code, not a plugin with host privileges: Dekopon decides which host functions exist, starts each call clean, and keeps credentials in broker code.", "current", "Shipping in " ~ release.tag) }}
 {{ chapterNav("providers", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -33,7 +33,7 @@ ogType: article
       <div class="article-heading">
         <span>04.1 · a small portable boundary</span>
         <h2>Describe every capability, invoke exactly one.</h2>
-        <p>Every provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure. A command-enabled provider adds the pure <code>run-command</code> export.</p>
+        <p>Every provider component exports two operations: <code>describe</code> returns its strict manifest; <code>invoke</code> turns one capability and one JSON object into a typed success or failure. A command-enabled provider adds the pure <code>run-command</code> export.</p>
       </div>
 
       <pre><code><span class="code-purple">world</span> provider {
@@ -44,51 +44,18 @@ ogType: article
   ) -&gt; string;
 }</code></pre>
 
-      <div class="build-pipeline">
-        <div class="build-step"><span>1</span><strong>Implement</strong><small>typed Rust provider</small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step"><span>2</span><strong>Compile</strong><small><code>wasm32-unknown-unknown</code></small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step"><span>3</span><strong>Inspect</strong><small>declared WIT imports</small></div>
-        <i aria-hidden="true">→</i>
-        <div class="build-step build-step-final"><span>4</span><strong>Load</strong><small>operator-owned host</small></div>
-      </div>
-
-      <p>A component can’t download a native runtime extension or invent a host import. Its requirements are visible before it runs, and the host supplies exactly those interfaces or rejects it.</p>
+      <p>A component compiled to <code>wasm32-unknown-unknown</code> can’t download a native runtime extension or invent a host import. Its declared WIT imports are visible before it runs, and the operator-owned host supplies exactly those or rejects it.</p>
     </section>
 
     <section id="hosts" class="article-section">
       <div class="article-heading">
-        <span>04.2 · the fake broker and the real one</span>
+        <span>04.2 · dekopon:http@1.0.0 · dekopon:storage@0.1.0</span>
         <h2>The linker is the first permission boundary.</h2>
-      </div>
-
-      <div class="run-mode-cards">
-        <article class="run-mode-current">
-          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Test</span><span><code>FakeBroker</code></span></div>
-          <h3>The real host, without Cedar</h3>
-          <p>The testkit mints its own authorization and runs the compiled component on the same Wasmtime and storage hosts a deployment runs.</p>
-          <ul>
-            <li>storage imports on request, no HTTP</li>
-            <li>a temporary root the test owns</li>
-            <li>a development harness, not runtime authority</li>
-          </ul>
-        </article>
-        <article class="run-mode-future">
-          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker</span><span><code>dekopon-brokerd</code></span></div>
-          <h3>Permissioned provider effects</h3>
-          <p>The privileged host links an exact project-owned HTTP or storage interface after Cedar allows an invocation and the broker attaches constraints.</p>
-          <ul>
-            <li>no WASI, raw sockets, host paths, environment, or guest-visible secrets</li>
-            <li>exact network or storage scope, quotas, bytes, and deadline</li>
-            <li>sanitized evidence in the audit record on the trace</li>
-          </ul>
-        </article>
       </div>
 
       <div class="article-callout callout-decision">
         <strong>Declaring an import isn’t receiving authority.</strong>
-        <p>A component can say it needs <code>dekopon:http@1.0.0</code> or <code>dekopon:storage@0.1.0</code>. Only the broker can connect that import to a constrained native service for one authorized invocation.</p>
+        <p>A component can declare <code>dekopon:http@1.0.0</code> or <code>dekopon:storage@0.1.0</code>. Only the broker connects that import to a constrained native service for one authorized invocation, and links nothing else: no WASI, raw sockets, host paths, environment, or guest-visible secrets.</p>
       </div>
     </section>
 
@@ -114,7 +81,7 @@ ogType: article
         </div>
       </div>
 
-      <p>Description and command runs execute with HTTP, storage, and the clock disabled. Provider code can’t use a host service while advertising or rewriting what it can do.</p>
+      <p>Description and command runs execute with HTTP, storage, and the clock disabled: provider code can’t reach a host service while advertising or rewriting what it can do.</p>
     </section>
 
     <section id="http" class="article-section">
@@ -130,14 +97,14 @@ ogType: article
         <div><small>evidence keeps</small><strong>method · host · status</strong><span>byte counts, never bodies</span></div>
       </div>
 
-      <p>Constraints can narrow the native host ceilings and never widen them. Plain HTTP is rejected except for explicitly authorized literal loopback tests. DNS results are validated and pinned before connection.</p>
+      <p>Constraints narrow the native host ceilings, never widen them. Plain HTTP is rejected except for authorized literal loopback tests, and the engine pins validated DNS before connecting.</p>
     </section>
 
     <section id="storage" class="article-section">
       <div class="article-heading">
         <span>04.5 · durable state without host paths</span>
         <h2>The broker gives storage a namespace, not a filesystem.</h2>
-        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root or any filesystem access.</p>
+        <p>A component names logical records or files, and never receives the physical root or any filesystem access.</p>
       </div>
 
       <div class="provider-envelope">
@@ -147,13 +114,13 @@ ogType: article
         <div><small>write rule</small><strong>each host call applies directly</strong><span>no rollback on a failed result</span></div>
       </div>
 
-      <p>HTTP and storage authority can’t coexist in one v1 capability. Each host call applies its write directly; a failed provider result or trap doesn’t undo completed writes. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
+      <p>HTTP and storage authority can’t coexist in one v1 capability, and a failed provider result or trap doesn’t undo writes already applied. The optional <code>memory-chat</code> component records delivered turns as JSONL and exposes <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
 
-      <p>The public <code>dekopon-provider-sdk-testkit</code> lets a provider test its compiled component against this real storage host. It skips Cedar and the constraint catalog by minting test authorization; namespace derivation, quotas, leases, and the Wasmtime path remain the production implementations.</p>
+      <p>The public <code>dekopon-provider-sdk-testkit</code> runs a compiled component against this real storage host, minting its own authorization instead of Cedar and the constraint catalog. Namespaces, quotas, leases, and the Wasmtime path stay production code.</p>
 
       <div class="article-callout callout-warning">
         <strong>Durable doesn’t mean encrypted or automatically remembered.</strong>
-        <p>Dekopon doesn’t encrypt stored text at rest, doesn’t replay it into prompts, and has no deletion or export UX. Storage names are unkeyed SHA-256 of the authority and scope; nothing encrypts the content.</p>
+        <p>Dekopon doesn’t encrypt stored text, doesn’t replay it into prompts, and has no deletion or export UX. Storage names are unkeyed SHA-256 of the authority and scope; nothing encrypts the content.</p>
       </div>
     </section>
 
@@ -171,7 +138,7 @@ ogType: article
         <div><span>native HTTP engine</span><strong>injects Authorization</strong><small>only at the bound destination</small></div>
       </div>
 
-      <p>The value stays out of prompts, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request, and refuses a response that carries the raw secret back. An endpoint that re-encodes what it legitimately received is outside the boundary. Audit records the credential’s owner-authored symbolic name, so two organizations’ effects stay distinguishable without recording either token.</p>
+      <p>The value stays out of prompts, guest imports, evidence, spans, and normal logs, and the engine refuses a response carrying the raw secret back. An endpoint that re-encodes what it legitimately received is outside the boundary. Audit records the credential’s owner-authored symbolic name, never the token, so two organizations’ effects stay distinguishable.</p>
     </section>
 
     <section id="scope" class="article-section">
@@ -182,20 +149,20 @@ ogType: article
 
       <div class="truth-label-cards">
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Enforced</span></div><h3>Guest boundaries</h3><p>Declared imports, fresh stores, and the memory, fuel, and deadline ceilings are checked in code.</p></article>
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway links no broker crate but the protocol client. Only the separate broker owns policy, credentials, and effect execution.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway links no broker crate but the protocol client; only the broker owns policy, credentials, and effect execution.</p></article>
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm doesn’t protect a broker machine, a toolchain, or a dependency set that’s already compromised.</p></article>
       </div>
 
       <div class="article-callout callout-decision">
         <strong>Providers can move independently without becoming plugins.</strong>
-        <p>GitHub, MediaWiki, Python, ripgrep, and Turso SQL now ship from separate repositories. Their release cadence and dependency graphs are independent; their components still enter through the same manifest, WIT, broker policy, constraints, and fresh-store path.</p>
+        <p>GitHub, MediaWiki, Python, ripgrep, and Turso SQL ship from separate repositories with independent cadences and dependency graphs. Their components still enter through the same manifest, WIT, policy, constraints, and fresh-store path.</p>
       </div>
 
-      <p>Ready to build one? <a href="/guides/provider-sdk/"><strong>Build, test, and run a provider with the pinned {{ release.tag }} Rust SDK</strong></a>.</p>
+      <p><a href="/guides/provider-sdk/"><strong>Build, test, and run a provider with the pinned {{ release.tag }} Rust SDK</strong></a>.</p>
 
-      {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "See the exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
+      {{ docsCta("Open the current broker HTTP contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/broker-http.md", "The exact WIT interface, native HTTP ceilings, credential binding, evidence fields, service failures, and remaining limitations.") }}
     </section>
 
-    {{ chapterPager(almanac.chapters[3], almanac.chapters[5]) }}
+    {{ chapterPager(almanac.chapters[2], almanac.chapters[4]) }}
   </article>
 </div>

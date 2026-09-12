@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>01.1 · authenticated transport</span>
         <h2>Identity starts before the model sees text.</h2>
-        <p>Slack, Discord, Telegram, and WhatsApp authenticate their own users or signed webhook senders. Their envelopes carry service-native identifiers alongside the message. <code>dekopond</code> validates and normalizes those identifiers before a model session starts. The local development transport is the explicit exception: its subject is caller-supplied and refused unless the broker opts in.</p>
+        <p>Slack, Discord, Telegram, and WhatsApp authenticate their own senders. <code>dekopond</code> validates and normalizes the identifiers they carry before a model session starts.</p>
       </div>
 
       <div class="comparison-table-wrap">
@@ -50,7 +50,7 @@ ogType: article
 
       <div class="article-callout callout-decision">
         <strong>A subject is routing metadata, not authority.</strong>
-        <p>The gateway can say “Slack authenticated this subject.” It can’t say “therefore this is principal <code>maintainer</code>” or “therefore this action is allowed.” Those transitions belong to the broker. A development transport can only say “the local caller supplied this subject,” and the broker admits that namespace only under <code>allowDevelopmentSubjects: true</code>.</p>
+        <p>The gateway can say “Slack authenticated this subject,” never “therefore this is principal <code>maintainer</code>.” That transition belongs to the broker, which admits a caller-supplied development subject only under <code>allowDevelopmentSubjects: true</code>.</p>
       </div>
     </section>
 
@@ -61,21 +61,21 @@ ogType: article
       </div>
 
       <ol class="identity-chain" aria-label="Identity flow from chat service to Cedar">
-        <li><span>01</span><div><small>chat service</small><strong>Authenticates the sender</strong><p>The message arrives with a workspace and user identifier supplied by the transport.</p></div></li>
-        <li><span>02</span><div><small>gateway</small><strong>Builds a canonical subject</strong><p><code>dekopond</code> also names the catalog agent selected by the route.</p></div></li>
-        <li><span>03</span><div><small>Unix socket</small><strong>Authenticates the gateway peer</strong><p>The broker reads the connected peer UID. The request contains no principal field.</p></div></li>
-        <li><span>04</span><div><small>broker configuration</small><strong>Checks attestation and maps identity</strong><p>The peer may vouch only for configured subject namespaces. An owner-controlled mapping resolves the subject to a principal.</p></div></li>
-        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong><p>Policy sees the mapped principal and broker-derived context. The audit record on the message’s trace preserves that attribution; storage records carry commitments instead of raw scope.</p></div></li>
+        <li><span>01</span><div><small>chat service</small><strong>Authenticates the sender</strong></div></li>
+        <li><span>02</span><div><small>gateway</small><strong>Builds a canonical subject</strong></div></li>
+        <li><span>03</span><div><small>Unix socket</small><strong>Authenticates the gateway peer</strong><p>The request carries no principal field.</p></div></li>
+        <li><span>04</span><div><small>broker configuration</small><strong>Checks attestation and maps identity</strong></div></li>
+        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong></div></li>
       </ol>
 
-      <p>The proposal still carries untrusted arguments. Trusted identity travels beside it as broker-owned context; it never becomes a field the model can edit.</p>
+      <p>Trusted identity travels beside the untrusted arguments as broker-owned context, never as a field the model can edit.</p>
     </section>
 
     <section id="configuration" class="article-section">
       <div class="article-heading">
         <span>01.3 · owner-controlled mapping</span>
         <h2>The gateway may vouch only inside its lane.</h2>
-        <p>This simplified excerpt keeps the permission-bearing fields and replaces deployment-specific identifiers. It contains no token, path, or real workspace membership.</p>
+        <p>This simplified excerpt keeps the permission-bearing fields and replaces every deployment-specific identifier.</p>
       </div>
 
       <pre><code><span class="code-comment"># broker.yaml — simplified and redacted</span>
@@ -99,18 +99,17 @@ identityMappings:
       <div class="invariant-notes">
         <article><span>peer</span><h3><code>uid: 65532</code></h3><p>Maps the authenticated Unix peer to the service identity <code>chat-gateway</code>.</p></article>
         <article><span>scope</span><h3><code>namespaces</code></h3><p>Lets that peer attest subjects from one Slack workspace, matched on segment boundaries.</p></article>
-        <article><span>chat</span><h3><code>chatScopes</code></h3><p>Separately bounds which transport and conversation scopes the gateway may attest.</p></article>
+        <article><span>chat</span><h3><code>chatScopes</code></h3><p>Bounds which transport and conversation scopes the gateway may attest.</p></article>
         <article><span>mapping</span><h3><code>identityMappings</code></h3><p>The only place the external subject becomes the Cedar principal <code>maintainer</code>.</p></article>
       </div>
 
-      <p>An unmapped subject becomes nothing. A subject outside the attestor namespace is refused. Neither case mints a principal on demand.</p>
+      <p>An unmapped subject becomes nothing. A subject outside the attestor namespace is refused.</p>
     </section>
 
     <section id="cedar" class="article-section">
       <div class="article-heading">
         <span>01.4 · authorization context</span>
         <h2>Cedar can reuse identity without trusting payloads.</h2>
-        <p>Once the broker has authenticated context, Cedar applies that identity to the session gate and to every later capability decision.</p>
       </div>
 
       <div class="cedar-context-board">
@@ -131,7 +130,7 @@ identityMappings:
         </table>
       </div>
 
-      <p>This lets one person have different surfaces through different gateways or agents. It also keeps direct and attested authority disjoint: a policy requiring <code>context.via</code> can’t match a direct socket client.</p>
+      <p>Direct and attested authority stay disjoint: a policy requiring <code>context.via</code> can’t match a direct socket client.</p>
     </section>
 
     <section id="audit" class="article-section">
@@ -149,7 +148,7 @@ identityMappings:
         <div><span>policy</span><code>pr-commenter-github</code></div>
       </div>
 
-      <p>The provider never needs this identity in its input. Cedar decides with it, and the <code>broker.decision</code> record on the trace attributes the effect. Storage records leave out raw identity and scope and carry domain-separated commitments instead.</p>
+      <p>The provider never receives this identity; the <code>broker.decision</code> record on the trace attributes the effect, and storage records carry domain-separated commitments instead of raw scope.</p>
     </section>
 
     <section id="limit" class="article-section">
@@ -159,14 +158,14 @@ identityMappings:
       </div>
 
       <div class="truth-label-cards">
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Identity can’t come from model text</h3><p>Transport facts, peer credentials, and the mapping you wrote establish the context.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Identity can’t come from model text</h3><p>Transport facts, peer credentials, and your mapping establish it.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Every refusal fails closed</h3><p>Out-of-namespace, unmapped, and agent-denied cases reach no provider authority.</p></article>
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Limit</span></div><h3>A gateway can vouch inside its lane</h3><p>The chart runs the gateway as UID 65533 and the broker as 65532. A compromised gateway still speaks for any subject inside its attestor grant; that isn’t per-process attestation or tenant isolation.</p></article>
       </div>
 
-      {{ docsCta("Open the current gateway contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/dekopond.md", "See exact transport subjects, attestation fields, routing behavior, and the attestor boundary as they evolve.") }}
+      {{ docsCta("Open the current gateway contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/dekopond.md", "See exact transport subjects, attestation fields, and the attestor boundary as they evolve.") }}
     </section>
 
-    {{ chapterPager(almanac.chapters[0], almanac.chapters[2]) }}
+    {{ chapterPager(null, almanac.chapters[1]) }}
   </article>
 </div>

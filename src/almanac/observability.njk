@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/observability/index.html
 pageTitle: One trace, complete — How Dekopon works
-pageDescription: One W3C trace per message carries every prompt, script, decision, and HTTP call. The audit record is one of its log records, and there is no audit file.
+pageDescription: One W3C trace per message carries every prompt, script, decision, and HTTP call. The audit record is one of its log records; there is no audit file.
 bodyClass: almanac-page almanac-article-page almanac-observability-page
 almanacPage: true
 almanacSection: observability
@@ -10,7 +10,7 @@ ogType: article
 ---
 {% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
 
-{{ pageHero("05", "One trace, complete", "One message,<br><span>one trace, nothing withheld.</span>", "An operator with the telemetry store can reconstruct everything an agent did. One W3C trace per message carries every prompt, script, decision, and HTTP call; the broker’s audit record is a log record on it.", "current", "One trace per message in " ~ release.tag) }}
+{{ pageHero("05", "One trace, complete", "One message,<br><span>one trace, nothing withheld.</span>", "One W3C trace per message carries every prompt, script, decision, and HTTP call, so an operator with the telemetry store can reconstruct everything an agent did.", "current", "One trace per message in " ~ release.tag) }}
 {{ chapterNav("observability", almanac.chapters) }}
 
 <div class="almanac-article-shell shell">
@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>05.1 · one real system shape</span>
         <h2>Thinking, tools, and effect in one view.</h2>
-        <p>The real shape of an HTTP-provider trace: a transport receipt wraps one session, several model turns, and two narrow broker calls. Blue is gateway and model work; green is broker-owned authority and I/O.</p>
+        <p>Blue is gateway and model work; green is broker-owned authority and I/O. <code>transport.receive</code> opens before parsing, so an ignored message still leaves the trace that says why.</p>
       </div>
 
       <figure class="otel-waterfall">
@@ -69,13 +69,6 @@ ogType: article
         </div>
         <figcaption>Width shows duration; nesting shows causality. The <code>broker.decision</code> and <code>broker.execution</code> log records sit inside the green <code>broker.authorize</code> and <code>broker.execute</code> spans.</figcaption>
       </figure>
-
-      <div class="waterfall-reading">
-        <article><span>01</span><h3>The receipt is the root</h3><p><code>transport.receive</code> opens before parsing, so an ignored message still leaves the trace that says why.</p></article>
-        <article><span>02</span><h3>Model turns dominate</h3><p>Long blue bars put inference latency where it belongs.</p></article>
-        <article><span>03</span><h3>Scripts explain intent</h3><p>One <code>shell.command</code> span per word run, however many; the script text is a log record beside them.</p></article>
-        <article><span>04</span><h3>Effects have a narrow branch</h3><p>Broker spans nest only where a command crosses the boundary.</p></article>
-      </div>
     </section>
 
     <section id="correlation" class="article-section">
@@ -92,7 +85,7 @@ ogType: article
         <article><small>backend</small><strong>OpenObserve</strong><span>joins by trace and parent IDs</span></article>
       </div>
 
-      <p>Every proposal carries a mandatory W3C <code>traceParent</code>; the broker parents its spans on it and stamps its audit records with the trace id. A gateway that exports nothing mints a sampled context from OS entropy, so an exporting broker behind it still records every decision. The invocation identifier is <code>&lt;trace&gt;-&lt;counter&gt;</code>.</p>
+      <p>Every proposal carries a mandatory W3C <code>traceParent</code>; the broker parents its spans on it and stamps its audit records with the trace id. A gateway that exports nothing still mints a sampled context from OS entropy, so an exporting broker behind it records every decision. Invocations are numbered <code>&lt;trace&gt;-&lt;counter&gt;</code>.</p>
 
       <div class="invariant-notes">
         <article><span>strict</span><h3>Malformed context</h3><p>Refused at decode.</p></article>
@@ -107,14 +100,14 @@ ogType: article
       </div>
 
       <div class="truth-label-cards">
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker audit</span></div><h3>What was authorized?</h3><p>One log record per decision, <code>broker.decision</code> or <code>broker.execution</code>, inside the span that made it: identity, capability, policy ids and digest, the symbolic credential name, sanitized HTTP evidence. Stdout JSON always; OTLP when <code>telemetry</code> names a receiver.</p></article>
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel traces</span></div><h3>What ran, and where did time go?</h3><p>Duration, parentage, and the path from chat to HTTP. A span is never dropped; an oversized attribute is truncated with a marker.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Broker audit</span></div><h3>What was authorized?</h3><p>One log record per decision, <code>broker.decision</code> or <code>broker.execution</code>, inside the span that made it. Stdout JSON always; OTLP when <code>telemetry</code> names a receiver.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel traces</span></div><h3>What ran, and where did time go?</h3><p>Duration, parentage, and the path from chat to HTTP. No span is dropped; an oversized attribute is truncated with a marker.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>OTel logs</span></div><h3>What was said and run?</h3><p>Prompts, answers, scripts, output, accounting, refusals.</p></article>
       </div>
 
       <div class="article-callout callout-warning">
         <strong>Lose the exporter, lose the audit.</strong>
-        <p>There is no on-disk audit sink. Audit past a pod restart means configuring <code>telemetry</code>, and a collector reachable only through a proxy is unreachable. Tamper-detection is a non-goal: the telemetry store is inside your trust boundary.</p>
+        <p>There is no on-disk audit sink: audit past a pod restart means configuring <code>telemetry</code>, and a collector reachable only through a proxy is unreachable. Nothing here detects tampering: your telemetry store is inside your trust boundary.</p>
       </div>
     </section>
 
@@ -126,13 +119,13 @@ ogType: article
 
       <div class="comparison-table-wrap">
         <table class="almanac-table strategy-table">
-          <thead><tr><th scope="col">Record</th><th scope="col">Why it is a log</th><th scope="col">Fields</th></tr></thead>
+          <thead><tr><th scope="col">Record</th><th scope="col">Fields</th></tr></thead>
           <tbody>
-            <tr><th scope="row"><code>broker.decision</code> · <code>broker.execution</code></th><td>Searched on its own.</td><td>identity, capability, decision, policy ids and digest, sanitized HTTP calls</td></tr>
-            <tr><th scope="row"><code>agent.model.prompt</code> · <code>agent.model.answer</code></th><td>Too large for a span attribute.</td><td>the messages appended since the last turn, in full</td></tr>
-            <tr><th scope="row"><code>agent.tool.script</code> · <code>agent.tool.output</code></th><td>What the model decided.</td><td>the script text and its bounded output</td></tr>
-            <tr><th scope="row"><code>accounting.model.turn</code> · <code>accounting.http.request</code></th><td>Cost outlives its trace.</td><td>duration, token usage, method, authority, status, bytes</td></tr>
-            <tr><th scope="row">refusal and error events</th><td>A category outlives its trace.</td><td>a stable category and bounded ids</td></tr>
+            <tr><th scope="row"><code>broker.decision</code> · <code>broker.execution</code></th><td>identity, capability, decision, policy ids and digest, sanitized HTTP calls</td></tr>
+            <tr><th scope="row"><code>agent.model.prompt</code> · <code>agent.model.answer</code></th><td>the messages appended since the last turn, in full</td></tr>
+            <tr><th scope="row"><code>agent.tool.script</code> · <code>agent.tool.output</code></th><td>the script text and its bounded output</td></tr>
+            <tr><th scope="row"><code>accounting.model.turn</code> · <code>accounting.http.request</code></th><td>duration, token usage, method, authority, status, bytes</td></tr>
+            <tr><th scope="row">refusal and error events</th><td>a stable category and bounded ids</td></tr>
           </tbody>
         </table>
       </div>
@@ -144,7 +137,7 @@ ogType: article
       <div class="article-heading">
         <span>05.5 · two exclusions</span>
         <h2>Secret bytes are the only exclusion.</h2>
-        <p>Dekopon is the operator’s agent system, not the end user’s private one. A person talking to a Dekopon agent is talking to its operator.</p>
+        <p>Dekopon is the operator’s agent system, not the end user’s private one: talk to a Dekopon agent and you’re talking to its operator.</p>
       </div>
 
       <div class="comparison-table-wrap">
@@ -159,7 +152,7 @@ ogType: article
         </table>
       </div>
 
-      <p><code>shell.command</code> still counts argument values rather than recording them: a <code>curl -d</code> body is secret bytes wearing argv’s clothes. The values themselves are the committed direction. Storage-backed spans carry the namespace token, never scope or content.</p>
+      <p><code>shell.command</code> counts argument values rather than recording them: a <code>curl -d</code> body is secret bytes wearing argv’s clothes. Recording them is the committed direction; storage-backed spans carry the namespace token, never scope or content.</p>
     </section>
 
     <section id="openobserve" class="article-section">
@@ -180,6 +173,6 @@ dekopon-brokerd --config /etc/dekopon/broker.yaml</code></pre>
       {{ docsCta("Open the current observability contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/observability.md", "Exporter configuration, every span, log, and audit field, and OpenObserve behavior.") }}
     </section>
 
-    {{ chapterPager(almanac.chapters[4], null) }}
+    {{ chapterPager(almanac.chapters[3], null) }}
   </article>
 </div>

@@ -1,60 +1,39 @@
 {
-  "title": "How Dekopon works",
-  "description": "A release-backed guide to the current Dekopon authority path, from an authenticated chat message to one authorized HTTP request.",
   "chapters": [
-    {
-      "number": "00",
-      "key": "atlas",
-      "label": "System map",
-      "shortLabel": "Start",
-      "href": "/almanac/",
-      "title": "See the whole system",
-      "description": "Every part of the system in one map, from the gateway through to the trace."
-    },
     {
       "number": "01",
       "key": "identity",
       "label": "Trusted identity",
       "shortLabel": "Identify",
-      "href": "/almanac/identity/",
-      "title": "Where does identity come from?",
-      "description": "Follow an authenticated chat sender from the transport to the audit record."
+      "href": "/almanac/identity/"
     },
     {
       "number": "02",
       "key": "permissions",
       "label": "Cedar permissions",
       "shortLabel": "Permit",
-      "href": "/almanac/permissions/",
-      "title": "How does Cedar decide?",
-      "description": "Build the complete PR-commenter example, from principal and action to the redacted credential."
+      "href": "/almanac/permissions/"
     },
     {
       "number": "03",
       "key": "runtime",
       "label": "One-tool runtime",
       "shortLabel": "Explore",
-      "href": "/almanac/one-tool-runtime/",
-      "title": "Why give the model homemade bash?",
-      "description": "Use the shell habits models already have, with no processes, files, or sockets underneath."
+      "href": "/almanac/one-tool-runtime/"
     },
     {
       "number": "04",
       "key": "providers",
       "label": "Wasm providers",
       "shortLabel": "Isolate",
-      "href": "/almanac/providers/",
-      "title": "What can a provider reach?",
-      "description": "See how each provider starts in a fresh sandbox and receives only the broker-owned host access approved for one action."
+      "href": "/almanac/providers/"
     },
     {
       "number": "05",
       "key": "observability",
       "label": "One trace",
       "shortLabel": "Observe",
-      "href": "/almanac/observability/",
-      "title": "How do you see the whole run?",
-      "description": "One W3C trace per message carries every prompt, script, decision, and HTTP call, and the audit record is one of its log records."
+      "href": "/almanac/observability/"
     }
   ]
 }
