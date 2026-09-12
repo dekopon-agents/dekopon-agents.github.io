@@ -18,7 +18,7 @@ ogType: article
     <nav aria-label="On this page">
       <span>On this page</span>
       <a href="#contract">The provider contract</a>
-      <a href="#hosts">Two execution paths</a>
+      <a href="#hosts">One host, one linker</a>
       <a href="#fresh">A fresh store</a>
       <a href="#http">Permissioned HTTP</a>
       <a href="#storage">Broker-owned storage</a>
@@ -33,7 +33,7 @@ ogType: article
       <div class="article-heading">
         <span>04.1 · a small portable boundary</span>
         <h2>Describe every capability, invoke exactly one.</h2>
-        <p>Every provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure. A command-enabled provider may add the optional pure <code>resolve-command</code> export.</p>
+        <p>Every provider component exports two operations. <code>describe</code> returns its strict manifest. <code>invoke</code> receives one capability identifier and one JSON object, then returns a typed success or failure. A command-enabled provider adds the pure <code>run-command</code> export.</p>
       </div>
 
       <pre><code><span class="code-purple">world</span> provider {
@@ -59,19 +59,19 @@ ogType: article
 
     <section id="hosts" class="article-section">
       <div class="article-heading">
-        <span>04.2 · two deliberately different hosts</span>
+        <span>04.2 · the fake broker and the real one</span>
         <h2>The linker is the first permission boundary.</h2>
       </div>
 
       <div class="run-mode-cards">
         <article class="run-mode-current">
-          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Direct</span><span><code>dekopon-run</code></span></div>
-          <h3>Import-free local computation</h3>
-          <p>The linker supplies nothing. Components declaring network imports fail to load, and manifests may contain only read-only effects.</p>
+          <div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Test</span><span><code>FakeBroker</code></span></div>
+          <h3>The real host, without Cedar</h3>
+          <p>The testkit mints its own authorization and runs the compiled component on the same Wasmtime and storage hosts a deployment runs.</p>
           <ul>
-            <li>no filesystem, network, environment, clock, random source, or credential</li>
-            <li>pure transforms and provider development</li>
-            <li>raw untrusted output, not authorization evidence</li>
+            <li>storage imports on request, no HTTP</li>
+            <li>a temporary root the test owns</li>
+            <li>a development harness, not runtime authority</li>
           </ul>
         </article>
         <article class="run-mode-future">
@@ -81,7 +81,7 @@ ogType: article
           <ul>
             <li>no WASI, raw sockets, host paths, environment, or guest-visible secrets</li>
             <li>exact network or storage scope, quotas, bytes, and deadline</li>
-            <li>sanitized evidence and durable audit linkage</li>
+            <li>sanitized evidence in the audit record on the trace</li>
           </ul>
         </article>
       </div>
@@ -114,7 +114,7 @@ ogType: article
         </div>
       </div>
 
-      <p>Description and command resolution run with HTTP and storage disabled, even in the broker host. Provider code can’t use a host service while advertising or rewriting what it can do.</p>
+      <p>Description and command runs execute with HTTP, storage, and the clock disabled. Provider code can’t use a host service while advertising or rewriting what it can do.</p>
     </section>
 
     <section id="http" class="article-section">
@@ -137,23 +137,23 @@ ogType: article
       <div class="article-heading">
         <span>04.5 · durable state without host paths</span>
         <h2>The broker gives storage a namespace, not a filesystem.</h2>
-        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root, the namespace key, or any filesystem access.</p>
+        <p>The current broker provides exact JSONL and durable-file imports. A component names logical records or files; it never receives the physical root or any filesystem access.</p>
       </div>
 
       <div class="provider-envelope">
         <div><small>provider asks</small><strong>JSONL or durable files</strong><span>one declared interface</span></div>
         <div><small>authorization binds</small><strong>provider · action · chat scope</strong><span>access mode + limits</span></div>
-        <div><small>native engine enforces</small><strong>quota · lease · transaction</strong><span>no-follow filesystem operations</span></div>
-        <div><small>commit rule</small><strong>valid successful response</strong><span>otherwise abort the overlay</span></div>
+        <div><small>native engine enforces</small><strong>quota · lease</strong><span>no-follow filesystem operations</span></div>
+        <div><small>write rule</small><strong>each host call applies directly</strong><span>no rollback on a failed result</span></div>
       </div>
 
-      <p>HTTP and storage authority can’t coexist in one v1 capability. Storage mutations commit only after a valid successful provider response. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
+      <p>HTTP and storage authority can’t coexist in one v1 capability. Each host call applies its write directly; a failed provider result or trap doesn’t undo completed writes. The optional <code>memory-chat</code> component uses JSONL to record delivered turns and expose <code>memory recent</code> and <code>memory search</code> under fresh authorization.</p>
 
-      <p>The public <code>dekopon-provider-sdk-testkit</code> lets a provider test its compiled component against this real storage host. It skips Cedar and the constraint catalog by minting test authorization; namespace derivation, quotas, leases, transactions, and the Wasmtime path remain the production implementations.</p>
+      <p>The public <code>dekopon-provider-sdk-testkit</code> lets a provider test its compiled component against this real storage host. It skips Cedar and the constraint catalog by minting test authorization; namespace derivation, quotas, leases, and the Wasmtime path remain the production implementations.</p>
 
       <div class="article-callout callout-warning">
         <strong>Durable doesn’t mean encrypted or automatically remembered.</strong>
-        <p>Dekopon doesn’t encrypt stored text at rest, doesn’t replay it into prompts, and has no deletion or export UX. The namespace key protects derivation and commitments; it isn’t a content-encryption key.</p>
+        <p>Dekopon doesn’t encrypt stored text at rest, doesn’t replay it into prompts, and has no deletion or export UX. Storage names are unkeyed SHA-256 of the authority and scope; nothing encrypts the content.</p>
       </div>
     </section>
 
@@ -171,7 +171,7 @@ ogType: article
         <div><span>native HTTP engine</span><strong>injects Authorization</strong><small>only at the bound destination</small></div>
       </div>
 
-      <p>The value stays out of prompts, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request. An allowed endpoint can still hand it back in the response, and the component will see it — destination binding isn’t an endpoint confidentiality guarantee. Audit records the credential’s owner-authored symbolic name, so two organizations’ effects stay distinguishable without recording either token.</p>
+      <p>The value stays out of prompts, guest imports, evidence, spans, and normal logs. The native engine injects it only after validating the request, and refuses a response that carries the raw secret back. An endpoint that re-encodes what it legitimately received is outside the boundary. Audit records the credential’s owner-authored symbolic name, so two organizations’ effects stay distinguishable without recording either token.</p>
     </section>
 
     <section id="scope" class="article-section">
@@ -182,7 +182,7 @@ ogType: article
 
       <div class="truth-label-cards">
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Enforced</span></div><h3>Guest boundaries</h3><p>Declared imports, fresh stores, and the memory, fuel, and deadline ceilings are checked in code.</p></article>
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway and direct runner exclude privileged broker crates. Only the separate broker owns policy, credentials, and effect execution.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Separated</span></div><h3>Authority boundaries</h3><p>The gateway links no broker crate but the protocol client. Only the separate broker owns policy, credentials, and effect execution.</p></article>
         <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Not claimed</span></div><h3>Compromised host defense</h3><p>Wasm doesn’t protect a broker machine, a toolchain, or a dependency set that’s already compromised.</p></article>
       </div>
 

@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: deploy/kubernetes/index.html
 pageTitle: Kubernetes deployment — Published Dekopon Helm chart
-pageDescription: One pod, two daemons, and an owner-only Unix socket. No broker network service, and the published chart still trails the application.
+pageDescription: One pod, two UIDs, and a broker-owned Unix socket. No broker network service, and the published chart still trails the application.
 bodyClass: almanac-page almanac-article-page deploy-page deploy-kubernetes-page
 almanacPage: true
 ogType: article
@@ -10,7 +10,7 @@ ogType: article
 {% from "components/deploy.njk" import deployNav %}
 {% from "components/almanac.njk" import pageHero, docsCta %}
 
-{{ pageHero("K", "Kubernetes deployment", "One pod, two daemons,<br><span>and no broker network service.</span>", "Published chart " ~ release.chart.publishedVersion ~ " deploys application " ~ release.chart.publishedAppVersion ~ " around an owner-only Unix broker socket. It currently trails application " ~ release.version ~ "; chart " ~ release.chart.sourceVersion ~ " exists in source but is not published.", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
+{{ pageHero("K", "Kubernetes deployment", "One pod, two daemons,<br><span>and no broker network service.</span>", "Chart " ~ release.chart.sourceVersion ~ " in the " ~ release.tag ~ " tree runs the broker and gateway as different UIDs around a broker-owned Unix socket. The published chart is still " ~ release.chart.publishedVersion ~ ", deploying application " ~ release.chart.publishedAppVersion ~ ".", "direction", "Published chart " ~ release.chart.publishedVersion ~ " · trails current app") }}
 {{ deployNav("kubernetes", deploy.pages) }}
 
 <div class="almanac-article-shell shell">
@@ -20,7 +20,7 @@ ogType: article
       <a href="#pod">The pod cutaway</a>
       <a href="#one-pod">Why one pod</a>
       <a href="#files">Why files are copied</a>
-      <a href="#state">Audit state</a>
+      <a href="#state">Audit and storage</a>
       <a href="#startup">Startup and shutdown</a>
       <a href="#security">Security posture</a>
       <a href="#status">Release status</a>
@@ -32,26 +32,26 @@ ogType: article
       <div class="article-heading">
         <span>K.1 · the complete deployment shape</span>
         <h2>Everything with authority is visible in the pod.</h2>
-        <p>The default chart creates no Service or Ingress. The broker’s only control endpoint is a <code>0600</code> socket in a memory-backed shared volume. An opt-in ClusterIP can target a gateway webhook; it never exposes the broker.</p>
+        <p>The default chart creates no Service or Ingress. The broker’s only control endpoint is a <code>0660</code> socket in a <code>0710</code> broker-owned directory on a memory-backed volume; the gateway can connect to it and can’t replace it. An opt-in ClusterIP can target a gateway webhook; it never exposes the broker.</p>
       </div>
 
       <figure class="kubernetes-cutaway">
-        <div class="k8s-cutaway-title"><span>Published chart {{ release.chart.publishedVersion }} · app {{ release.chart.publishedAppVersion }} · replicas: 1 · Recreate</span><code>runAsUser: 65532</code></div>
+        <div class="k8s-cutaway-title"><span>Chart {{ release.chart.sourceVersion }} · app {{ release.chart.sourceAppVersion }} · replicas: 1 · Recreate</span><code>runAsUser: 65532 · 65533</code></div>
         <div class="k8s-init-row">
-          <article><small>init container · root + CHOWN/FOWNER only</small><strong>prepare-files</strong><span>projected inputs → real 0600 files owned by 65532</span></article>
+          <article><small>init container · root + CHOWN/FOWNER only</small><strong>prepare-files</strong><span>projected inputs → real 0600 files, the broker’s as 65532 and the gateway’s as 65533</span></article>
           <i aria-hidden="true">finishes before daemons start ↓</i>
         </div>
         <div class="k8s-runtime-row">
-          <article class="k8s-gateway-box"><small>regular container</small><strong>dekopond</strong><ul><li>Slack / Discord / Telegram / WhatsApp</li><li>model client</li><li>bounded sessions</li><li>no provider credential</li></ul></article>
-          <div class="k8s-socket-box"><span>memory-backed emptyDir</span><strong>broker.sock</strong><code>0600 · UID 65532</code><i aria-hidden="true">proposal →<br>← result</i></div>
-          <article class="k8s-broker-box"><small>native sidecar</small><strong>dekopon-brokerd</strong><ul><li>Cedar policy</li><li>constraint sets</li><li>provider credentials</li><li>Wasm + audit</li></ul></article>
+          <article class="k8s-gateway-box"><small>regular container · UID 65533</small><strong>dekopond</strong><ul><li>Slack / Discord / Telegram / WhatsApp</li><li>model client</li><li>bounded sessions</li><li>no provider credential</li></ul></article>
+          <div class="k8s-socket-box"><span>memory-backed emptyDir</span><strong>broker.sock</strong><code>0660 · group 65534</code><i aria-hidden="true">proposal →<br>← result</i></div>
+          <article class="k8s-broker-box"><small>native sidecar · UID 65532</small><strong>dekopon-brokerd</strong><ul><li>Cedar policy</li><li>constraint sets</li><li>provider credentials</li><li>Wasm + audit records</li></ul></article>
         </div>
         <div class="k8s-volume-row">
           <div><small>memory</small><strong>/etc/dekopon</strong><span>config · policy · provider credentials</span></div>
           <div><small>image</small><strong>/opt/dekopon/providers</strong><span>owner-matched Wasm components</span></div>
-          <div><small>retained claims</small><strong>/var/lib/dekopon*</strong><span>audit + checkpoint · optional provider storage · ChatGPT credential</span></div>
+          <div><small>retained claims</small><strong>/var/lib/dekopon*</strong><span>optional provider storage · ChatGPT credential</span></div>
         </div>
-        <figcaption>One image supplies both commands. Separate containers keep the roles apart; the shared UID and filesystem namespace are what the current local transport needs. Provider storage, when enabled, mounts only into the broker.</figcaption>
+        <figcaption>One image supplies both commands. Separate containers and separate UIDs keep the roles apart; the shared filesystem namespace is what the Unix socket needs. Provider storage, when enabled, mounts only into the broker.</figcaption>
       </figure>
     </section>
 
@@ -66,15 +66,15 @@ ogType: article
           <thead><tr><th scope="col">Constraint</th><th scope="col">Kubernetes consequence</th></tr></thead>
           <tbody>
             <tr><th scope="row">Broker binds a filesystem Unix socket</th><td>Gateway and broker need one shared pod volume; a webhook Service doesn’t replace it.</td></tr>
-            <tr><th scope="row">Socket mode is <code>0600</code></th><td>Both processes run as UID/GID <code>65532:65532</code>.</td></tr>
+            <tr><th scope="row">Socket mode is <code>0660</code></th><td>The broker owns it as <code>65532</code>; the gateway, <code>65533</code>, reaches it through supplementary group <code>65534</code> and pins <code>broker.serverUid</code>.</td></tr>
             <tr><th scope="row">Peer identity uses <code>SO_PEERCRED</code></th><td>A Service or TCP proxy would discard the authenticated transport.</td></tr>
-            <tr><th scope="row">Audit has one exclusive writer</th><td>The Deployment is fixed at one replica with <code>Recreate</code>.</td></tr>
+            <tr><th scope="row">Provider storage has one exclusive writer</th><td>The Deployment is fixed at one replica with <code>Recreate</code>.</td></tr>
             <tr><th scope="row">Gateway probes the broker once</th><td>The broker runs as a native sidecar whose startup probe gates gateway start.</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Two images would still need the same application version and the same pod, so the chart ships one image with all four executables. Each container picks its command and keeps its own job.</p>
+      <p>Two images would still need the same application version and the same pod, so the chart ships one image with both executables. Each container picks its command and keeps its own job.</p>
     </section>
 
     <section id="files" class="article-section">
@@ -87,7 +87,7 @@ ogType: article
       <div class="file-materialization">
         <div><small>Kubernetes projection</small><strong><code>key → ..data/key</code></strong><span>root-owned symlink · rejected</span></div>
         <i aria-hidden="true">init container copies →</i>
-        <div><small>private emptyDir</small><strong>regular file</strong><span>one link · UID 65532 · mode 0600</span></div>
+        <div><small>private emptyDir</small><strong>regular file</strong><span>one link · the daemon’s own UID · mode 0600</span></div>
         <i aria-hidden="true">daemon opens →</i>
         <div><small>startup validation</small><strong>serve or fail closed</strong><span>never “warn and continue”</span></div>
       </div>
@@ -109,25 +109,23 @@ ogType: article
 
     <section id="state" class="article-section">
       <div class="article-heading">
-        <span>K.4 · durable authority history</span>
-        <h2>Audit and checkpoint move together or not at all.</h2>
+        <span>K.4 · what persists</span>
+        <h2>Audit leaves the pod; provider storage stays.</h2>
       </div>
 
       <div class="audit-volume-map">
-        <div><span>append first</span><strong>audit.jsonl</strong><small>hash-linked records · synchronized</small></div>
-        <i aria-hidden="true">then →</i>
-        <div><span>replace atomically</span><strong>audit-checkpoint.json</strong><small>record count + chain head</small></div>
-        <i aria-hidden="true">guarded by →</i>
-        <div><span>single writer</span><strong>checkpoint lock</strong><small>same persistent directory</small></div>
+        <div><span>every decision</span><strong>broker.decision</strong><small>log record on the message’s trace</small></div>
+        <i aria-hidden="true">stdout always →</i>
+        <div><span>with telemetry</span><strong>OTLP logs</strong><small>the same record, exported</small></div>
+        <i aria-hidden="true">retained by →</i>
+        <div><span>your receiver</span><strong>OpenObserve</strong><small>outside the pod</small></div>
       </div>
 
-      <p>All three audit paths live on one persistent claim because checkpoint replacement stages a sibling file and renames it atomically. The claim carries keep-on-uninstall and Argo CD no-prune annotations. Deleting one file to bypass recovery makes startup fail; deleting both together is a rollback local state can’t detect.</p>
-
-      <p>Optional provider storage uses a second retained claim and an operator-owned namespace key copied into broker-only memory. The chart refuses to reuse the audit claim for provider data. The gateway mounts neither storage nor its key.</p>
+      <p>There is no audit volume. The audit record is the log record the broker emits inside the trace, so a pod restart keeps exactly what the telemetry receiver kept; a deployment that wants audit past a restart configures <code>telemetry</code>. Optional provider storage uses one retained claim mounted only into the broker. Storage names are unkeyed SHA-256, so there is no key Secret to retain, and a corrupt namespace is reset by the grant that finds it rather than quarantined at startup.</p>
 
       <div class="article-callout callout-warning">
-        <strong>Size the volume before creating it.</strong>
-        <p>The target single-node storage class can’t expand. The chart defaults to 2 GiB and lowers the per-record ceiling so the broker’s designed record cap binds before the filesystem fills.</p>
+        <strong>Size the storage volume before creating it.</strong>
+        <p>The target single-node storage class can’t expand. Inactive namespace generations stay charged to the root quota until you remove them offline with the daemons stopped.</p>
       </div>
     </section>
 
@@ -139,10 +137,10 @@ ogType: article
 
       <ol class="mental-model-list compact-steps">
         <li><span>01</span><div><strong>Materialize files.</strong><p>The init container copies, owns, modes, and verifies each required file.</p></div></li>
-        <li><span>02</span><div><strong>Compile providers and restore audit.</strong><p>The broker validates configuration, Cedar, credentials, components, audit, and checkpoint before binding.</p></div></li>
-        <li><span>03</span><div><strong>Answer a real capability query.</strong><p>The startup probe uses <code>dekopon-run broker capabilities</code> across the real socket and peer checks.</p></div></li>
+        <li><span>02</span><div><strong>Compile providers.</strong><p>The broker validates configuration, Cedar, credentials, and every component before binding. The chart refuses to render a broker whose identities don’t map its own probe UID.</p></div></li>
+        <li><span>03</span><div><strong>Answer a real request.</strong><p>The startup probe runs <code>dekopon-brokerd probe --socket</code> across the real socket and peer checks, loading no credentials or telemetry.</p></div></li>
         <li><span>04</span><div><strong>Start the gateway.</strong><p>Kubernetes starts the regular container only after the native broker sidecar passes startup.</p></div></li>
-        <li><span>05</span><div><strong>Drain in reverse.</strong><p>Gateway sessions stop first. The broker then finishes in-flight effects and synchronizes audit state.</p></div></li>
+        <li><span>05</span><div><strong>Drain in reverse.</strong><p>Gateway sessions stop first. The broker then finishes in-flight effects and flushes its exporters.</p></div></li>
       </ol>
 
       <p>There is no liveness probe. An automatic restart could kill a broker mid-invocation and would not repair an external dependency. Readiness reports truth without manufacturing that risk.</p>
@@ -155,9 +153,9 @@ ogType: article
       </div>
 
       <div class="truth-label-cards">
-        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Daemons</span></div><h3>Non-root and read-only</h3><p>UID 65532, no added capabilities, no privilege escalation, read-only root filesystems, and RuntimeDefault seccomp.</p></article>
+        <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Daemons</span></div><h3>Non-root and read-only</h3><p>UIDs 65532 and 65533, no added capabilities, no privilege escalation, read-only root filesystems, and RuntimeDefault seccomp.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Init</span></div><h3>Root with two capabilities</h3><p><code>CHOWN</code> and <code>FOWNER</code> create the ownership the daemons insist on. Everything else is dropped.</p></article>
-        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Current limit</span></div><h3>One shared UID</h3><p>This provides attribution and deny-by-default scoping, not gateway isolation from the broker trust domain.</p></article>
+        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Current limit</span></div><h3>A gateway lane, not tenant isolation</h3><p>A compromised gateway can still vouch for any subject inside its attestor grant. Broker-UID or host compromise is outside the boundary.</p></article>
       </div>
 
       <p>Wasmtime JIT compilation requires executable memory operations allowed by RuntimeDefault seccomp. A hand-written tighter profile must prove a real component still loads.</p>
@@ -180,7 +178,7 @@ ogType: article
         </table>
       </div>
 
-      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Its render and file-mode checks pass in CI, but the project has not yet applied the chart to a live cluster. Don’t treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
+      <p>Chart {{ release.chart.publishedVersion }} is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code> and defaults to application {{ release.chart.publishedAppVersion }}. Don’t treat the untagged chart {{ release.chart.sourceVersion }} source as a published install path.</p>
 
       {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest publication status, values, path contract, probes, storage arithmetic, ChatGPT seeding behavior, and Argo CD instructions before installing.") }}
     </section>

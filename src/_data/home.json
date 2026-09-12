@@ -3,10 +3,20 @@
     "eyebrow": "Open source · self-hosted · pre-production",
     "title": "Run agents that can’t",
     "titleAccent": "wreck the box.",
-    "lede": "A self-hosted agent harness where the model holds no credentials and gets no shell. It proposes; a separate broker process authorizes, bounds it, and writes down what happened. Pre-production.",
-    "primaryCta": { "label": "See one request end to end", "href": "#one-request" },
-    "secondaryCta": { "label": "What does it protect against?", "href": "#security" },
-    "proofs": ["No model sits in the authorization path", "No shell, no host files, no inherited environment", "Four arm64 executables, small enough for a Raspberry Pi"],
+    "lede": "A self-hosted agent harness built around three rules. The model never holds a secret: a separate broker keeps every credential and injects it at the approved destination. The operator sees everything: one W3C trace per message carries every prompt, script, decision, and HTTP call. A capability arrives as a Wasm component, under limits you wrote. Pre-production.",
+    "primaryCta": {
+      "label": "See one request end to end",
+      "href": "#one-request"
+    },
+    "secondaryCta": {
+      "label": "What does it protect against?",
+      "href": "#security"
+    },
+    "proofs": [
+      "No model sits in the authorization path",
+      "No shell, no host files, no inherited environment",
+      "Two arm64 executables, small enough for a Raspberry Pi"
+    ],
     "visual": {
       "caption": "One request from an authenticated Slack sender, through the model, to the broker, to a single bounded GitHub call",
       "title": "One request · one authority boundary",
@@ -26,30 +36,33 @@
       "denied": "merge permission",
       "outcomeLabel": "Broker-owned HTTP",
       "outcome": "token injected only at the approved destination",
-      "audit": "decision + result linked in audit",
-      "chips": ["sender-derived identity", "broker-held token", "comment ≠ merge"]
+      "audit": "decision + result on the message’s trace",
+      "chips": [
+        "sender-derived identity",
+        "broker-held token",
+        "comment ≠ merge"
+      ]
     }
   },
   "principles": [
-    "The model proposes",
-    "The broker decides",
-    "Nothing runs past its limits",
-    "Every decision is written down"
+    "Credentials are unleakable",
+    "One trace, complete",
+    "Extensible through Wasm providers"
   ],
   "why": {
     "kicker": "",
     "title": "The model is the untrusted part.",
-    "intro": "A harness hands a model instructions, tools, and a loop. Dekopon puts a separate authority layer around the tools.",
+    "intro": "A harness hands a model instructions, tools, and a loop. Dekopon puts a separate process around the tools and writes down everything the loop did.",
     "cards": [
       {
         "number": "01",
         "title": "Anything the model reads can steer it.",
-        "body": "Messages, issues, tool results — anything the model reads can carry instructions someone else wrote. Dekopon treats whatever comes out the other side as a request, not an order."
+        "body": "Messages, issues, tool results: anything the model reads can carry instructions someone else wrote. Dekopon treats whatever comes out the other side as a request, not an order."
       },
       {
         "number": "02",
         "title": "A real shell hands over the machine.",
-        "body": "Host files, inherited environment, open sockets — one bad line and the blast radius is the whole machine. Dekopon’s shell has none of them."
+        "body": "Host files, inherited environment, open sockets: one bad line and the blast radius is the whole machine. Dekopon’s shell has none of them."
       },
       {
         "number": "03",
@@ -57,12 +70,12 @@
         "body": "Identity, policy, and credentials all live in a different process. No string, however persuasive, claims to be Alice or adds a host to the allowlist."
       }
     ],
-    "bridge": "A blast radius you can read off a file before anything runs. Whatever the model gets talked into, it can only do what you granted by name — and no second model gets a vote."
+    "bridge": "A blast radius you can read off a file before anything runs. Whatever the model gets talked into, it can only do what you granted by name, and no second model gets a vote."
   },
   "journey": {
     "kicker": "One request · 5 steps",
     "title": "Alice may comment. Merge stays absent.",
-    "intro": "A synthetic PR-commenter agent, traced from the Slack message to the GitHub comment.",
+    "intro": "A synthetic PR-commenter agent, followed from the Slack message to the GitHub comment along one trace.",
     "steps": [
       {
         "number": "01",
@@ -89,20 +102,23 @@
         "number": "04",
         "label": "Execute",
         "title": "One fresh provider call runs.",
-        "body": "A fresh Wasm store gets only the host interfaces it was approved for. The broker’s own HTTP engine adds the token after checking the guest’s headers.",
+        "body": "A fresh Wasm store gets only the host interfaces it was approved for. The broker’s own HTTP engine adds the token after checking the guest’s headers, and refuses a response that echoes it.",
         "detail": "bounded provider → api.github.com"
       },
       {
         "number": "05",
         "label": "Record",
-        "title": "The decision and the result stay linked.",
-        "body": "A hash-linked audit record ties the identity, the Cedar decision, and the outcome together. Prompt and response bodies are never stored.",
-        "detail": "invocation ID + trace ID + policy digest"
+        "title": "Everything lands on one trace.",
+        "body": "The broker writes the Cedar decision and the result as log records on the message’s W3C trace, beside the prompt and the HTTP call. There is no audit file: lose the trace store and you lose the audit.",
+        "detail": "one W3C trace id · policy ids · policy digest"
       }
     ],
     "allowed": "Allowed: leave one bounded comment",
     "denied": "Still denied: approve, merge, the rest of the GitHub API",
-    "link": { "label": "Open the complete policy walkthrough", "href": "/almanac/permissions/" }
+    "link": {
+      "label": "Open the complete policy walkthrough",
+      "href": "/almanac/permissions/"
+    }
   },
   "security": {
     "kicker": "6 threats · 6 limits",
@@ -122,7 +138,7 @@
       {
         "threat": "Over-broad tool execution",
         "control": "No OS bash, no inherited environment, no host files. Hosts, methods, and byte ceilings are all fixed before the agent starts.",
-        "limit": "If something hostile is already running as your user, you’ve lost. This doesn’t help you there."
+        "limit": "If something hostile is already running as the broker’s user, you’ve lost. This doesn’t help you there."
       },
       {
         "threat": "Forged identity",
@@ -132,20 +148,23 @@
       {
         "threat": "A guardrail you can’t audit",
         "control": "Authorization is a Cedar policy file and owner-authored YAML, evaluated by native Rust. No model reviews, scores, or approves another model’s action.",
-        "limit": "Static rules can’t read intent. Grant a capability and it’s granted — the broker won’t notice that this particular comment was a bad idea."
+        "limit": "Static rules can’t read intent. Grant a capability and it’s granted; the broker won’t notice that this particular comment was a bad idea."
       },
       {
         "threat": "Unclear or disputed effects",
-        "control": "The Cedar decision, the outcome, and the trace ID all carry the same invocation ID.",
-        "limit": "The audit chain is local and unsigned. Anyone with your disk can rewrite it, and nothing here un-posts a comment."
+        "control": "The Cedar decision, the prompt, and the HTTP call all carry one W3C trace id. An operator with the telemetry store can reconstruct the whole run.",
+        "limit": "The audit is a log record on that trace. Lose the exporter and you lose the audit, and nothing here un-posts a comment."
       }
     ],
     "limits": [
-      "One local Unix UID is currently one trust domain",
+      "A compromised gateway can vouch for any subject in its attestor lane",
       "Neither production-hardened nor multi-tenant",
-      "No independent audit anchor, no incident-response automation"
+      "Lose the log exporter, lose the audit"
     ],
-    "link": { "label": "Read the complete threat model", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md" }
+    "link": {
+      "label": "Read the complete threat model",
+      "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md"
+    }
   },
   "useCases": {
     "kicker": "shipped as Wasm components",
@@ -171,7 +190,7 @@
       {
         "label": "Ripgrep",
         "title": "Real ripgrep, zero host imports.",
-        "body": "Real Rust regex matching over documents you hand it. The paths are labels — the provider never opens a filesystem.",
+        "body": "Real Rust regex matching over documents you hand it. The paths are labels; the provider never opens a filesystem.",
         "detail": "Read-only compute · no host imports",
         "href": "https://github.com/dekopon-agents/dekopon-provider-ripgrep",
         "accent": "mint"
@@ -193,22 +212,44 @@
         "accent": "rose"
       }
     ],
-    "link": { "label": "Build a provider with the Rust SDK", "href": "/guides/provider-sdk/" }
+    "link": {
+      "label": "Build a provider with the Rust SDK",
+      "href": "/guides/provider-sdk/"
+    }
   },
   "broker": {
     "kicker": "",
     "title": "Every limit lives in one YAML file.",
-    "intro": "The story above, as the file you actually write. Alice, one operation, one destination — all fixed before the agent starts.",
+    "intro": "The story above, as the file you write. Alice, one operation, one destination: all fixed before the agent starts.",
     "fileName": "broker.yaml",
     "fileLabel": "relevant authority-bearing fields",
-    "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor:\n      namespaces: [slack.example]\n      chatScopes:\n        - breadth: transportWide\n          kind: slack\n          transport: workspace-slack\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    idempotency: conditional\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
+    "yaml": "apiVersion: dekopon.dev/brokerd/v1alpha1\nbrokerPrincipal: local-broker\npolicyRevision: pr-commenter-2026-08\npoliciesPath: ./policies.cedar\ncredentialsPath: ./broker-credentials.yaml\nproviders:\n  - ./gh-provider.wasm\n\nidentities:\n  - uid: 65532\n    principal: chat-gateway\n    actor: { type: service, principal: chat-gateway }\n    attestor:\n      namespaces: [slack.example]\n      chatScopes:\n        - breadth: transportWide\n          kind: slack\n          transport: workspace-slack\nidentityMappings:\n  - subject: slack.example.u123\n    principal: alice\n\nconstraintSets:\n  gh.pull-request.comment:\n    provider: gh\n    effect: external-write\n    risk: Medium\n    credential: github-comment-token\n    constraints:\n      timeoutMs: 15000\n      maxOutputBytes: 8192\n      http:\n        allowedHosts: [api.github.com]\n        allowedMethods: [GET, POST]\n        maxRequests: 2\n        maxRequestBytes: 16384\n        maxResponseBytes: 262144\n        allowPlaintextLoopback: false",
     "facts": [
-      { "label": "who", "title": "Alice comes from transport.", "body": "The prompt can’t claim to be her." },
-      { "label": "what", "title": "One named write.", "body": "Commenting doesn’t imply approve or merge." },
-      { "label": "where", "title": "One destination.", "body": "Only GET and POST to api.github.com, at most twice." },
-      { "label": "secret", "title": "A name, not a value.", "body": "The token lives in a separate owner-only file." }
+      {
+        "label": "who",
+        "title": "Alice comes from transport.",
+        "body": "The prompt can’t claim to be her."
+      },
+      {
+        "label": "what",
+        "title": "One named write.",
+        "body": "Commenting doesn’t imply approve or merge."
+      },
+      {
+        "label": "where",
+        "title": "One destination.",
+        "body": "Only GET and POST to api.github.com, at most twice."
+      },
+      {
+        "label": "secret",
+        "title": "A name, not a value.",
+        "body": "The token lives in a separate owner-only file."
+      }
     ],
-    "link": { "label": "Open the complete synthetic PR-commenter example", "href": "/almanac/permissions/" }
+    "link": {
+      "label": "Open the complete synthetic PR-commenter example",
+      "href": "/almanac/permissions/"
+    }
   },
   "status": {
     "kicker": "dekopon-provider-sdk",
@@ -222,11 +263,19 @@
       "points": [
         "Describe typed capabilities in a manifest",
         "Validate every operation-specific input in provider code",
-        "Start each description, command rewrite, and invocation in a fresh Wasm store",
-        "Test storage-backed providers against the real host with the public testkit"
+        "Start each description, command run, and invocation in a fresh Wasm store",
+        "Test the compiled component against the real host with the public testkit"
       ],
-      "path": ["Rust trait", "Wasm", "manifest", "agent command"],
-      "link": { "label": "Build a provider with the pinned SDK", "href": "/guides/provider-sdk/" }
+      "path": [
+        "Rust trait",
+        "Wasm",
+        "manifest",
+        "agent command"
+      ],
+      "link": {
+        "label": "Build a provider with the pinned SDK",
+        "href": "/guides/provider-sdk/"
+      }
     },
     "secrets": {
       "label": "Broker-held provider credentials",
@@ -234,13 +283,28 @@
       "title": "The tool works without seeing its token.",
       "body": "The agent calls a normal command, the guest builds a bounded request, and only the broker’s HTTP engine can add the credential.",
       "items": [
-        { "name": "prompt", "description": "No provider token in model context" },
-        { "name": "shell", "description": "No inherited environment or host files" },
-        { "name": "Wasm guest", "description": "No credential import or ambient socket" },
-        { "name": "broker", "description": "Loads the 0600 file and injects at the bound host" }
+        {
+          "name": "prompt",
+          "description": "No provider token in model context"
+        },
+        {
+          "name": "shell",
+          "description": "No inherited environment or host files"
+        },
+        {
+          "name": "Wasm guest",
+          "description": "No credential import or ambient socket"
+        },
+        {
+          "name": "broker",
+          "description": "Loads the 0600 file and injects at the bound host"
+        }
       ],
-      "note": "Destination binding keeps the token out of prompts and guest code. It doesn’t make the endpoint trustworthy — if that endpoint echoes headers back, the token’s gone.",
-      "link": { "label": "See how credentials reach the broker", "href": "/deploy/credentials/" }
+      "note": "Destination binding keeps the token out of prompts and guest code. It doesn’t make the endpoint trustworthy: the broker refuses a response that echoes the raw token, and an endpoint that re-encodes it is outside the boundary.",
+      "link": {
+        "label": "See how credentials reach the broker",
+        "href": "/deploy/credentials/"
+      }
     }
   },
   "authority": {
@@ -251,10 +315,22 @@
     "policyFile": "policies.cedar",
     "policy": "@id(\"alice-may-prompt-pr-commenter\")\npermit(\n  principal == Dekopon::Principal::\"alice\",\n  action == Dekopon::Action::\"agent.prompt\",\n  resource == Dekopon::Agent::\"pr-commenter\"\n)\nwhen {\n  context has via && context.via == \"chat-gateway\"\n};\n\n@id(\"alice-may-comment\")\npermit(\n  principal == Dekopon::Principal::\"alice\",\n  action == Dekopon::Action::\"gh.pull-request.comment\",\n  resource == Dekopon::Provider::\"gh\"\n)\nwhen {\n  context has agent && context.agent == \"pr-commenter\" &&\n  context has via && context.via == \"chat-gateway\"\n};",
     "request": [
-      { "label": "principal", "value": "alice" },
-      { "label": "action", "value": "gh.pull-request.comment" },
-      { "label": "resource", "value": "Provider::\"gh\"" },
-      { "label": "context", "value": "pr-commenter via chat-gateway" }
+      {
+        "label": "principal",
+        "value": "alice"
+      },
+      {
+        "label": "action",
+        "value": "gh.pull-request.comment"
+      },
+      {
+        "label": "resource",
+        "value": "Provider::\"gh\""
+      },
+      {
+        "label": "context",
+        "value": "pr-commenter via chat-gateway"
+      }
     ],
     "decisionLabel": "Allowed by Cedar",
     "decision": "alice-may-comment",
@@ -269,72 +345,185 @@
     ],
     "denial": "Route Alice to release-bot and Cedar denies agent.prompt before any model call: the Agent resource no longer matches.",
     "invariants": [
-      { "number": "I", "class": "gradient-one", "title": "Text can’t become Alice", "body": "The principal comes from gateway attestation and a mapping you wrote. Never from the prompt." },
-      { "number": "II", "class": "gradient-two", "title": "Driving the agent isn’t using it", "body": "Permission to prompt pr-commenter doesn’t include permission to use its GitHub capability." },
-      { "number": "III", "class": "gradient-three", "title": "Comment isn’t merge", "body": "Every capability is its own Cedar action, and a missing one is a denied one." },
-      { "number": "IV", "class": "gradient-four", "title": "Policy can’t widen I/O", "body": "Cedar decides whether the action happens. It can’t add a host, a method, or a byte to what happens next." }
+      {
+        "number": "I",
+        "class": "gradient-one",
+        "title": "Text can’t become Alice",
+        "body": "The principal comes from gateway attestation and a mapping you wrote. Never from the prompt."
+      },
+      {
+        "number": "II",
+        "class": "gradient-two",
+        "title": "Driving the agent isn’t using it",
+        "body": "Permission to prompt pr-commenter doesn’t include permission to use its GitHub capability."
+      },
+      {
+        "number": "III",
+        "class": "gradient-three",
+        "title": "Comment isn’t merge",
+        "body": "Every capability is its own Cedar action, and a missing one is a denied one."
+      },
+      {
+        "number": "IV",
+        "class": "gradient-four",
+        "title": "Policy can’t widen I/O",
+        "body": "Cedar decides whether the action happens. It can’t add a host, a method, or a byte to what happens next."
+      }
     ],
-    "link": { "label": "Walk through every file and decision", "href": "/almanac/permissions/" }
+    "link": {
+      "label": "Walk through every file and decision",
+      "href": "/almanac/permissions/"
+    }
   },
   "execution": {
     "kicker": "bash({ script })",
     "title": "A shell with no operating system underneath.",
-    "intro": "Models already write bash fluently — pipes, loops, exit codes. Dekopon keeps that habit inside a language with no processes, no files, and no sockets.",
+    "intro": "Models already write bash fluently: pipes, loops, exit codes. Dekopon keeps that habit inside a language with no processes, no files, and no sockets.",
     "toolLabel": "the model sees one tool",
     "toolName": "bash({ script })",
     "script": "set -euo pipefail\nissue=$(tickets issue show T-42)\necho \"$issue\" | jq '{title, owner, state}'\n\nfor id in $(tickets issue list --state open | jq -r '.[].id'); do\n  tickets issue show \"$id\" | jq '{id, owner, state}'\ndone",
     "result": "one script · bounded JSON · explicit exit codes",
     "cards": [
-      { "number": "01", "title": "Models already know this", "body": "Variables, pipes, exit codes. It reads like the shell transcripts these models were trained on." },
-      { "number": "02", "title": "Providers become verbs", "body": "A provider may declare a command word. Its pure resolver turns argv into one typed capability proposal." },
-      { "number": "03", "title": "A command grants nothing", "body": "Resolving tickets issue show doesn’t authorize it. The same Cedar decision and the same broker limits still run." },
-      { "number": "04", "title": "Every loop has a ceiling", "body": "Script steps, model turns, provider fuel — everything has a number attached to it before the run starts." }
+      {
+        "number": "01",
+        "title": "Models already know this",
+        "body": "Variables, pipes, exit codes. It reads like the shell transcripts these models were trained on."
+      },
+      {
+        "number": "02",
+        "title": "Providers become verbs",
+        "body": "A provider declares a command word. Its pure run-command turns argv and the piped value into one typed capability proposal, or renders its own --help."
+      },
+      {
+        "number": "03",
+        "title": "A command grants nothing",
+        "body": "Running tickets issue show doesn’t authorize it. The same Cedar decision and the same broker limits still run."
+      },
+      {
+        "number": "04",
+        "title": "Every loop has a ceiling",
+        "body": "Script steps, model turns, provider fuel: everything has a number attached to it before the run starts."
+      }
     ],
     "providerFlow": [
-      { "label": "provider manifest", "value": "commandWords: [\"tickets\"]", "detail": "one startup-checked word" },
-      { "label": "agent script", "value": "tickets issue show T-42", "detail": "normal shell-shaped syntax" },
-      { "label": "pure rewrite", "value": "resolve_command(argv)", "detail": "builds tickets.issue.read input" },
-      { "label": "authority", "value": "Cedar + broker limits", "detail": "allow or deny one proposal" }
+      {
+        "label": "provider manifest",
+        "value": "commandWords: [\"tickets\"]",
+        "detail": "one startup-checked word"
+      },
+      {
+        "label": "agent script",
+        "value": "tickets issue show T-42",
+        "detail": "normal shell-shaped syntax"
+      },
+      {
+        "label": "pure run",
+        "value": "run_command(argv, stdin)",
+        "detail": "proposes tickets.issue.read"
+      },
+      {
+        "label": "authority",
+        "value": "Cedar + broker limits",
+        "detail": "allow or deny one proposal"
+      }
     ],
-    "link": { "label": "See the complete sandbox language", "href": "/almanac/one-tool-runtime/" },
-    "secondaryLink": { "label": "Expose a provider command to bash", "href": "/guides/provider-sdk/#command-words" }
+    "link": {
+      "label": "See the complete sandbox language",
+      "href": "/almanac/one-tool-runtime/"
+    },
+    "secondaryLink": {
+      "label": "Expose a provider command to bash",
+      "href": "/guides/provider-sdk/#command-words"
+    }
   },
   "concepts": {
     "kicker": "",
     "title": "Where to go next",
     "intro": "Each one explains the mechanism before sending you to the code.",
     "items": [
-      { "number": "01", "label": "Cedar", "title": "Build the complete PR commenter.", "body": "The whole PR commenter: catalog, constraints, credential file, one Cedar decision.", "href": "/almanac/permissions/", "accent": "purple" },
-      { "number": "02", "label": "Provider SDK", "title": "Compile your first Wasm provider.", "body": "A pinned Rust walkthrough from trait, to compiled component, to broker.", "href": "/guides/provider-sdk/", "accent": "mint" },
-      { "number": "03", "label": "Sandboxed bash", "title": "See what the shell actually keeps.", "body": "The supported grammar, the refusal codes, and the hard budgets.", "href": "/almanac/one-tool-runtime/", "accent": "orange" },
-      { "number": "04", "label": "Secrets", "title": "Write the owner-only credential files.", "body": "Each credential ends up in the one process that actually needs it.", "href": "/deploy/credentials/", "accent": "cyan" }
+      {
+        "number": "01",
+        "label": "Cedar",
+        "title": "Build the complete PR commenter.",
+        "body": "The whole PR commenter: catalog, constraints, credential file, one Cedar decision.",
+        "href": "/almanac/permissions/",
+        "accent": "purple"
+      },
+      {
+        "number": "02",
+        "label": "Provider SDK",
+        "title": "Compile your first Wasm provider.",
+        "body": "A pinned Rust walkthrough from trait to component to the fake broker.",
+        "href": "/guides/provider-sdk/",
+        "accent": "mint"
+      },
+      {
+        "number": "03",
+        "label": "Sandboxed bash",
+        "title": "See what the shell actually keeps.",
+        "body": "The supported grammar, the refusal codes, and the hard budgets.",
+        "href": "/almanac/one-tool-runtime/",
+        "accent": "orange"
+      },
+      {
+        "number": "04",
+        "label": "Secrets",
+        "title": "Write the owner-only credential files.",
+        "body": "Each credential ends up in the one process that actually needs it.",
+        "href": "/deploy/credentials/",
+        "accent": "cyan"
+      }
     ]
   },
   "deployment": {
     "kicker": "Raspberry Pi · arm64",
-    "title": "The gateway and broker share one 0600 socket.",
-    "intro": "The Linux arm64 release runs natively on Pi-class hardware. The chart puts both daemons in one pod and lets them talk over that socket, nothing else.",
+    "title": "Two UIDs, one pod, one 0660 socket.",
+    "intro": "The Linux arm64 release runs natively on Pi-class hardware. The chart runs the broker as UID 65532 and the gateway as 65533 in one pod; the broker’s socket is the only thing they share.",
     "points": [
       "Native Linux arm64 executables and a multi-architecture image",
-      "The gateway and broker stay in separate containers",
+      "The gateway and broker run as different UIDs in separate containers",
       "Provider, model, and chat credentials never enter the image",
-      "Audit state and provider storage get their own retained volumes"
+      "Audit rides the telemetry exporter; provider storage gets its own retained volume"
     ],
     "facts": [
-      { "value": "1", "label": "pod" },
-      { "value": "2", "label": "daemon containers" },
-      { "value": "0", "label": "default Services or Ingresses" },
-      { "value": "0600", "label": "shared Unix socket" }
+      {
+        "value": "1",
+        "label": "pod"
+      },
+      {
+        "value": "2",
+        "label": "UIDs"
+      },
+      {
+        "value": "0",
+        "label": "default Services or Ingresses"
+      },
+      {
+        "value": "0660",
+        "label": "broker-owned socket"
+      }
     ],
-    "primaryCta": { "label": "Deploy on Kubernetes", "href": "/deploy/kubernetes/" },
-    "secondaryCta": { "label": "Choose another install path", "href": "/deploy/" }
+    "primaryCta": {
+      "label": "Deploy on Kubernetes",
+      "href": "/deploy/kubernetes/"
+    },
+    "secondaryCta": {
+      "label": "Choose another install path",
+      "href": "/deploy/"
+    }
   },
   "closing": {
     "kicker": "Open source · pre-production",
     "title": "Start with one capability",
     "titleAccent": "and one exact policy.",
-    "body": "One capability, one policy, one provider. Let the model explore the rest without handing it the host.",
-    "primaryCta": { "label": "Get the latest release", "href": "/whats-new/" },
-    "secondaryCta": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
+    "body": "One capability, one policy, one trace. Let the model explore the rest without handing it the host.",
+    "primaryCta": {
+      "label": "Get the latest release",
+      "href": "/whats-new/"
+    },
+    "secondaryCta": {
+      "label": "Build a provider",
+      "href": "/guides/provider-sdk/"
+    }
   }
 }

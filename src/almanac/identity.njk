@@ -32,7 +32,7 @@ ogType: article
       <div class="article-heading">
         <span>01.1 · authenticated transport</span>
         <h2>Identity starts before the model sees text.</h2>
-        <p>Slack, Discord, Telegram, and WhatsApp authenticate their own users or signed webhook senders. Their envelopes carry service-native identifiers alongside the message. <code>dekopond</code> validates and normalizes those identifiers before a model session starts. The local console is the explicit exception: its development subject is caller-supplied and disabled unless the broker opts in.</p>
+        <p>Slack, Discord, Telegram, and WhatsApp authenticate their own users or signed webhook senders. Their envelopes carry service-native identifiers alongside the message. <code>dekopond</code> validates and normalizes those identifiers before a model session starts. The local development transport is the explicit exception: its subject is caller-supplied and refused unless the broker opts in.</p>
       </div>
 
       <div class="comparison-table-wrap">
@@ -43,14 +43,14 @@ ogType: article
             <tr><th scope="row">Discord member identifier</th><td><code>discord.123456789012345678</code></td><td>a display name or mention string</td></tr>
             <tr><th scope="row">Telegram user identifier</th><td><code>telegram.16034700182</code></td><td>a claim copied from message text</td></tr>
             <tr><th scope="row">Signed WhatsApp sender</th><td><code>whatsapp.16034700182</code></td><td>profile or display text</td></tr>
-            <tr><th scope="row">Local operator console</th><td><code>dev.console.alice</code></td><td>an externally authenticated identity</td></tr>
+            <tr><th scope="row">Local development transport</th><td><code>dev.console.alice</code></td><td>an externally authenticated identity</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="article-callout callout-decision">
         <strong>A subject is routing metadata, not authority.</strong>
-        <p>The gateway can say “Slack authenticated this subject.” It can’t say “therefore this is principal <code>maintainer</code>” or “therefore this action is allowed.” Those transitions belong to the broker. A console can only say “the local caller supplied this development subject,” and the broker admits that namespace only under <code>allowDevelopmentSubjects: true</code>.</p>
+        <p>The gateway can say “Slack authenticated this subject.” It can’t say “therefore this is principal <code>maintainer</code>” or “therefore this action is allowed.” Those transitions belong to the broker. A development transport can only say “the local caller supplied this subject,” and the broker admits that namespace only under <code>allowDevelopmentSubjects: true</code>.</p>
       </div>
     </section>
 
@@ -65,7 +65,7 @@ ogType: article
         <li><span>02</span><div><small>gateway</small><strong>Builds a canonical subject</strong><p><code>dekopond</code> also names the catalog agent selected by the route.</p></div></li>
         <li><span>03</span><div><small>Unix socket</small><strong>Authenticates the gateway peer</strong><p>The broker reads the connected peer UID. The request contains no principal field.</p></div></li>
         <li><span>04</span><div><small>broker configuration</small><strong>Checks attestation and maps identity</strong><p>The peer may vouch only for configured subject namespaces. An owner-controlled mapping resolves the subject to a principal.</p></div></li>
-        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong><p>Policy sees the mapped principal and broker-derived context. Ordinary effect audit records preserve that attribution; storage records use keyed commitments instead.</p></div></li>
+        <li><span>05</span><div><small>Cedar + audit</small><strong>Uses and records trusted context</strong><p>Policy sees the mapped principal and broker-derived context. The audit record on the message’s trace preserves that attribution; storage records carry commitments instead of raw scope.</p></div></li>
       </ol>
 
       <p>The proposal still carries untrusted arguments. Trusted identity travels beside it as broker-owned context; it never becomes a field the model can edit.</p>
@@ -149,22 +149,22 @@ identityMappings:
         <div><span>policy</span><code>pr-commenter-github</code></div>
       </div>
 
-      <p>The provider never needs this identity in its input. Cedar decides with it, telemetry explains with bounded identifiers, and the audit chain attributes the effect. Storage records deliberately leave out raw identity and scope, swapping linkable values for domain-separated keyed commitments.</p>
+      <p>The provider never needs this identity in its input. Cedar decides with it, and the <code>broker.decision</code> record on the trace attributes the effect. Storage records leave out raw identity and scope and carry domain-separated commitments instead.</p>
     </section>
 
     <section id="limit" class="article-section">
       <div class="article-heading">
         <span>01.6 · current deployment boundary</span>
-        <h2>Attribution today, process isolation next.</h2>
+        <h2>Two UIDs in the chart, one lane each.</h2>
       </div>
 
       <div class="truth-label-cards">
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Identity can’t come from model text</h3><p>Transport facts, peer credentials, and the mapping you wrote establish the context.</p></article>
         <article><div><span class="almanac-status almanac-status-current"><span aria-hidden="true"></span>Current</span></div><h3>Every refusal fails closed</h3><p>Out-of-namespace, unmapped, and agent-denied cases reach no provider authority.</p></article>
-        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Limit</span></div><h3>One UID is one trust domain</h3><p>The gateway and broker still share a UID. A dedicated gateway UID is required before <code>via</code> becomes process isolation.</p></article>
+        <article><div><span class="almanac-status almanac-status-direction"><span aria-hidden="true"></span>Limit</span></div><h3>A gateway can vouch inside its lane</h3><p>The chart runs the gateway as UID 65533 and the broker as 65532. A compromised gateway still speaks for any subject inside its attestor grant; that isn’t per-process attestation or tenant isolation.</p></article>
       </div>
 
-      {{ docsCta("Open the current gateway contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/dekopond.md", "See exact transport subjects, attestation fields, routing behavior, and the single-UID limitation as they evolve.") }}
+      {{ docsCta("Open the current gateway contract", "https://github.com/dekopon-agents/dekopon/blob/main/docs/dekopond.md", "See exact transport subjects, attestation fields, routing behavior, and the attestor boundary as they evolve.") }}
     </section>
 
     {{ chapterPager(almanac.chapters[0], almanac.chapters[2]) }}

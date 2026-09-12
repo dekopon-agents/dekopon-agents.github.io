@@ -3,7 +3,7 @@ layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
 pageTitle: What’s new in Dekopon
-pageDescription: An operator console over the live broker, a much bigger sandboxed shell, and providers that now ship from their own repositories.
+pageDescription: The constitution release. Credentials are unleakable, one trace is complete, and a capability arrives as a Wasm component; the audit file is gone.
 ogType: article
 ---
 <section class="release-hero">
@@ -121,7 +121,7 @@ ogType: article
         <span class="section-kicker mint">Available now</span>
         <h2 id="release-install-title">Install it from Homebrew, crates.io, or the image.</h2>
       </div>
-      <p>{{ whatsNew.installIntro }}</p>
+      <p>{{ whatsNew.installIntro }} Published chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}; chart {{ release.chart.sourceVersion }} for application {{ release.chart.sourceAppVersion }} exists in source and is not published.</p>
     </div>
 
     <div class="release-package-grid">
@@ -129,7 +129,7 @@ ogType: article
         {% if package.name == "Homebrew" %}
           {% set packageCommand = "brew install dekopon-agents/tap/dekopon" %}
         {% elif package.name == "crates.io" %}
-          {% set packageCommand = "cargo install --locked --version " ~ release.version ~ " dekopon-run" %}
+          {% set packageCommand = "dekopon-provider-sdk = \"=" ~ release.version ~ "\"" %}
         {% else %}
           {% set packageCommand = release.installCommand %}
         {% endif %}

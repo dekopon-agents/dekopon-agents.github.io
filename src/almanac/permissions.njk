@@ -2,7 +2,7 @@
 layout: layouts/base.njk
 permalink: almanac/permissions/index.html
 pageTitle: Cedar permissions — How Dekopon works
-pageDescription: Build the complete PR-commenter example — who Alice is, what Cedar allows, and the limits Cedar can’t widen.
+pageDescription: "Build the complete PR-commenter example: who Alice is, what Cedar allows, and the limits Cedar can’t widen."
 bodyClass: almanac-page almanac-article-page almanac-permissions-page
 almanacPage: true
 almanacSection: permissions
@@ -53,15 +53,15 @@ ogType: article
             <tr><th scope="row">Principal</th><td>The human or service asking</td><td>peer identity or subject mapping</td></tr>
             <tr><th scope="row">Action</th><td><code>agent.prompt</code> or one capability ID</td><td>fixed action plus loaded manifests</td></tr>
             <tr><th scope="row">Resource</th><td>An Agent for prompting; a Provider for capabilities</td><td>route agent or loaded provider</td></tr>
-            <tr><th scope="row">Context</th><td><code>via</code>, subject, agent, effect, risk, idempotency</td><td>broker-derived identity and trusted classification</td></tr>
+            <tr><th scope="row">Context</th><td><code>via</code>, subject, agent, effect, risk</td><td>broker-derived identity and trusted classification</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="article-callout callout-decision">
         <strong>No model is in the authorization path.</strong>
-        <p>Cedar policy and the constraint sets are static files. The broker evaluates them in native Rust and reaches the same decision every time. Nothing asks a model whether an action looks safe, and nothing scores intent. <code>dekopon-policy</code> is used only by <code>dekopon-broker</code> and <code>dekopon-brokerd</code>, and neither of those depends on <code>dekopon-model</code> — the crate that talks to models and the crate that decides permissions share no dependency edge. Check it with <code>cargo tree</code> rather than taking our word for it.</p>
-        <p>Use the best model you have to <em>write</em> these files; they are exactly the sort of thing a strong model is good at. Then roll them out through gitops like any other production config — reviewed, versioned, deliberate. Authoring time is where a model belongs. Decision time is not.</p>
+        <p>Cedar policy and the constraint sets are static files. The broker evaluates them in native Rust and reaches the same decision every time. Nothing asks a model whether an action looks safe, and nothing scores intent. <code>dekopon-policy</code> is linked only by <code>dekopon-broker</code> and <code>dekopon-brokerd</code>. The gateway links no broker crate but <code>dekopon-broker-protocol</code>, and the broker links no agent, shell, process, or config crate; CI checks both directions with <code>cargo tree</code>.</p>
+        <p>Use the best model you have to <em>write</em> these files; they are exactly the sort of thing a strong model is good at. Then roll them out through gitops like any other production config: reviewed, versioned, deliberate. Authoring time is where a model belongs. Decision time is not.</p>
       </div>
 
       <div class="article-callout callout-decision">
@@ -92,65 +92,11 @@ ogType: article
 
     <section id="catalog" class="article-section">
       <div class="article-heading">
-        <span>02.3 · proposal surface</span>
-        <h2>The catalog tells the agent what it may ask for.</h2>
+        <span>02.3 · the agent document</span>
+        <h2>The catalog describes the agent, not its authority.</h2>
       </div>
 
       <pre><code><span class="code-comment"># dekopon.yaml — public catalog, no secret values</span>
-apiVersion: dekopon.dev/v1alpha1
-kind: Provider
-metadata:
-  name: gh
-spec:
-  description: Narrow GitHub pull-request operations
-  type: github
-  credentialRef: github-comment-token
-status: Unknown
----
-apiVersion: dekopon.dev/v1alpha1
-kind: Capability
-metadata:
-  name: gh.pull-request.read
-spec:
-  description: Reads one pull request
-  provider: gh
-  effect: read-only
-  risk: Low
-  idempotency: idempotent
-  permissions:
-    - operation: pull_requests:read
-status: Unknown
----
-apiVersion: dekopon.dev/v1alpha1
-kind: Capability
-metadata:
-  name: gh.pull-request.files
-spec:
-  description: Lists changed files with bounded patches
-  provider: gh
-  effect: read-only
-  risk: Low
-  idempotency: idempotent
-  permissions:
-    - operation: pull_requests:read
-      resource: files
-status: Unknown
----
-apiVersion: dekopon.dev/v1alpha1
-kind: Capability
-metadata:
-  name: gh.pull-request.comment
-spec:
-  description: Submits a COMMENT review pinned to the observed head SHA
-  provider: gh
-  effect: external-write
-  risk: Medium
-  idempotency: conditional
-  permissions:
-    - operation: pull_requests:write
-      resource: reviews
-status: Unknown
----
 apiVersion: dekopon.dev/v1alpha1
 kind: Agent
 metadata:
@@ -158,6 +104,9 @@ metadata:
 spec:
   description: Reads pull requests and leaves review comments
   enabled: true
+  instructions: >-
+    Read the pull request, summarize the risky changes, and leave one
+    review comment. Never claim to have approved anything.
   modelClass: reasoning
   capabilities:
     - gh.pull-request.read
@@ -167,7 +116,7 @@ spec:
     - gh
 status: Ready</code></pre>
 
-      <p>This file narrows the model-facing surface. It grants no provider credential and creates no Cedar permission. Removing a capability stops the model from reaching it through this agent; adding one still requires broker configuration and policy.</p>
+      <p>The catalog holds the agent: its instructions, model class, and skills. Its <code>capabilities</code> and <code>providers</code> lists are decoded and read by nothing. The surface a session reaches is the broker’s answer under this agent’s attestation, built from the manifests it loaded and the <code>constraintSets</code> policy allows. There are no <code>Provider</code> or <code>Capability</code> documents any more; a catalog that still carries one refuses to load and names the upgrade.</p>
     </section>
 
     <section id="broker" class="article-section">
@@ -208,7 +157,6 @@ constraintSets:
     provider: gh
     effect: read-only
     risk: Low
-    idempotency: idempotent
     credential: github-comment-token
     constraints:
       timeoutMs: 10000
@@ -225,7 +173,6 @@ constraintSets:
     provider: gh
     effect: read-only
     risk: Low
-    idempotency: idempotent
     credential: github-comment-token
     constraints:
       timeoutMs: 10000
@@ -242,7 +189,6 @@ constraintSets:
     provider: gh
     effect: external-write
     risk: Medium
-    idempotency: conditional
     credential: github-comment-token
     constraints:
       timeoutMs: 15000
@@ -359,14 +305,14 @@ when {
             <tr><td>which capability action it may request</td><td>HTTP methods, calls, or byte ceilings</td></tr>
             <tr><td>which provider resource it may target</td><td>timeout, provider output, or host ceilings</td></tr>
             <tr><td>which gateway and agent context must be present</td><td>which broker-held credential is selected</td></tr>
-            <tr><td>whether trusted effect/risk/idempotency context matches</td><td>provider input, URL path, headers, or message text</td></tr>
+            <tr><td>whether trusted effect and risk context matches</td><td>provider input, URL path, headers, or message text</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="article-callout callout-warning">
         <strong>Policy doesn’t currently bind a repository path.</strong>
-        <p>Cedar never sees provider input, so it can’t say “only repositories under this organization.” Scope the GitHub token instead — that’s the boundary.</p>
+        <p>Cedar never sees provider input, so it can’t say “only repositories under this organization.” Scope the GitHub token instead; that’s the boundary.</p>
       </div>
 
       {{ docsCta("Open the current Cedar adapter contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-policy/README.md", "See the generated schema, strict validation, context fields, policy bounds, explanations, and digest rules used by the latest code.") }}

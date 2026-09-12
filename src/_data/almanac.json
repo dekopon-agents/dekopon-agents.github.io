@@ -9,7 +9,7 @@
       "shortLabel": "Start",
       "href": "/almanac/",
       "title": "See the whole system",
-      "description": "Every part of the system in one map, from the gateway through to the audit trail."
+      "description": "Every part of the system in one map, from the gateway through to the trace."
     },
     {
       "number": "01",
@@ -50,11 +50,11 @@
     {
       "number": "05",
       "key": "observability",
-      "label": "Audit & telemetry",
+      "label": "One trace",
       "shortLabel": "Observe",
       "href": "/almanac/observability/",
       "title": "How do you see the whole run?",
-      "description": "Read one waterfall from chat message to HTTP request, then see what audit, traces, and logs each do."
+      "description": "One W3C trace per message carries every prompt, script, decision, and HTTP call, and the audit record is one of its log records."
     }
   ]
 }

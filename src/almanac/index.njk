@@ -14,7 +14,7 @@ ogType: article
   <div class="almanac-hero-gridlines" aria-hidden="true"></div>
   <div class="shell almanac-home-hero-grid">
     <div class="almanac-home-copy">
-      <div class="almanac-overline"><span>How it works / {{ release.tag }}</span><code>edition 11</code></div>
+      <div class="almanac-overline"><span>How it works / {{ release.tag }}</span><code>edition 13</code></div>
       <h1>Every request the model makes<br><span>crosses one boundary.</span></h1>
       <p class="almanac-home-lede">A release-backed tour from an authenticated chat message to one authorized HTTP request, and the trace that connects them.</p>
       <div class="almanac-legend" role="group" aria-label="Feature status">
@@ -33,13 +33,13 @@ ogType: article
         <div class="cutaway-outside">
           <div class="cutaway-node cutaway-model">
             <span>request surface</span>
-            <strong>Chat transport or dekopon console</strong>
-            <small>authenticated sender or explicit local dev subject</small>
+            <strong>Chat transport</strong>
+            <small>authenticated sender</small>
           </div>
           <span class="cutaway-packet" aria-hidden="true">request ↓ result ↑</span>
         </div>
         <div class="cutaway-process">
-          <div class="cutaway-process-label"><span>GATEWAY ROLE</span><strong>dekopond or console</strong></div>
+          <div class="cutaway-process-label"><span>GATEWAY ROLE</span><strong>dekopond</strong></div>
           <div class="cutaway-node">
             <span>attestation + model session</span>
             <strong>subject + agent</strong>
@@ -49,7 +49,7 @@ ogType: article
           <div class="cutaway-node cutaway-runtime">
             <span>BROKER PROCESS</span>
             <strong>identity → Cedar → limits</strong>
-            <small>credential selection · replay protection · audit</small>
+            <small>credential selection · audit on the trace</small>
           </div>
           <div class="cutaway-thread-row">
             <div class="cutaway-node cutaway-helper">
@@ -113,12 +113,12 @@ ogType: article
       <p>Nothing on the deeper pages contradicts these.</p>
     </div>
     <ol class="mental-model-list">
-      <li><span>01</span><div><strong>The request starts with a subject.</strong><p>A chat transport supplies an authenticated sender. The local console uses an explicit opt-in development subject. Neither is already a principal.</p></div></li>
+      <li><span>01</span><div><strong>The request starts with a subject.</strong><p>A chat transport supplies an authenticated sender. That sender isn’t a principal yet.</p></div></li>
       <li><span>02</span><div><strong>The broker owns identity.</strong><p>It authenticates the gateway, checks its attestor grant, and alone maps subject to principal.</p></div></li>
       <li><span>03</span><div><strong>The model gets one tool.</strong><p>Its homemade shell combines granted capabilities and can’t reach the operating system.</p></div></li>
       <li><span>04</span><div><strong>Cedar permits; constraint sets limit. No model votes.</strong><p>Policy chooses who may act. Separate configuration chooses how far the action can reach. Both are static files, evaluated the same way every time.</p></div></li>
       <li><span>05</span><div><strong>Credentials stay with the broker.</strong><p>The native HTTP engine injects a destination-bound value after provider headers are checked.</p></div></li>
-      <li><span>06</span><div><strong>Audit, traces, and logs answer different questions.</strong><p>Authorization history is durable. OpenTelemetry explains timing, cost, and failures.</p></div></li>
+      <li><span>06</span><div><strong>Everything rides one trace.</strong><p>The broker’s decision is a log record on the message’s W3C trace, beside the prompt, the script, and the HTTP call. There is no audit file.</p></div></li>
     </ol>
   </div>
 </section>
@@ -130,9 +130,9 @@ ogType: article
       <h2>What works now, and what doesn’t.</h2>
     </div>
     <div class="truth-label-cards">
-      <article><div>{{ status("current", "Released") }}</div><h3>Four executables and a container image</h3><p>Four executables plus the checked-in provider components, for arm64 and amd64 Linux.</p></article>
+      <article><div>{{ status("current", "Released") }}</div><h3>Two executables and a container image</h3><p><code>dekopond</code> and <code>dekopon-brokerd</code> plus the pinned provider components, for arm64 and amd64 Linux.</p></article>
       <article><div>{{ status("current", "Enforced") }}</div><h3>The full local authority path works</h3><p>Attestation through to cross-process traces. All of it works today.</p></article>
-      <article><div>{{ status("direction", "Current limit") }}</div><h3>One Unix UID is one trust domain</h3><p>The Kubernetes gateway and broker share one UID and socket. A dedicated gateway UID and a real audit anchor are still future work.</p></article>
+      <article><div>{{ status("direction", "Current limit") }}</div><h3>Lose the exporter, lose the audit</h3><p>Audit lives only on the trace. The telemetry store is inside your trust boundary, and nothing detects tampering with it.</p></article>
     </div>
   </div>
 </section>

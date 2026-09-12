@@ -1,12 +1,13 @@
 {
   "versions": {
-    "providerWit": "0.2.0",
+    "providerWit": "0.3.0",
     "httpWit": "1.0.0",
     "storageWit": "0.1.0",
     "manifestApi": "dekopon.dev/provider/v1alpha1",
-    "rust": "1.89.0",
-    "witBindgen": "0.44.0",
-    "wasmTools": "1.236.1",
-    "wkg": "0.16.0"
+    "rust": "1.98.1",
+    "witBindgen": "0.62.0",
+    "wasmTools": "1.259.0",
+    "wkg": "0.16.0",
+    "clockWit": "1.0.0"
   }
 }

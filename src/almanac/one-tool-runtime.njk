@@ -73,7 +73,7 @@ ogType: article
       <div class="article-heading">
         <span>03.3 · several operations, one tool call</span>
         <h2>A PR review becomes one replayable script.</h2>
-        <p>The PR commenter inspects the request, lists changed files, and leaves a comment — without a model round trip for each step.</p>
+        <p>The PR commenter inspects the request, lists changed files, and leaves a comment, without a model round trip for each step.</p>
       </div>
 
       <pre><code><span class="code-comment"># Model-authored Dekopon script</span>
@@ -98,7 +98,7 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
         <span><i></i><strong>permissioned</strong> each <code>gh</code> subcommand maps to one capability</span>
       </div>
 
-      <p>An operator can copy the same script into <code>dekopon-run shell</code> and replay it without a model. The independently published <code>gh</code> provider supplies ergonomic routing, not a bundled GitHub CLI: <code>gh api</code> is refused because raw passthrough would collapse the capability boundary.</p>
+      <p>The independently published <code>gh</code> provider supplies ergonomic routing, not a bundled GitHub CLI: <code>gh api</code> is refused because raw passthrough would collapse the capability boundary.</p>
     </section>
 
     <section id="not-bash" class="article-section">
@@ -111,13 +111,13 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
         <table class="almanac-table strategy-table">
           <thead><tr><th scope="col">The language keeps</th><th scope="col">The runtime deliberately lacks</th></tr></thead>
           <tbody>
-            <tr><td><code>if</code>, loops, functions, case, groups, <code>[[ ]]</code>, <code>read</code>, <code>getopts</code></td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
+            <tr><td><code>if</code>, loops, functions, case, groups, <code>[[ ]]</code>, <code>read</code></td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
             <tr><td>variables, parameter expansion, command substitution, arithmetic, here-documents</td><td>host environment variables, <code>export</code>, <code>source</code></td></tr>
             <tr><td><code>set -e</code>, <code>set -u</code>, <code>pipefail</code>, and <code>PIPESTATUS</code></td><td>unsupported shell options silently doing nothing</td></tr>
             <tr><td><code>jq</code>, grep, sed, cut, sort, base64, xargs</td><td>filesystem paths, devices, or operating-system byte pipes</td></tr>
             <tr><td>bounded in-memory stdout/stderr redirection</td><td>host file descriptors or opening redirection paths</td></tr>
             <tr><td>capability-backed <code>gh</code> and optional <code>curl</code></td><td>raw sockets, DNS, ambient HTTP, a general API escape hatch</td></tr>
-            <tr><td>optional UTC <code>date</code> after an explicit grant</td><td>clock access by default, timezone environment, setting time</td></tr>
+            <tr><td>a provider’s <code>date</code> word, reading the broker’s clock during an authorized invoke</td><td>a clock builtin, timezone environment, setting time</td></tr>
           </tbody>
         </table>
       </div>
@@ -167,10 +167,10 @@ gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
         <article><span>script</span><h3>Interpreter budget</h3><p>Steps, recursion, value bytes, output bytes and lines, deadline, and capability calls.</p></article>
         <article><span>session</span><h3>Model budget</h3><p>Model turns, tool calls per turn, and one capability-call budget shared across every script.</p></article>
         <article><span>Wasm</span><h3>Provider budget</h3><p>Fresh memory, fuel, input, output, and wall-clock bounds for each component call.</p></article>
-        <article><span>broker</span><h3>Effect budget</h3><p>Policy, destination, method, HTTP calls, bytes, timeout, credential, and replay ID.</p></article>
+        <article><span>broker</span><h3>Effect budget</h3><p>Policy, destination, method, HTTP calls, bytes, timeout, and credential.</p></article>
       </div>
 
-      <p>OpenTelemetry records each command word as a <code>shell.command</code> span with its known name, kind, argument count, exit code, and outcome. Argument values stay out because command arguments can be provider payloads wearing shell syntax.</p>
+      <p>Every command word a script runs gets a <code>shell.command</code> span with its name, argument count, exit code, and outcome, however many one run executes. Argument values are still a count: a <code>curl -d</code> body is secret bytes wearing argv’s clothes.</p>
 
       {{ docsCta("Open the current shell language contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-shell/README.md", "See the complete grammar, builtin behavior, rejected constructs, value semantics, residual limits, and observability fields.") }}
     </section>

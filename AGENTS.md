@@ -102,9 +102,9 @@ A permitted remote endpoint could still reflect the credential.
   → Allowlist a host that echoes headers back and the token walks out.
     Pick your hosts.
 
-The local audit checkpoint has no independent remote or signed anchor.
-  → The audit chain is local and unsigned. Anyone with your disk can rewrite
-    it, and nothing here un-posts a comment.
+Audit durability depends on the configured telemetry exporter.
+  → Lose the log exporter and you lose the audit, and nothing here un-posts
+    a comment.
 ```
 
 State it and stop. Don't open a negotiation ("if you need X, say so") and
@@ -151,7 +151,7 @@ defended, don't reach for "I."
 ## What is already good — do not "fix" it
 
 - **The receipts.** `1 pod · 2 daemon containers · 0 default Services ·
-  0600 socket`. 25 crates. 19 GitHub capabilities. 2 HTTP calls. 27.5 MiB.
+  0660 socket`. 2 executables. 19 GitHub capabilities. 2 HTTP calls. 27.5 MiB.
   These are the best thing on the site.
 - **Real names.** `api.github.com`, Cedar, `gh.pull-request.comment`,
   `slack.example.u123`, RustPython, `dekopon-provider-sdk-testkit`. Never
@@ -226,10 +226,12 @@ are static files; the broker evaluates them in native Rust and reaches the same
 decision every time. Nothing asks a model whether an action looks safe, nothing
 scores intent, and no supervisor model reviews a worker model's proposal.
 
-The receipt is a dependency edge that does not exist: `dekopon-policy` is
-consumed only by `dekopon-broker` and `dekopon-brokerd`, and neither depends on
-`dekopon-model`. Prefer that fact — it is checkable with `cargo tree` — over any
-adjective. Re-verify it against `../dekopon` before repeating it.
+The receipt is a dependency edge that does not exist: `dekopon-brokerd`'s normal tree
+excludes `dekopon-agent`, `dekopon-shell`, `dekopon-process` and `dekopon-config`,
+and the gateway excludes every broker crate but `dekopon-broker-protocol`. Prefer
+that fact, checkable with `cargo tree` and gated in CI, over any adjective. Do not
+say "neither depends on `dekopon-model`": the broker links it for the ChatGPT
+credential refresh. Re-verify against `../dekopon` before repeating it.
 
 **Always carry the caveat.** Admins are encouraged to use a strong model to
 *write* the policy and constraint YAML, then roll it out through gitops like any
@@ -262,25 +264,32 @@ to justify weakening one of these.
   supplies a trusted principal. The broker authenticates the peer, checks the
   attestor grant, and alone maps subject to principal.
 - Keep **current**, **next**, and **not claimed** work visibly separate.
-- Preserve important limits: one local Unix UID trust domain, no independent
-  audit anchor, no multi-tenant transport, no automatic durable-memory replay,
-  and no production-hardening claim.
-- Version 0.11 adds the operator console, a broader sandboxed shell, the public
-  provider testkit, and independent GitHub/SQL providers without moving Cedar or
-  provider authority into the console, gateway, or model. Version 0.11.1 changes
-  the container runtime base only.
+- Preserve important limits: a compromised gateway speaks for its whole attestor
+  lane, audit lives only in the trace and dies with the exporter, no multi-tenant
+  transport, no automatic durable-memory replay, and no production-hardening
+  claim.
+- Version 0.13 is the constitution release: audit is one log record per broker
+  decision inside the W3C trace, there is no audit file and no metadata-only
+  telemetry mode, and idempotency, the replay ledger, the namespace key, and the
+  catalog's `Provider` and `Capability` kinds are deleted. Only `dekopond` and
+  `dekopon-brokerd` ship as executables; the console is the sibling
+  `dekopon-console` repository.
 - The latest application version lives only in `src/_data/release.json`. Derive
   headers, install commands, source links, and release CTAs from it rather than
-  copying a version into page data. This is why the hero proof chips say "four
+  copying a version into page data. This is why the hero proof chips say "two
   arm64 executables" and not a byte count — `home.json` must not pin a version.
 - Distinguish the current application from the independently versioned chart.
-  As of 24 August 2026, published chart 0.2.0 still deploys application 0.10.0;
-  chart 0.2.1 naming application 0.11.0 exists in source but is not published.
+  As of 12 September 2026, published chart 0.2.0 still deploys application
+  0.10.0; chart 0.5.0 naming application 0.13.0 exists in source but is not
+  published, and it is the first chart that runs the gateway (65533) and the
+  broker (65532) as different UIDs over a 0660 socket.
   A source version is not an install path, and a published chart is not proof
   of a live-cluster deployment.
-- The current application publishes 25 public workspace crates to crates.io.
-  Homebrew, attested release archives, and the multi-architecture image are
-  current install paths; verify remote publication before changing that claim.
+- Say "every public crate", never a crate count. Verify crates.io before
+  claiming a version is published there: on 12 September 2026 every crate stood
+  at 0.11.1. Homebrew, attested release archives, and the multi-architecture
+  image are current install paths; verify remote publication before changing
+  that claim.
 - Never claim the static model "prevents misuse" or "understands" anything. It
   decides an exact allow/deny against declared entities. Its whole value is that
   it cannot be talked into a different answer.

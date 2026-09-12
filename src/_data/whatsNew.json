@@ -1,143 +1,158 @@
 {
   "hero": {
     "eyebrow": "What’s new",
-    "title": "An operator console, a much bigger shell, and providers that ship on their own.",
-    "lede": "The console is a TUI over the running broker, the sandboxed shell now picks up most of the bash you actually write, and providers ship from their own repositories. 0.11.1 repairs the container base and nothing else."
+    "title": "The constitution release.",
+    "lede": "Three goals in priority order now decide what stays in the tree: credentials are unleakable, one trace is complete, and a capability arrives as a Wasm component. Everything that served none of them is gone, the audit file included."
   },
-  "summary": "The core rule is unchanged: models propose, the broker authorizes. The console just makes that boundary visible while you work.",
+  "summary": "The rule is unchanged: the model proposes, the separate broker authorizes. What changed is where the record lives. Audit is a log record on the message’s W3C trace, and there is no metadata-only mode to hide the rest of it.",
   "metrics": [
-    { "value": "1", "label": "interactive operator console" },
-    { "value": "25", "label": "public crates published" },
-    { "value": "5", "label": "published provider projects" },
+    { "value": "3", "label": "goals, in priority order" },
+    { "value": "1", "label": "W3C trace per message" },
+    { "value": "0", "label": "audit files on disk" },
     { "value": "0", "label": "authority moved to the model" }
   ],
   "highlights": [
     {
       "number": "01",
-      "kicker": "Operator console",
-      "title": "A TUI over the broker that holds no authority of its own.",
-      "body": "Run dekopon with no arguments and you get a TUI over the running broker: the selected agent, what it can actually do, and every script and result as they land. Its own execution leg stays empty.",
-      "points": ["Attested local development subjects are explicit and off by default", "Every capability still reaches the separate broker", "Render-time control stripping and field-level secret redaction"]
+      "kicker": "Goal 1 · credentials are unleakable",
+      "title": "Secret bytes exist only inside the broker.",
+      "body": "The native HTTP engine injects a credential after the component has built its request, and now refuses a response that echoes it on every credential kind, bearerToken included. A bearer secret under 16 printable bytes refuses startup, so the echo check can’t deny unrelated responses.",
+      "points": ["The echo check covers bearerToken and chatgptSubscription, not only DRN-bound secrets", "Telegram errors render without the token-bearing URL", "Chat transports and the OTLP exporter refuse an ambient proxy"]
     },
     {
       "number": "02",
-      "kicker": "Sandboxed shell",
-      "title": "set -e, getopts, and PIPESTATUS now work.",
-      "body": "The homemade interpreter picked up defensive options, compound pipelines, and richer parameter expansion. Still no host process behind any of it.",
-      "points": ["set -e, set -u, pipefail, and PIPESTATUS", "if, loops, case, groups, functions, and redirections compose", "No host files, inherited environment, subprocesses, or ambient sockets"]
+      "kicker": "Goal 2 · one trace, complete",
+      "title": "Everything an agent did is on one W3C trace.",
+      "body": "The trace opens at transport.receive, before the payload is parsed. Everything rides it as spans or log records: prompts, scripts, command words, broker decisions, HTTP egress. The audit record is one of those log records; there is no audit file.",
+      "points": ["telemetryPayloads and every metadata-only mode are gone", "The separate Dekopon trace id is gone; traceParent is mandatory", "The 256-span cap is gone; a span is never dropped"]
     },
     {
       "number": "03",
-      "kicker": "Provider ecosystem",
-      "title": "Providers now test and ship outside the core repo.",
-      "body": "The public testkit runs a component against the real storage host. GitHub moved to its own repository, and a SQLite-compatible Turso provider now ships independently.",
-      "points": ["FakeBroker for end-to-end provider storage tests", "GitHub component with nineteen narrow capabilities", "Independent provider tags, assets, checksums, and provenance"]
+      "kicker": "Goal 3 · extensible through Wasm providers",
+      "title": "A command word can behave like a real CLI.",
+      "body": "dekopon:provider@0.3.0 adds the provider-cli world. run-command receives argv plus the piped value and answers with one of three things: a capability proposal, text it rendered itself such as --help, or a decline. The broker host also links a grant-free wall clock, readable during invoke only.",
+      "points": ["An optional clap layer in the SDK, compiled without env or color", "dekopon-provider-clock binds now-unix-millis", "FakeBroker::run_command drives a word through the real broker host"]
     }
   ],
   "path": {
-    "kicker": "One console turn",
-    "title": "The console watches; the broker still decides.",
-    "body": "The console watches the same agent loop chat uses. It shows proposals and results. It links no policy, no credential store, no provider host.",
-    "ariaLabel": "How one Dekopon console turn reaches the separate broker",
+    "kicker": "One message, one trace",
+    "title": "From transport receipt to HTTP egress.",
+    "body": "Every span and log record carries the same trace id. The broker parents its spans on the request’s traceParent, and a gateway that exports nothing still mints one so a decision record can be found.",
+    "ariaLabel": "The spans and records one Dekopon message leaves on its trace",
     "steps": [
-      { "name": "Select", "detail": "one catalog agent" },
-      { "name": "Attest", "detail": "explicit dev subject" },
-      { "name": "Model", "detail": "one bash tool" },
-      { "name": "Propose", "detail": "typed capability" },
-      { "name": "Broker", "detail": "Cedar + limits" },
-      { "name": "Observe", "detail": "result + audit link" }
+      { "name": "transport.receive", "detail": "before the payload is parsed" },
+      { "name": "gateway.session", "detail": "one bash tool, no credential" },
+      { "name": "agent.model.prompt", "detail": "the prompt, in full" },
+      { "name": "shell.command", "detail": "every word a script ran" },
+      { "name": "broker.decision", "detail": "Cedar’s answer and its policy ids" },
+      { "name": "http.request", "detail": "method, host, status, bytes" }
     ]
   },
   "changes": [
     {
-      "tag": "dekopon console",
-      "title": "dekopon with no arguments opens a TUI over the live broker.",
-      "body": "It shows what the agent declares against what it was actually granted, then folds each turn’s scripts and broker calls. Watching can’t change the session, and the CLI keeps no local provider execution path.",
-      "link": { "label": "Read the console contract", "href": "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-tui/README.md" }
+      "tag": "Audit",
+      "title": "Audit is one log record per broker decision, inside the trace.",
+      "body": "broker.decision and broker.execution go to stdout as JSON always, and to OTLP logs when telemetry names a receiver. auditPath, checkpointPath, and audit verify are gone; an existing audit.jsonl is inert. Losing the exporter loses the audit.",
+      "link": { "label": "See what each signal carries", "href": "/almanac/observability/" }
     },
     {
-      "tag": "Shell language",
-      "title": "The defensive shell options models reach for now behave.",
-      "body": "Real errexit and nounset behavior, pipefail, getopts. Grouped pipeline stages and bounded in-memory redirection compose the way you’d expect.",
-      "link": { "label": "See the sandboxed shell", "href": "/almanac/one-tool-runtime/" }
+      "tag": "Telemetry",
+      "title": "There is no metadata-only mode.",
+      "body": "telemetryPayloads is refused by name. Always exported now: input on broker.authorize and provider.invoke, url.full on http.request, and the prompt, answer, script, and output records. Secret bytes, the gateway’s own credentials, and HTTP headers and bodies never were.",
+      "link": { "label": "Read the exclusion list", "href": "/almanac/observability/#privacy" }
     },
     {
-      "tag": "Provider testing",
-      "title": "Storage-backed providers can test against the real host without standing up Cedar.",
-      "body": "dekopon-provider-sdk-testkit mints test authorization and drives the production StorageHost over a temporary root. It’s a development harness, not runtime authority.",
-      "link": { "label": "Build a provider", "href": "/guides/provider-sdk/" }
+      "tag": "Non-goals",
+      "title": "Idempotency, the replay ledger, and the namespace key are deleted.",
+      "body": "idempotency: is an unknown field in constraintSets and manifests, and a resubmitted invocation runs again. Storage names are unkeyed SHA-256 now, so provider storage starts empty at upgrade: stop the broker and move the root aside.",
+      "link": { "label": "Open the upgrade notes", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/upgrading.md" }
     },
     {
-      "tag": "Independent providers",
-      "title": "GitHub and SQL move at their own release cadence.",
-      "body": "The GitHub component left the core tree, walkthrough and all. Turso SQL adds SQLite-compatible durable storage through the storage interface that already existed. Core depends on neither.",
-      "link": { "label": "Browse the provider ecosystem", "href": "/#providers" }
+      "tag": "Catalog",
+      "title": "kind: Provider and kind: Capability are gone.",
+      "body": "Nothing read them at runtime. The surface a session reaches is the broker’s answer under the agent’s attestation, built from loaded manifests and the constraintSets policy allows. A catalog that still carries either kind refuses to load and names the upgrade.",
+      "link": { "label": "See the catalog that remains", "href": "/almanac/permissions/#catalog" }
     },
     {
-      "tag": "Local development identity",
-      "title": "The console no longer borrows an identifier that looks externally authenticated.",
-      "body": "The new dev.<surface>.<name> subject family is admitted only when the broker explicitly enables development subjects. It still maps through owner-controlled identity and Cedar policy.",
-      "link": { "label": "Follow trusted identity", "href": "/almanac/identity/" }
+      "tag": "Command words",
+      "title": "run-command replaces resolve-command.",
+      "body": "A word gets its argv and the piped value, and may render its own help page at exit 0 without charging a capability call. Components built against provider 0.1.0 or 0.2.0 keep loading; their legacy export never receives a piped value.",
+      "link": { "label": "Expose a provider as a shell word", "href": "/guides/provider-sdk/#command-words" }
     },
     {
-      "tag": "0.11.1 container fix",
-      "title": "The published image now matches the glibc required by the release binaries.",
-      "body": "Version 0.11.0’s image publish failed because the console binary named weak glibc 2.39 symbols while the Debian 12 runtime carried glibc 2.36. Version 0.11.1 moves the image to Debian 13; crate source is unchanged.",
+      "tag": "Skills",
+      "title": "An agent reads SKILL.md directories on demand.",
+      "body": "spec.skills lists Agent Skills directories. The model sees names and descriptions, reads a body or one resource with read_skill, and each read is one agent.skill.read record. Skill text is untrusted model text and grants nothing.",
+      "link": { "label": "Open the example catalog", "href": "https://github.com/dekopon-agents/dekopon/tree/main/examples/catalog" }
+    },
+    {
+      "tag": "Credentials",
+      "title": "chatgptSubscription is a broker credential kind.",
+      "body": "The broker refreshes it 60 seconds before expiry through the one implementation in dekopon-model, under an advisory lock, and never charges the renewal to the invocation. Give the broker its own auth file: sharing one with the gateway revokes the token family for both.",
+      "link": { "label": "See how credentials reach the broker", "href": "/deploy/credentials/" }
+    },
+    {
+      "tag": "Executables",
+      "title": "Two executables: dekopond and dekopon-brokerd.",
+      "body": "Retired: dekopon, dekopon-webui, dekopon-run, and dekopon-provider-host. dekopond auth chatgpt takes over the model-account login, and dekopon-brokerd probe is the readiness check. The console lives on in the dekopon-console repository.",
       "link": { "label": "Open the GitHub release", "release": true }
+    },
+    {
+      "tag": "Toolchain",
+      "title": "Rust 1.98.1, Wasmtime 48, wit-bindgen 0.62, wasm-tools 1.259.",
+      "body": "Each pin lives in one place and every repository-owned fixture is rebuilt on the stack. The WIT didn’t change, so components built on the older toolchain keep loading.",
+      "link": { "label": "See the pinned SDK versions", "href": "/guides/provider-sdk/#version-scope" }
     }
   ],
-  "detailsIntro": "None of this changes the path a proposal takes. The patch release changes only image compatibility.",
+  "detailsIntro": "A change is judged by which goal it serves. A subsystem that serves none is a deletion candidate, however well built.",
   "telemetry": {
     "value": "0",
-    "title": "authority moved to the console, gateway, or model",
-    "body": "The console holds a model credential and watches one agent loop. Cedar, the credentials, and the audit all stay inside the separate broker.",
-    "note": "The current local deployment still treats one Unix UID as a trust domain. Dekopon remains pre-production."
+    "title": "authority moved to the gateway, console, or model",
+    "body": "Cedar, the credentials, and the audit record all stay inside the separate broker. What moved is where the record lives: on the trace, not in a file.",
+    "note": "A compromised gateway can vouch for any subject in its attestor lane. Dekopon remains pre-production."
   },
   "packages": [
     {
       "name": "Homebrew",
       "role": "macOS arm64 + Linux",
-      "body": "The generated formula is verified against the current published archives and installs all four executables."
+      "body": "The generated formula installs both executables from the attested release archives."
     },
     {
       "name": "crates.io",
-      "role": "Pinned Rust install",
-      "body": "All 25 public workspace crates, including the TUI and provider testkit, are published at the current application version."
+      "role": "Pinned Rust dependency",
+      "body": "The release workflow publishes the provider SDK, its testkit, and every other public crate at the application version. Pin the exact version."
     },
     {
       "name": "Container",
       "role": "Linux arm64 + amd64",
-      "body": "The Debian 13 distroless multi-architecture image carries all four executables."
+      "body": "The Debian 13 distroless multi-architecture image carries both executables and the pinned provider components."
     }
   ],
-  "installIntro": "Homebrew and crates.io are current, as are the attested archives and the multi-architecture image. The latest published Helm chart is still 0.2.0, carrying application 0.10.0 — chart 0.2.1 exists in source and has not been published.",
+  "installIntro": "Current install paths: Homebrew, crates.io, the attested archives, and the multi-architecture image. The published Helm chart trails the application.",
   "scope": {
     "current": [
-      "Interactive terminal console over one broker-authorized agent session",
-      "A broader bash-shaped language with no operating-system shell",
-      "Public provider SDK testkit backed by the real storage host",
-      "Twenty-five public crates published at the current application version",
-      "Independent GitHub, MediaWiki, Python, ripgrep, and Turso SQL provider releases",
-      "A published multi-architecture container image for the current release"
+      "Credentials are unleakable: secret bytes exist only inside the broker",
+      "One trace, complete: audit is a log record on the message’s W3C trace",
+      "Extensible through Wasm providers: provider-cli command words, a wall clock, and skills",
+      "Two executables, the public crates, and a multi-architecture image"
     ],
     "next": [
-      "Publish the chart update already prepared in source",
-      "A dedicated gateway UID and transport that turns attribution into process isolation",
-      "Independent retention or signing of audit checkpoints",
-      "Memory deletion and export workflows beyond on-demand recall",
-      "Further production hardening and incident-response automation"
+      "Publish the chart already prepared in source",
+      "Public DRNs replace the credential and credentialByAgent bindings",
+      "Argument values on shell.command spans, not only their count",
+      "Delete the one-release compatibility shim for a manifest that still says idempotency"
     ]
   },
-  "scopeIntro": "The whole local path works today, from attestation through to telemetry. Stronger process isolation and an independent audit anchor don’t.",
+  "scopeIntro": "The whole local path works today, from transport receipt to an audited HTTP call. The chart with separate gateway and broker UIDs exists in source and is not yet published.",
   "previous": {
-    "version": "v0.10.0",
-    "title": "Durable provider storage, WhatsApp, images, and hardening",
-    "body": "Version 0.10 added broker-owned storage, durable chat recall, and a signed text-only WhatsApp transport.",
-    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.10.0",
-    "label": "View 0.10"
+    "version": "v0.12.0",
+    "title": "Public secret DRNs, the OCI provider manager, and the console’s move",
+    "body": "Version 0.12 added inert secret DRNs with an owner-only private map, an offline exact-reference provider manager in dekopon-brokerd, and moved the interactive console to its own repository.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.12.0",
+    "label": "View 0.12"
   },
   "closing": {
     "title": "Pick a way to run it.",
-    "body": "Pick a deployment path, or take the guided tour from authenticated request to audited effect."
+    "body": "Pick a deployment path, or take the guided tour from authenticated request to the trace that records it."
   }
 }
