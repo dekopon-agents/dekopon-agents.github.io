@@ -23,9 +23,6 @@
         <a class="button button-primary" href="{{ home.hero.primaryCta.href }}">{{ home.hero.primaryCta.label }} <span aria-hidden="true">→</span></a>
         <a class="button button-secondary" href="{{ home.hero.secondaryCta.href }}">{{ home.hero.secondaryCta.label }} <span aria-hidden="true">↓</span></a>
       </div>
-      <ol class="hero-goal-list reveal reveal-delay-4">
-        {% for goal in home.hero.goals %}<li><span aria-hidden="true">0{{ loop.index }}</span>{{ goal }}</li>{% endfor %}
-      </ol>
       <p class="hero-release reveal reveal-delay-4">Latest release: <a href="{{ release.url }}"><strong>{{ release.tag }}</strong> · {{ release.dateShort }} <span aria-hidden="true">↗</span></a></p>
     </div>
 

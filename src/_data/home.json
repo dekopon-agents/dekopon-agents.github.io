@@ -1,28 +1,23 @@
 {
   "hero": {
-    "eyebrow": "Wasm-sandboxed providers · Cedar-authorized calls · one trace per message",
-    "title": "A constitution of",
-    "titleAccent": "three goals.",
-    "lede": "Dekopon is an extensible runtime for self-hosted AI agents. Providers are WebAssembly components; the model proposes, a separate broker authorizes and executes; and provider credentials can never reach the model.",
+    "eyebrow": "Sandboxed · Authorization · Introspection",
+    "title": "Agents forced",
+    "titleAccent": "to play nice",
+    "lede": "Dekopon is the pluggable, remixable, safe way to run your own AI agents. Models request actions and your dekopon gates everything. Agents can't even see credentials, everything is stored safely inside of dekopon.",
     "primaryCta": {
-      "label": "Read the constitution",
+      "label": "Dekopon's Guiding Principles",
       "href": "#constitution"
     },
     "secondaryCta": {
       "label": "See one request end to end",
       "href": "#one-request"
     },
-    "goals": [
-      "Credentials are unleakable",
-      "One trace, complete",
-      "Extensible through Wasm providers"
-    ],
     "visual": {
       "caption": "One request from an authenticated Slack sender, through the model, to the broker, to a single bounded GitHub call",
       "title": "One request · one authority boundary",
       "badge": "model is untrusted",
       "requestLabel": "Authenticated sender",
-      "request": "Alice asks: comment on PR 42",
+      "request": "Alice asks: comment on PR 456",
       "requestDetail": "Slack supplies the sender identity",
       "proposalLabel": "Agent and model",
       "proposal": "gh.pull-request.comment",
@@ -80,44 +75,65 @@
     }
   },
   "journey": {
-    "kicker": "One request · 5 steps",
-    "title": "Alice may comment. Merge stays absent.",
-    "intro": "A synthetic PR-commenter agent, followed from the Slack message to the GitHub comment along one trace.",
+    "kicker": "One request · Slack to GitHub and back",
+    "title": "Alice asks. The broker decides.",
+    "intro": "An illustrative Slack conversation, with each handoff shown. The gateway vouches for the sender; only the broker can authorize the action.",
     "steps": [
       {
         "number": "01",
-        "label": "Identify",
-        "title": "Slack authenticates Alice.",
-        "body": "The gateway carries a canonical Slack subject across the process boundary. The message can’t name its own principal.",
-        "detail": "subject → owner-controlled mapping → alice"
+        "label": "Gateway · Slack",
+        "title": "Slack identifies the sender.",
+        "body": "The gateway attests the subject alice123.slack from the authenticated Slack event, not from the message text.",
+        "detail": "Slack sender → gateway attestation: alice123.slack"
       },
       {
         "number": "02",
-        "label": "Propose",
-        "title": "The model asks to comment.",
-        "body": "Its one sandboxed tool turns a familiar gh command into a single narrow capability request.",
-        "detail": "gh pr review --comment → gh.pull-request.comment"
+        "label": "Alice → agent",
+        "title": "“Comment on PR #456 and tell them it needs more AI.”",
+        "body": "Alice’s message goes to her configured agent. Her identity travels separately from her words.",
+        "detail": "Prompt + attested subject + configured agent"
       },
       {
         "number": "03",
-        "label": "Decide",
-        "title": "The broker checks every boundary.",
-        "body": "Cedar decides whether Alice may take this action through this agent. Separate constraints pin the host, the methods, and the ceilings.",
-        "detail": "principal × action × provider × trusted route"
+        "label": "Gateway → model",
+        "title": "One compact bash tool accompanies the prompt.",
+        "body": "The gateway supplies the tool definition and provider command help, then forwards the conversation to the model.",
+        "detail": "Tool: bash({ script }) · no OS shell"
       },
       {
         "number": "04",
-        "label": "Execute",
-        "title": "One fresh provider call runs.",
-        "body": "A fresh Wasm store gets only the host interfaces it was approved for. The broker’s own HTTP engine adds the token after checking the guest’s headers, and refuses a response that echoes it.",
-        "detail": "bounded provider → api.github.com"
+        "label": "Model → sandbox",
+        "title": "The model requests a GitHub comment.",
+        "body": "The sandbox routes the command to a provider capability. A tool call requests permission; it does not grant it.",
+        "detail": "bash({ script: \"gh pr review 456 --repo acme/widgets --comment --body 'Needs more AI my chum'\" })"
       },
       {
         "number": "05",
-        "label": "Record",
-        "title": "Everything lands on one trace.",
-        "body": "The broker writes the Cedar decision and the result as log records on the message’s W3C trace, beside the prompt and the HTTP call. There is no audit file: lose the trace store and you lose the audit.",
-        "detail": "one W3C trace id · policy ids · policy digest"
+        "label": "Sandbox → broker",
+        "title": "The broker maps Alice and evaluates Cedar.",
+        "body": "The broker authenticates the gateway peer, checks its attestor grant, and maps alice123.slack to Alice. Cedar allows her comment through this agent; separate owner constraints still bound execution.",
+        "detail": "gh pr review --comment → gh.pull-request.comment → Cedar allow"
+      },
+      {
+        "number": "06",
+        "label": "Broker → GitHub",
+        "title": "A Wasm provider builds the bounded API request.",
+        "body": "The broker checks the destination and injects the preconfigured GitHub PAT in its native HTTP engine. Neither the model nor the shell nor the Wasm provider receives the token.",
+        "detail": "Broker-owned HTTP → api.github.com → PR #456 review"
+      },
+      {
+        "number": "07",
+        "label": "GitHub → model",
+        "title": "The tool returns the result, not the PAT.",
+        "body": "GitHub’s successful response returns through the broker and sandbox. The model sees the command result and replies to Alice.",
+        "detail": "exit 0 · HTTP 200 → “Cool, comment made.”"
+      },
+      {
+        "number": "08",
+        "label": "Gateway → Slack",
+        "title": "Alice gets the reply in Slack.",
+        "body": "The gateway sends the agent’s answer back to the conversation. The prompt, broker decision, and HTTP result share one W3C trace; lose the exporter and you lose the audit.",
+        "detail": "Agent reply → gateway → Alice’s Slack conversation"
       }
     ],
     "allowed": "Allowed: leave one bounded comment",
