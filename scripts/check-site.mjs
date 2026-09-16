@@ -70,7 +70,7 @@ for (const file of htmlFiles) {
 }
 
 const homepage = await readFile(path.join(outputDirectory, "index.html"), "utf8");
-for (const id of ["constitution", "one-request", "security", "providers"]) {
+for (const id of ["constitution", "protocols", "providers"]) {
     if (!homepage.includes(`id="${id}"`)) {
         failures.push(`index.html: missing orientation section #${id}`);
     }
@@ -79,6 +79,19 @@ for (const goal of ["Credentials are unleakable", "One trace, complete", "Extens
     if (!homepage.includes(goal)) {
         failures.push(`index.html: missing constitution goal "${goal}"`);
     }
+}
+
+for (const removed of ['id="one-request"', 'id="security"', 'pre-production', 'Five providers, five separate repos.']) {
+    if (homepage.includes(removed)) failures.push(`index.html: retired homepage content remains: ${removed}`);
+}
+const protocolSection = homepage.split('id="protocols"')[1]?.split('</section>')[0] ?? '';
+for (const name of ['Slack', 'Discord', 'WhatsApp', 'Telegram']) {
+    if (!protocolSection.includes(`<h3>${name}</h3>`)) failures.push(`index.html: missing chat protocol ${name}`);
+}
+const providerSection = homepage.split('id="providers"')[1]?.split('</section>')[0] ?? '';
+const toolLabels = [...providerSection.matchAll(/<div><span>([^<]+)<\/span>/g)].map(match => match[1]);
+if (toolLabels.join('|') !== 'bash|gh|ripgrep|python|curl|gpt-image|SQL · Turso') {
+    failures.push('index.html: expected maturity-ordered tool lineup');
 }
 
 // Check the rendered hero, including containment rather than just page-wide words.

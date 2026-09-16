@@ -9,8 +9,8 @@
       "href": "#constitution"
     },
     "secondaryCta": {
-      "label": "See one request end to end",
-      "href": "#one-request"
+      "label": "Explore tools and providers",
+      "href": "#providers"
     },
     "visual": {
       "caption": "The model requests an action. The broker grants permission and attaches the credential.",
@@ -52,165 +52,73 @@
       "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/design.md#constitution"
     }
   },
-  "journey": {
-    "kicker": "One request · Slack to GitHub and back",
-    "title": "Alice asks. The broker decides.",
-    "intro": "An illustrative Slack conversation, with each handoff shown. The gateway vouches for the sender; only the broker can authorize the action.",
-    "steps": [
-      {
-        "number": "01",
-        "label": "Gateway · Slack",
-        "title": "Slack identifies the sender.",
-        "body": "The gateway attests the subject alice123.slack from the authenticated Slack event, not from the message text.",
-        "detail": "Slack sender → gateway attestation: alice123.slack"
-      },
-      {
-        "number": "02",
-        "label": "Alice → agent",
-        "title": "“Comment on PR #456 and tell them it needs more AI.”",
-        "body": "Alice’s message goes to her configured agent. Her identity travels separately from her words.",
-        "detail": "Prompt + attested subject + configured agent"
-      },
-      {
-        "number": "03",
-        "label": "Gateway → model",
-        "title": "One compact bash tool accompanies the prompt.",
-        "body": "The gateway supplies the tool definition and provider command help, then forwards the conversation to the model.",
-        "detail": "Tool: bash({ script }) · no OS shell"
-      },
-      {
-        "number": "04",
-        "label": "Model → sandbox",
-        "title": "The model requests a GitHub comment.",
-        "body": "The sandbox routes the command to a provider capability. A tool call requests permission; it does not grant it.",
-        "detail": "bash({ script: \"gh pr review 456 --repo acme/widgets --comment --body 'Needs more AI my chum'\" })"
-      },
-      {
-        "number": "05",
-        "label": "Sandbox → broker",
-        "title": "The broker maps Alice and evaluates Cedar.",
-        "body": "The broker authenticates the gateway peer, checks its attestor grant, and maps alice123.slack to Alice. Cedar allows her comment through this agent; separate owner constraints still bound execution.",
-        "detail": "gh pr review --comment → gh.pull-request.comment → Cedar allow"
-      },
-      {
-        "number": "06",
-        "label": "Broker → GitHub",
-        "title": "A Wasm provider builds the bounded API request.",
-        "body": "The broker checks the destination and injects the preconfigured GitHub PAT in its native HTTP engine. Neither the model nor the shell nor the Wasm provider receives the token.",
-        "detail": "Broker-owned HTTP → api.github.com → PR #456 review"
-      },
-      {
-        "number": "07",
-        "label": "GitHub → model",
-        "title": "The tool returns the result, not the PAT.",
-        "body": "GitHub’s successful response returns through the broker and sandbox. The model sees the command result and replies to Alice.",
-        "detail": "exit 0 · HTTP 200 → “Cool, comment made.”"
-      },
-      {
-        "number": "08",
-        "label": "Gateway → Slack",
-        "title": "Alice gets the reply in Slack.",
-        "body": "The gateway sends the agent’s answer back to the conversation. The prompt, broker decision, and HTTP result share one W3C trace; lose the exporter and you lose the audit.",
-        "detail": "Agent reply → gateway → Alice’s Slack conversation"
-      }
-    ],
-    "allowed": "Allowed: leave one bounded comment",
-    "denied": "Still denied: approve, merge, the rest of the GitHub API",
-    "link": {
-      "label": "Open the complete policy walkthrough",
-      "href": "/almanac/permissions/"
-    }
-  },
-  "security": {
-    "kicker": "6 threats · 6 limits",
-    "title": "Every control here has a limit.",
-    "intro": "Dekopon doesn’t detect prompt injection or make a model trustworthy. It shrinks what a successful injection can reach.",
-    "rows": [
-      {
-        "threat": "Prompt injection or a model mistake",
-        "control": "The model can only propose capabilities that exist by name. The broker authorizes each call from trusted context it built itself.",
-        "limit": "Nothing here detects prompt injection. And on a persistent route, injected text sticks around for a while."
-      },
-      {
-        "threat": "Credential exposure",
-        "control": "Provider credentials never reach the prompt, the shell, or the Wasm guest. The broker’s own HTTP engine injects a destination-bound value.",
-        "limit": "Allowlist a host that echoes headers back and the token walks out. Pick your hosts."
-      },
-      {
-        "threat": "Over-broad tool execution",
-        "control": "No OS bash, no inherited environment, no host files. Hosts, methods, and byte ceilings are all fixed before the agent starts.",
-        "limit": "If something hostile is already running as the broker’s user, you’ve lost. This doesn’t help you there."
-      },
-      {
-        "threat": "Forged identity",
-        "control": "Identity comes from the authenticated transport and a mapping you wrote. Never from message text.",
-        "limit": "The local dev subject is caller-supplied. It’s off unless you turn it on, and nothing external vouches for it."
-      },
-      {
-        "threat": "A guardrail you can’t audit",
-        "control": "Authorization is a Cedar policy file and owner-authored YAML, evaluated by native Rust. No model reviews, scores, or approves another model’s action.",
-        "limit": "Static rules can’t read intent. Grant a capability and it’s granted; the broker won’t notice that this particular comment was a bad idea."
-      },
-      {
-        "threat": "Unclear or disputed effects",
-        "control": "The Cedar decision, the prompt, and the HTTP call all carry one W3C trace id. An operator with the telemetry store can reconstruct the whole run.",
-        "limit": "The audit is a log record on that trace. Lose the exporter and you lose the audit, and nothing here un-posts a comment."
-      }
-    ],
-    "limits": [
-      "A compromised gateway can vouch for any subject in its attestor lane",
-      "Neither production-hardened nor multi-tenant",
-      "Lose the log exporter, lose the audit"
-    ],
-    "link": {
-      "label": "Read the complete threat model",
-      "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md"
-    }
-  },
   "useCases": {
-    "kicker": "shipped as Wasm components",
-    "title": "Five providers, five separate repos.",
-    "intro": "Each one is a Wasm component with a fixed list of operations. None of them hands the model a general API.",
+    "kicker": "",
+    "title": "Familiar tools, bounded access.",
+    "intro": "Bash is built in; add Wasm providers for the jobs you want your agent to do. Start with the established tools, then explore the newer integrations.",
     "items": [
       {
-        "label": "GitHub",
-        "title": "Comment, approve, and merge are three separate grants.",
-        "body": "Nineteen fixed-shape capabilities across repos, issues, and pull requests. There’s no raw API passthrough, on purpose.",
-        "detail": "External reads and writes · broker-held token",
+        "label": "bash",
+        "kind": "Built-in tool",
+        "title": "Bash-style workflows",
+        "body": "Chain tools with structured pipelines, loops, and text processing. No OS shell or host filesystem.",
+        "detail": "Built into the agent runtime",
+        "href": "/almanac/one-tool-runtime/",
+        "accent": "purple"
+      },
+      {
+        "label": "gh",
+        "kind": "Wasm provider",
+        "title": "GitHub reviews and triage",
+        "body": "Read pull requests and CI results; comment, review, or merge with separate grants.",
+        "detail": "Scoped GitHub commands",
         "href": "https://github.com/dekopon-agents/dekopon-provider-gh",
         "accent": "purple"
       },
       {
-        "label": "Wikipedia",
-        "title": "Read Wikipedia without a fetch tool.",
-        "body": "Five read-only operations take the model from a title search to a revision-pinned section. It never gets a generic URL fetcher.",
-        "detail": "Public HTTPS reads · exact language hosts",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-mediawiki",
-        "accent": "cyan"
-      },
-      {
-        "label": "Ripgrep",
-        "title": "Real ripgrep, zero host imports.",
-        "body": "Real Rust regex matching over documents you hand it. The paths are labels; the provider never opens a filesystem.",
-        "detail": "Read-only compute · no host imports",
+        "label": "ripgrep",
+        "kind": "Wasm provider",
+        "title": "Search supplied text",
+        "body": "Use real ripgrep matching with context and precise locations. Documents are inputs, not host files.",
+        "detail": "Regex + literal matching",
         "href": "https://github.com/dekopon-agents/dekopon-provider-ripgrep",
         "accent": "mint"
       },
       {
-        "label": "Python",
-        "title": "Python that can’t reach anything.",
-        "body": "A fresh RustPython interpreter runs one bounded script. No files, no network, no subprocesses.",
-        "detail": "High-risk compute · zero imports",
+        "label": "python",
+        "kind": "Wasm provider",
+        "title": "Python for data work",
+        "body": "Calculate and transform JSON or YAML in a fresh RustPython sandbox. No pip or host files.",
+        "detail": "Selected imports · bounded execution",
         "href": "https://github.com/dekopon-agents/dekopon-provider-python",
         "accent": "orange"
       },
       {
-        "label": "SQL",
-        "title": "Turso inside Wasm, storage outside it.",
-        "body": "Turso reaches two logical durable files through one exact storage import. The guest never gets a host path.",
-        "detail": "Local write · transactional durable storage",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-turso-sql",
+        "label": "curl",
+        "kind": "Wasm provider",
+        "title": "Fetch approved URLs",
+        "body": "Read HTTPS pages and API responses through broker-controlled destinations and authentication.",
+        "detail": "GET only · bounded responses",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-curl",
+        "accent": "cyan"
+      },
+      {
+        "label": "gpt-image",
+        "kind": "Wasm provider",
+        "title": "Generate and remix images",
+        "body": "Create a PNG from a prompt or reference photos using your ChatGPT subscription.",
+        "detail": "Uses undocumented subscription endpoints",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-gpt-image",
         "accent": "rose"
+      },
+      {
+        "label": "SQL · Turso",
+        "kind": "Wasm provider",
+        "title": "SQLite-compatible records",
+        "body": "Query and store structured data in broker-managed storage. Oversized writes can leave a database unreadable.",
+        "detail": "Early SQL support · not the SQLite engine",
+        "href": "https://github.com/dekopon-agents/dekopon-provider-turso-sql",
+        "accent": "cyan"
       }
     ],
     "link": {
@@ -219,7 +127,7 @@
     }
   },
   "closing": {
-    "kicker": "Open source · pre-production",
+    "kicker": "Open source · Self-hosted",
     "title": "Start with one capability",
     "titleAccent": "and one exact policy.",
     "body": "One capability, one policy, one trace. Let the model explore the rest without handing it the host.",
@@ -231,5 +139,44 @@
       "label": "Build a provider",
       "href": "/guides/provider-sdk/"
     }
+  },
+  "protocols": {
+    "title": "Your agent, in your chat.",
+    "intro": "Slack leads with its native Agent experience. The same runtime also connects to Discord, WhatsApp, and Telegram.",
+    "note": "History is configurable and held in memory. Image understanding needs a compatible model; generated PNG replies require an enabled provider route.",
+    "items": [
+      {
+        "name": "Slack",
+        "badge": "Native Agent experience",
+        "conversation": "DMs + shared threads",
+        "inputs": "Images + documents",
+        "outputs": "Text + generated PNGs",
+        "feedback": "Streaming + native status"
+      },
+      {
+        "name": "Discord",
+        "badge": "DMs and server conversations",
+        "conversation": "DMs + mentions in servers",
+        "inputs": "Images + documents",
+        "outputs": "Text + generated PNGs",
+        "feedback": "Streamed edits + typing"
+      },
+      {
+        "name": "WhatsApp",
+        "badge": "Cloud API",
+        "conversation": "Individual chats",
+        "inputs": "Images",
+        "outputs": "Text + generated PNGs",
+        "feedback": "Typing · no streaming"
+      },
+      {
+        "name": "Telegram",
+        "badge": "Bot API",
+        "conversation": "DMs + addressed groups/topics",
+        "inputs": "Images + documents",
+        "outputs": "Text + generated PNGs",
+        "feedback": "Streamed edits + typing"
+      }
+    ]
   }
 }

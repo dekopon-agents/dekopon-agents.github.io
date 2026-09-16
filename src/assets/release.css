@@ -2263,6 +2263,45 @@
   white-space: nowrap;
 }
 
+.home-protocols {
+  background: #fff;
+}
+
+.protocol-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.protocol-card {
+  padding: 24px;
+  border: 1px solid #d8e1ea;
+  border-radius: 16px;
+  background: #f7f9fc;
+}
+
+.protocol-card:first-child {
+  border-color: #b7acf5;
+  background: #f3f0ff;
+}
+
+.protocol-card h3 { margin: 0 0 8px; font-size: 25px; }
+.protocol-badge { min-height: 44px; font-size: 13px; color: var(--slate); }
+.protocol-card dl { margin: 0; }
+.protocol-card dl > div { padding: 12px 0; border-top: 1px solid #d8e1ea; }
+.protocol-card dt { font-size: 11px; color: var(--slate); }
+.protocol-card dd { margin: 4px 0 0; font-size: 14px; font-weight: 650; min-height: 44px; }
+.protocol-note { max-width: 900px; margin: 24px 0 0; color: var(--slate); font-size: 13px; }
+.provider-kind { margin-top: 8px; color: var(--slate); font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .protocol-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .protocol-grid { grid-template-columns: minmax(0, 1fr); }
+  .protocol-badge, .protocol-card dd { min-height: 0; }
+}
+
 .home-providers {
   overflow: hidden;
   background:
@@ -2294,7 +2333,7 @@
 .provider-ecosystem-card {
   --provider-accent: var(--purple);
   position: relative;
-  min-height: 300px;
+  min-height: 240px;
   grid-column: span 2;
   display: flex;
   flex-direction: column;
@@ -2307,9 +2346,9 @@
   transition: transform 170ms ease, box-shadow 170ms ease;
 }
 
-.provider-ecosystem-card:nth-child(4),
-.provider-ecosystem-card:nth-child(5) {
-  grid-column: span 3;
+.provider-ecosystem-card:first-child {
+  grid-column: 1 / -1;
+  min-height: 0;
 }
 
 .provider-ecosystem-card:hover {
@@ -2335,7 +2374,7 @@
 }
 
 .provider-ecosystem-card h3 {
-  margin: 48px 0 14px;
+  margin: 22px 0 12px;
   font-size: 23px;
 }
 

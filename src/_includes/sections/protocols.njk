@@ -1,0 +1,23 @@
+<section class="home-protocols section" id="protocols" aria-labelledby="home-protocols-title">
+  <div class="shell">
+    <div class="section-heading split-heading">
+      <h2 id="home-protocols-title">{{ home.protocols.title }}</h2>
+      <p>{{ home.protocols.intro }}</p>
+    </div>
+    <div class="protocol-grid">
+      {% for protocol in home.protocols.items %}
+        <article class="protocol-card">
+          <h3>{{ protocol.name }}</h3>
+          <p class="protocol-badge">{{ protocol.badge }}</p>
+          <dl>
+            <div><dt>Conversations</dt><dd>{{ protocol.conversation }}</dd></div>
+            <div><dt>Send to your agent</dt><dd>{{ protocol.inputs }}</dd></div>
+            <div><dt>Get back</dt><dd>{{ protocol.outputs }}</dd></div>
+            <div><dt>Live feedback</dt><dd>{{ protocol.feedback }}</dd></div>
+          </dl>
+        </article>
+      {% endfor %}
+    </div>
+    <p class="protocol-note">{{ home.protocols.note }}</p>
+  </div>
+</section>
