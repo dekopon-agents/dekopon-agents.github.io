@@ -1563,7 +1563,7 @@
   color: var(--purple);
 }
 
-/* The diagram stays in document flow: no perspective or scaled-down labels. */
+/* The diagram stays in document flow with readable, unscaled labels. */
 .home-page .hero-grid {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 40px;
@@ -1575,6 +1575,23 @@
   margin: 0;
   transform: none;
   perspective: none;
+}
+
+/* Adapt the original citrus-float's seven-second rock to the whole diagram.
+   Keep the rotation small, and leave mobile/reduced-motion layouts still. */
+@keyframes hero-diagram-float {
+  0%, 100% { transform: rotate(-1deg) translateY(0); }
+  50% { transform: rotate(1deg) translateY(-6px); }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  .home-page .hero-visual.hero-diagram {
+    animation: hero-diagram-float 7s ease-in-out infinite;
+  }
+
+  .home-page .hero-visual.hero-diagram:hover {
+    animation-play-state: paused;
+  }
 }
 
 .hero-diagram {
