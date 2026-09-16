@@ -81,6 +81,63 @@ for (const goal of ["Credentials are unleakable", "One trace, complete", "Extens
     }
 }
 
+// Check the rendered hero, including containment rather than just page-wide words.
+const heroDiagram = homepage.match(/<figure\b[^>]*aria-labelledby="hero-diagram-caption"[^>]*>([\s\S]*?)<\/figure>/)?.[1] ?? "";
+const heroBoundaries = new Map();
+const divStack = [];
+for (const tag of heroDiagram.matchAll(/<div\b[^>]*>|<\/div>/g)) {
+    if (tag[0] !== "</div>") {
+        divStack.push({ start: tag.index, name: tag[0].match(/data-hero-boundary="([^"]+)"/)?.[1] });
+    } else {
+        const opening = divStack.pop();
+        if (opening?.name) heroBoundaries.set(opening.name, heroDiagram.slice(opening.start, tag.index + tag[0].length));
+    }
+}
+const expectedHeroBoundaries = {
+    gateway: ["Slack agent session", "Comment on PR #456"],
+    model: ["AI provider", "Model"],
+    broker: ["Broker"],
+    policy: ["Caller mapping", "Pre-configured Cedar policy"],
+    wasm: ["GitHub provider", "fresh invocation", "Builds request, never sees GitHub PAT"],
+    http: ["Broker-native HTTP", "Destination / method / limits checks"],
+    credential: ["Broker-held", "GitHub PAT"],
+    github: ["api.github.com", "GET + POST"]
+};
+for (const [boundary, labels] of Object.entries(expectedHeroBoundaries)) {
+    for (const label of labels) {
+        if (!heroBoundaries.get(boundary)?.includes(label)) {
+            failures.push(`index.html: hero ${boundary} is missing "${label}"`);
+        }
+    }
+}
+for (const child of ["policy", "wasm", "http", "credential"]) {
+    if (!heroBoundaries.get("broker")?.includes(`data-hero-boundary="${child}"`)) {
+        failures.push(`index.html: hero ${child} must be inside the broker`);
+    }
+}
+for (const [parent, children] of [
+    ["broker", ["gateway", "model", "github"]],
+    ["gateway", ["model", "credential"]],
+    ["wasm", ["policy", "http", "credential"]]
+]) {
+    for (const child of children) {
+        if (heroBoundaries.get(parent)?.includes(`data-hero-boundary="${child}"`)) {
+            failures.push(`index.html: hero ${child} must be outside ${parent}`);
+        }
+    }
+}
+const heroSteps = [...heroDiagram.matchAll(/data-hero-step="(\d+)"/g)].map((match) => match[1]);
+if (heroSteps.join(",") !== "1,2,3,4,5,6") {
+    failures.push("index.html: hero must show six ordered transitions");
+}
+for (const [index, label] of ["Prompt + bash tool", "Requested bash command", "Propose action", "Authorize capability", "Request HTTP", "Inject credential + send"].entries()) {
+    const step = heroDiagram.split(`data-hero-step="${index + 1}"`)[1]?.split("</div>")[0] ?? "";
+    if (!step.includes(`>${index + 1}</b>`) || !step.includes(label)) {
+        failures.push(`index.html: hero transition ${index + 1} needs its visible number and label`);
+    }
+}
+if (!heroDiagram.includes("Unix socket")) failures.push("index.html: hero must name the Unix socket");
+
 const whatsNew = await readFile(path.join(outputDirectory, "whats-new", "index.html"), "utf8");
 if (!whatsNew.includes(release.installCommand)) {
     failures.push(`whats-new/index.html: missing current install command for ${release.tag}`);

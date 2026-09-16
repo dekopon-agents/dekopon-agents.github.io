@@ -1563,122 +1563,331 @@
   color: var(--purple);
 }
 
-.authority-map-card {
-  top: 45px;
+/* The diagram stays in document flow: no perspective or scaled-down labels. */
+.home-page .hero-grid {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 40px;
 }
 
-.authority-map-flow {
-  padding: 18px 22px 2px;
+.home-page .hero-visual.hero-diagram {
+  height: auto;
+  width: 100%;
+  margin: 0;
+  transform: none;
+  perspective: none;
 }
 
-.authority-map-node {
-  padding: 13px 15px;
-  border: 1px solid;
-  border-radius: 10px;
+.hero-diagram {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 60px rgba(80, 48, 24, 0.12);
+  font-size: 14px;
+  line-height: 1.35;
 }
 
-.authority-map-node small,
-.authority-map-node span {
-  display: block;
-}
-
-.authority-map-node small {
-  margin-bottom: 4px;
-  font-family: var(--font-mono);
-  font-size: 7px;
-  font-weight: 750;
+.hero-diagram h2,
+.hero-diagram h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.authority-map-node strong {
-  display: block;
-  font-size: 12px;
-  line-height: 1.35;
+.hero-diagram p {
+  margin: 4px 0 0;
 }
 
-.authority-map-node span {
-  margin-top: 3px;
-  font-size: 9px;
-}
-
-.authority-map-request {
-  color: #75500e;
-  background: #fff8df;
-  border-color: #f2d98e;
-}
-
-.authority-map-request small,
-.authority-map-request span {
-  color: #8e6c31;
-}
-
-.authority-map-proposal {
-  color: #31577f;
-  background: #edf6ff;
-  border-color: #cbe2f6;
-}
-
-.authority-map-proposal small,
-.authority-map-proposal span {
-  color: #5f7f9d;
-}
-
-.authority-map-broker {
-  color: #fff;
-  background: linear-gradient(120deg, #172f4a, #0a2540 58%, #302f72);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 28px rgba(10, 37, 64, 0.18);
-}
-
-.authority-map-broker small {
-  color: var(--mint);
-}
-
-.authority-map-broker span {
-  color: rgba(255, 255, 255, 0.62);
-}
-
-.authority-map-arrow {
-  position: relative;
-  height: 23px;
+.hero-diagram-top {
   display: grid;
-  place-items: center;
-  color: var(--slate-light);
-  font-family: var(--font-mono);
-  font-size: 7px;
-  text-transform: uppercase;
+  grid-template-columns: minmax(0, 1fr) 160px 100px;
+  align-items: stretch;
+  gap: 10px;
 }
 
-.authority-map-arrow::before {
+.hero-diagram-gateway,
+.hero-diagram-model {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px;
+  border: 1px solid #e8cb87;
+  border-radius: 10px;
+  background: #fff8e5;
+}
+
+.hero-diagram-gateway > span {
+  margin-top: 5px;
+  color: #66501f;
+}
+
+.hero-diagram-model {
+  background: #f0edff;
+  border-color: #d3ccf4;
+  color: #453884;
+}
+
+.hero-diagram-exchange {
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+
+.hero-diagram-model-step {
+  text-align: center;
+  font-size: 12px;
+}
+
+.hero-diagram-horizontal-arrow {
+  position: relative;
+  display: block;
+  height: 1px;
+  margin: 5px 3px;
+  background: #756497;
+  font-size: 0;
+}
+
+.hero-diagram-horizontal-arrow::after {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: rgba(10, 37, 64, 0.16);
+  right: 0;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid #756497;
+  border-right: 1px solid #756497;
+  transform: rotate(45deg);
 }
 
-.authority-map-arrow span {
-  position: relative;
-  padding: 2px 7px;
-  background: rgba(255, 255, 255, 0.95);
+.hero-diagram-model-step:nth-child(2) .hero-diagram-horizontal-arrow::after {
+  left: 0;
+  right: auto;
+  transform: rotate(-135deg);
 }
 
-.authority-map-arrow-boundary {
-  color: var(--purple);
-  font-weight: 750;
+.hero-diagram-mobile-route {
+  display: none;
 }
 
-.authority-map-outcome {
-  grid-template-columns: auto minmax(0, 1fr);
+.hero-diagram-number {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffdf9a;
+  color: #543b15;
+  font-size: 11px;
+  line-height: 1;
 }
 
-.authority-map-outcome code {
-  grid-column: 2;
-  margin-top: 4px;
-  white-space: normal;
+.hero-diagram-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding-left: 16px;
+  font-size: 13px;
+}
+
+.hero-diagram-step > span[aria-hidden] {
+  font-size: 22px;
+  line-height: 1;
+  color: #986128;
+}
+
+.hero-diagram-step small {
+  margin-left: 8px;
+  color: var(--slate);
+  font-size: 12px;
+}
+
+.hero-diagram-broker {
+  padding: 14px;
+  border: 1px solid #bd6a2d;
+  border-radius: 12px;
+  background: #fff3e6;
+}
+
+.hero-diagram-broker > h2 {
+  color: #92501e;
+  margin-bottom: 9px;
+}
+
+.hero-diagram-policy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 10px 12px;
+  border: 1px solid #e5c1a0;
+  border-radius: 7px;
+  background: #fffdfa;
+}
+
+.hero-diagram-policy > span {
+  color: #66513e;
+}
+
+.hero-diagram-wasm {
+  padding: 12px;
+  border: 1px dashed #4b816a;
+  border-radius: 8px;
+  background: #eef8f1;
+  color: #214d3e;
+}
+
+.hero-diagram-wasm strong > span {
+  font-weight: 400;
+}
+
+.hero-diagram-io {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px auto;
+  align-items: center;
+}
+
+.hero-diagram-http {
+  align-self: stretch;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+}
+
+.hero-diagram-http h3 {
+  color: #ffdf9a;
+}
+
+.hero-diagram-http p {
+  font-size: 13px;
+}
+
+.hero-diagram-credential-arrow {
+  color: #986128;
+  font-size: 23px;
+  text-align: center;
+}
+
+.hero-diagram-credential {
+  padding: 10px;
+  border: 1px solid #dbb557;
+  border-radius: 8px;
+  background: #fff6cf;
+  color: #684714;
+}
+
+.hero-diagram-github {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #d1dbe3;
+  border-radius: 8px;
+  background: #f6f9fc;
+}
+
+.hero-diagram-github > span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.hero-diagram figcaption {
+  margin-top: 12px;
+  color: var(--slate);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .home-page .hero-grid {
+    gap: 24px;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  }
+
+  .hero-diagram-top {
+    grid-template-columns: minmax(0, 1fr) 135px 85px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-page .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .home-page .hero-visual.hero-diagram {
+    max-width: 620px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .hero-diagram {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .hero-diagram-top {
+    grid-template-columns: minmax(0, 1fr) 100px;
+    gap: 12px;
+  }
+
+  .hero-diagram-model {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .hero-diagram-exchange {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .hero-diagram-model-step {
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .hero-diagram-horizontal-arrow {
+    display: none;
+  }
+
+  .hero-diagram-mobile-route {
+    display: block;
+    margin-top: 4px;
+    color: #594577;
+    font-size: 12px;
+  }
+
+  .hero-diagram-broker {
+    padding: 12px;
+  }
+
+  .hero-diagram-io {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-diagram-credential-arrow {
+    transform: rotate(90deg);
+    line-height: 1;
+  }
+
+  .hero-diagram-credential {
+    justify-self: center;
+    text-align: center;
+  }
+
+  .hero-diagram-step {
+    padding-left: 8px;
+    min-height: 40px;
+  }
 }
 
 /* Constitution */
@@ -2174,10 +2383,6 @@
 }
 
 @media (max-width: 900px) {
-  .authority-map-card {
-    top: 70px;
-  }
-
   .security-table-head {
     display: none;
   }
@@ -2205,19 +2410,6 @@
 @media (max-width: 650px) {
   .hero-goal-list li {
     font-size: 12px;
-  }
-
-  .authority-map-card {
-    top: 38px;
-  }
-
-  .authority-map-flow {
-    padding-inline: 14px;
-  }
-
-  .authority-map-card .decision-grid {
-    grid-template-columns: 1fr;
-    padding-inline: 14px;
   }
 
   .home-journey-step {

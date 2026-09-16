@@ -13,30 +13,8 @@
       "href": "#one-request"
     },
     "visual": {
-      "caption": "One request from an authenticated Slack sender, through the model, to the broker, to a single bounded GitHub call",
-      "title": "One request · one authority boundary",
-      "badge": "model is untrusted",
-      "requestLabel": "Authenticated sender",
-      "request": "Alice asks: comment on PR 456",
-      "requestDetail": "Slack supplies the sender identity",
-      "proposalLabel": "Agent and model",
-      "proposal": "gh.pull-request.comment",
-      "proposalDetail": "may propose · cannot approve itself",
-      "gateLabel": "Separate broker",
-      "gate": "identity → Cedar → hard limits",
-      "gateDetail": "Alice · comment · api.github.com · 2 calls · 15 s",
-      "allowedLabel": "allowed",
-      "allowed": "leave one comment",
-      "deniedLabel": "absent",
-      "denied": "merge permission",
-      "outcomeLabel": "Broker-owned HTTP",
-      "outcome": "token injected only at the approved destination",
-      "audit": "decision + result on the message’s trace",
-      "chips": [
-        "sender-derived identity",
-        "broker-held token",
-        "comment ≠ merge"
-      ]
+      "caption": "The model requests an action. The broker grants permission and attaches the credential.",
+      "request": "Comment on PR #456"
     }
   },
   "constitution": {
