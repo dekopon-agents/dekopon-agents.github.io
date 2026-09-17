@@ -228,6 +228,10 @@ dekopond auth chatgpt export \
 
       <p>The chart is published at <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>. It moves on its own tag, <code>dekopon-chart-&lt;version&gt;</code>, and its <code>appVersion</code> moves with the application in the release-prep commit.</p>
 
+      {% if release.chart.sourceVersion != release.chart.publishedVersion %}
+      <p>Source chart <code>{{ release.chart.sourceVersion }}</code> targets application <code>{{ release.chart.sourceAppVersion }}</code> but is not published yet. It changes gateway scratch to disk-backed storage with a separate <code>volumeSizes.gatewayTmp</code> budget. Changing only the image on an older chart keeps its tmpfs mount: image bytes leave the heap but still consume RAM. Verify the rendered mount and capacity before upgrading.</p>
+      {% endif %}
+
       {{ docsCta("Open the current chart guide", "https://github.com/dekopon-agents/dekopon/blob/main/charts/dekopon/README.md", "Check the latest values, path contract, probes, storage arithmetic, and Argo CD instructions before installing.") }}
     </section>
 

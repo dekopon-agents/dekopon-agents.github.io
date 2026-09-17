@@ -3,7 +3,7 @@ layout: layouts/base.njk
 permalink: whats-new/index.html
 bodyClass: whats-new-page
 pageTitle: What’s new in Dekopon
-pageDescription: The constitution release. Credentials are unleakable, one trace is complete, and a capability arrives as a Wasm component; the audit file is gone.
+pageDescription: Disk-backed chat images, verified mmap loading for compiled Wasm, and bounded chat-connection recovery. Check storage mounts before upgrading.
 ogType: article
 ---
 <section class="release-hero">
@@ -101,7 +101,7 @@ ogType: article
             <small>{{ change.tag }}</small>
             <h3>{{ change.title }}</h3>
             <p>{{ change.body }}</p>
-            <a class="text-link" href="{% if change.link.release %}{{ release.url }}{% else %}{{ change.link.href }}{% endif %}">{{ change.link.label }} <span aria-hidden="true">→</span></a>
+            <a class="text-link" href="{% if change.link.sourcePath %}https://github.com/dekopon-agents/dekopon/blob/{{ release.revision }}/{{ change.link.sourcePath }}{% elif change.link.release %}{{ release.url }}{% else %}{{ change.link.href }}{% endif %}">{{ change.link.label }} <span aria-hidden="true">→</span></a>
           </div>
         </article>
       {% endfor %}
@@ -121,7 +121,7 @@ ogType: article
         <span class="section-kicker mint">Available now</span>
         <h2 id="release-install-title">Install it from Homebrew, crates.io, or the image.</h2>
       </div>
-      <p>{{ whatsNew.installIntro }} Chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }} from <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>.</p>
+      <p>{{ whatsNew.installIntro }} Published chart {{ release.chart.publishedVersion }} defaults to application {{ release.chart.publishedAppVersion }}.{% if release.chart.sourceVersion != release.chart.publishedVersion %} Source chart {{ release.chart.sourceVersion }} targets {{ release.chart.sourceAppVersion }} but is not yet published. An image-only upgrade with the older chart retains its memory-backed gateway scratch.{% endif %}</p>
     </div>
 
     <div class="release-package-grid">
@@ -151,7 +151,7 @@ ogType: article
     <div class="release-section-heading">
       <div>
         <span class="section-kicker purple">Where {{ release.tag }} stands</span>
-        <h2 id="release-scope-title">Deployable, and still pre-production.</h2>
+        <h2 id="release-scope-title">The broker still owns permission.</h2>
       </div>
       <p>{{ whatsNew.scopeIntro }}</p>
     </div>
@@ -162,7 +162,7 @@ ogType: article
         <ul>{% for item in whatsNew.scope.current %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
       <article class="release-scope-card next reveal reveal-delay-1">
-        <span><i aria-hidden="true"></i> Coming next</span>
+        <span><i aria-hidden="true"></i> Not provided or claimed</span>
         <ul>{% for item in whatsNew.scope.next %}<li>{{ item }}</li>{% endfor %}</ul>
       </article>
     </div>

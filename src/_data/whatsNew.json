@@ -1,115 +1,79 @@
 {
   "hero": {
     "eyebrow": "What’s new",
-    "title": "The constitution release.",
-    "lede": "Three goals in priority order now decide what stays in the tree: credentials are unleakable, one trace is complete, and a capability arrives as a Wasm component. Everything that served none of them is gone, the audit file included."
+    "title": "Disk-backed images and compiled Wasm.",
+    "lede": "The gateway keeps retained images in temporary files instead of heap buffers. The broker maps verified compiled providers from disk, and chat connections recover within a finite retry budget."
   },
-  "summary": "The rule is unchanged: the model proposes, the separate broker authorizes. What changed is where the record lives. Audit is a log record on the message’s W3C trace, and there is no metadata-only mode to hide the rest of it.",
+  "summary": "Retain images without keeping their bulk bytes on the heap, and reuse compiled providers across compatible broker starts. Neither change moves permission out of the broker.",
   "metrics": [
-    { "value": "3", "label": "goals, in priority order" },
-    { "value": "1", "label": "W3C trace per message" },
-    { "value": "0", "label": "audit files on disk" },
-    { "value": "0", "label": "authority moved to the model" }
+    { "value": "256 MiB", "label": "default asset-retention budget" },
+    { "value": "1", "label": "compiled-hash check per artifact per startup" },
+    { "value": "3 s", "label": "default WhatsApp burst window" },
+    { "value": "0", "label": "automatic compiled-cache repairs" }
   ],
   "highlights": [
     {
       "number": "01",
-      "kicker": "Goal 1 · credentials are unleakable",
-      "title": "Secret bytes exist only inside the broker.",
-      "body": "The native HTTP engine injects a credential after the component has built its request, and now refuses a response that echoes it on every credential kind, bearerToken included. A bearer secret under 16 printable bytes refuses startup, so the echo check can’t deny unrelated responses.",
-      "points": ["The echo check covers bearerToken and chatgptSubscription, not only DRN-bound secrets", "Telegram errors render without the token-bearing URL", "Chat transports and the OTLP exporter refuse an ambient proxy"]
+      "kicker": "Gateway · retained images",
+      "title": "Images live in a bounded disk cache.",
+      "body": "The gateway keeps one copy of retained image bytes in private temporary files. Generated PNGs receive scoped IDs you can reuse in later edits. When the cache reclaims an image, model history gets a release notice instead of stale bytes.",
+      "points": ["sessions.assetRetentionBytes sets the budget; zero disables assets", "Unavailable edit inputs fail without refetching or substituting an image", "Use disk-backed scratch; decode and upload buffers still use memory"]
     },
     {
       "number": "02",
-      "kicker": "Goal 2 · one trace, complete",
-      "title": "Everything an agent did is on one W3C trace.",
-      "body": "The trace opens at transport.receive, before the payload is parsed. Everything rides it as spans or log records: prompts, scripts, command words, broker decisions, HTTP egress. The audit record is one of those log records; there is no audit file.",
-      "points": ["telemetryPayloads and every metadata-only mode are gone", "The separate Dekopon trace id is gone; traceParent is mandatory", "The 256-span cap is gone; a span is never dropped"]
+      "kicker": "Broker · managed providers",
+      "title": "Compatible starts reuse compiled Wasm files.",
+      "body": "The first start compiles each managed provider and stores a hash-addressed artifact. Later starts verify the compiled bytes once and memory-map the file. Each invocation still gets a fresh Wasm sandbox with its existing limits.",
+      "points": ["compileOnLoad: true bypasses all compiled-cache reads and writes", "A missing index compiles once; corruption fails startup", "Stop every user of a mapped artifact before clearing the cache"]
     },
     {
       "number": "03",
-      "kicker": "Goal 3 · extensible through Wasm providers",
-      "title": "A command word can behave like a real CLI.",
-      "body": "dekopon:provider@0.3.0 adds the provider-cli world. run-command receives argv plus the piped value and answers with one of three things: a capability proposal, text it rendered itself such as --help, or a decline. The broker host also links a grant-free wall clock, readable during invoke only.",
-      "points": ["An optional clap layer in the SDK, compiled without env or color", "dekopon-provider-clock binds now-unix-millis", "FakeBroker::run_command drives a word through the real broker host"]
+      "kicker": "Gateway · chat connections",
+      "title": "Connection recovery has a finite budget.",
+      "body": "Chat adapters start concurrently and share bounded backoff rules. Healthy connections keep serving while another reconnects. If one adapter exhausts its budget, the gateway drains and exits nonzero for its supervisor to restart.",
+      "points": ["Repeated flapping spends the same finite recovery budget", "Monitor recovery and exit events, not only gateway_started", "Connection recovery never replays outbound effects"]
     }
   ],
   "path": {
-    "kicker": "One message, one trace",
-    "title": "From transport receipt to HTTP egress.",
-    "body": "Every span and log record carries the same trace id. The broker parents its spans on the request’s traceParent, and a gateway that exports nothing still mints one so a decision record can be found.",
-    "ariaLabel": "The spans and records one Dekopon message leaves on its trace",
+    "kicker": "Warm managed-provider startup",
+    "title": "The broker verifies before it maps.",
+    "body": "A compatible cache avoids compilation, not verification. The provider store must stay trusted and immutable while its compiled files are mapped.",
+    "ariaLabel": "A compatible cached provider loading into the broker",
     "steps": [
-      { "name": "transport.receive", "detail": "before the payload is parsed" },
-      { "name": "gateway.session", "detail": "one bash tool, no credential" },
-      { "name": "agent.model.prompt", "detail": "the prompt, in full" },
-      { "name": "shell.command", "detail": "every word a script ran" },
-      { "name": "broker.decision", "detail": "Cedar’s answer and its policy ids" },
-      { "name": "http.request", "detail": "method, host, status, bytes" }
+      { "name": "Verify source", "detail": "check the locked Wasm bytes" },
+      { "name": "Select engine key", "detail": "match engine compatibility" },
+      { "name": "Read index", "detail": "find the compiled artifact" },
+      { "name": "Verify artifact", "detail": "stream its hash once" },
+      { "name": "Map file", "detail": "load the compiled component" },
+      { "name": "Reuse in registry", "detail": "no per-call reopen or rehash" }
     ]
   },
   "changes": [
     {
-      "tag": "Audit",
-      "title": "Audit is one log record per broker decision, inside the trace.",
-      "body": "broker.decision and broker.execution go to stdout as JSON always, and to OTLP logs when telemetry names a receiver. auditPath, checkpointPath, and audit verify are gone; an existing audit.jsonl is inert. Losing the exporter loses the audit.",
-      "link": { "label": "See what each signal carries", "href": "/almanac/observability/" }
+      "tag": "Provider telemetry",
+      "title": "Traces report observed memory growth and fuel use.",
+      "body": "Provider calls report the largest observed individual linear memory alongside fuel consumed when a final reading exists. Startup spans separate compilation cost from cache verification and mapping. These values are not process RAM or a heap profile.",
+      "link": { "label": "Read the measurement contract", "sourcePath": "docs/observability.md" }
     },
     {
-      "tag": "Telemetry",
-      "title": "There is no metadata-only mode.",
-      "body": "telemetryPayloads is refused by name. Always exported now: input on broker.authorize and provider.invoke, url.full on http.request, and the prompt, answer, script, and output records. Secret bytes, the gateway’s own credentials, and HTTP headers and bodies never were.",
-      "link": { "label": "Read the exclusion list", "href": "/almanac/observability/#privacy" }
+      "tag": "Incoming media",
+      "title": "Related media can enter one session.",
+      "body": "WhatsApp collects media-first bursts for three seconds by default; debounceMs: 0 keeps immediate admission. Telegram collects native media groups in a fixed three-second window. Each receipt keeps its trace, linked to the shared execution.",
+      "link": { "label": "Read the media handling contract", "sourcePath": "docs/dekopond.md" }
     },
     {
-      "tag": "Non-goals",
-      "title": "Idempotency, the replay ledger, and the namespace key are deleted.",
-      "body": "idempotency: is an unknown field in constraintSets and manifests, and a resubmitted invocation runs again. Storage names are unkeyed SHA-256 now, so provider storage starts empty at upgrade: stop the broker and move the root aside.",
-      "link": { "label": "Open the upgrade notes", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/upgrading.md" }
-    },
-    {
-      "tag": "Catalog",
-      "title": "kind: Provider and kind: Capability are gone.",
-      "body": "Nothing read them at runtime. The surface a session reaches is the broker’s answer under the agent’s attestation, built from loaded manifests and the constraintSets policy allows. A catalog that still carries either kind refuses to load and names the upgrade.",
-      "link": { "label": "See the catalog that remains", "href": "/almanac/permissions/#catalog" }
-    },
-    {
-      "tag": "Command words",
-      "title": "run-command replaces resolve-command.",
-      "body": "A word gets its argv and the piped value, and may render its own help page at exit 0 without charging a capability call. Components built against provider 0.1.0 or 0.2.0 keep loading; their legacy export never receives a piped value.",
-      "link": { "label": "Expose a provider as a shell word", "href": "/guides/provider-sdk/#command-words" }
-    },
-    {
-      "tag": "Skills",
-      "title": "An agent reads SKILL.md directories on demand.",
-      "body": "spec.skills lists Agent Skills directories. The model sees names and descriptions, reads a body or one resource with read_skill, and each read is one agent.skill.read record. Skill text is untrusted model text and grants nothing.",
-      "link": { "label": "Open the example catalog", "href": "https://github.com/dekopon-agents/dekopon/tree/main/examples/catalog" }
-    },
-    {
-      "tag": "Credentials",
-      "title": "chatgptSubscription is a broker credential kind.",
-      "body": "The broker refreshes it 60 seconds before expiry through the one implementation in dekopon-model, under an advisory lock, and never charges the renewal to the invocation. Give the broker its own auth file: sharing one with the gateway revokes the token family for both.",
-      "link": { "label": "See how credentials reach the broker", "href": "/deploy/kubernetes/#credentials" }
-    },
-    {
-      "tag": "Executables",
-      "title": "Two executables: dekopond and dekopon-brokerd.",
-      "body": "Retired: dekopon, dekopon-webui, dekopon-run, and dekopon-provider-host. dekopond auth chatgpt takes over the model-account login, and dekopon-brokerd probe is the readiness check. The console lives on in the dekopon-console repository.",
-      "link": { "label": "Open the GitHub release", "release": true }
-    },
-    {
-      "tag": "Toolchain",
-      "title": "Rust 1.98.1, Wasmtime 48, wit-bindgen 0.62, wasm-tools 1.259.",
-      "body": "Each pin lives in one place and every repository-owned fixture is rebuilt on the stack. The WIT didn’t change, so components built on the older toolchain keep loading.",
-      "link": { "label": "See the pinned SDK versions", "href": "/guides/provider-sdk/#version-scope" }
+      "tag": "Upgrade",
+      "title": "Check scratch mounts and remove compileCachePath.",
+      "body": "An old tmpfs mount still consumes RAM even when image bytes leave the heap. Use disk-backed gateway scratch with room for the retention budget and temporary IO. Remove the retired compileCachePath field, and allow the provider store to write compiled artifacts on a cache miss.",
+      "link": { "label": "Read the upgrade steps", "sourcePath": "docs/upgrading.md" }
     }
   ],
-  "detailsIntro": "A change is judged by which goal it serves. A subsystem that serves none is a deletion candidate, however well built.",
+  "detailsIntro": "The new traces help you compare startup and invocation costs. Check your deployment’s storage before expecting either disk-backed change to help.",
   "telemetry": {
     "value": "0",
-    "title": "authority moved to the gateway, console, or model",
-    "body": "Cedar, the credentials, and the audit record all stay inside the separate broker. What moved is where the record lives: on the trace, not in a file.",
-    "note": "A compromised gateway can vouch for any subject in its attestor lane. Dekopon remains pre-production."
+    "title": "authority moved to the gateway or model",
+    "body": "The model still asks and the separate broker still authorizes. Cache files and retained images grant no permission to call a provider.",
+    "note": "A compromised gateway can vouch for any subject in its attestor lane. This release does not harden that boundary."
   },
   "packages": [
     {
@@ -120,38 +84,37 @@
     {
       "name": "crates.io",
       "role": "Pinned Rust dependency",
-      "body": "The release workflow publishes the provider SDK, its testkit, and every other public crate at the application version. Pin the exact version."
+      "body": "Every public crate is published at the application version. Downstream builds do not inherit the workspace-only tracing-core patch used by the release archives and image."
     },
     {
       "name": "Container",
       "role": "Linux arm64 + amd64",
-      "body": "The Debian 13 distroless multi-architecture image carries both executables and the pinned provider components."
+      "body": "The Debian 13 distroless image carries both executables from the release archives and the pinned provider components."
     }
   ],
-  "installIntro": "Current install paths: Homebrew, crates.io, the attested archives, the multi-architecture image, and the Helm chart.",
+  "installIntro": "Install both daemons from the attested archives, or use one of the packages below. The Helm chart has its own publication schedule.",
   "scope": {
     "current": [
-      "Credentials are unleakable: secret bytes exist only inside the broker",
-      "One trace, complete: audit is a log record on the message’s W3C trace",
-      "Extensible through Wasm providers: provider-cli command words, a wall clock, and skills",
-      "Two executables, the public crates, and a multi-architecture image"
+      "Disk-backed retained images with a process-wide byte budget",
+      "Verified mmap loading for managed providers with a compile-on-load bypass",
+      "Bounded chat recovery and per-provider cost tracing"
     ],
     "next": [
-      "Public DRNs replace the credential and credentialByAgent bindings",
-      "Argument values on shell.command spans, not only their count",
-      "Delete the one-release compatibility shim for a manifest that still says idempotency"
+      "A measured RAM reduction for your workload",
+      "Persistent image storage across restarts",
+      "Automatic repair of corrupt compiled artifacts"
     ]
   },
-  "scopeIntro": "The whole local path works today, from transport receipt to an audited HTTP call, and the published chart runs the gateway and broker as separate UIDs.",
+  "scopeIntro": "Xavier runs Dekopon on a Raspberry Pi. That deployment is not a hardened multi-tenant service, and this release makes no measured production memory-saving claim.",
   "previous": {
-    "version": "v0.12.0",
-    "title": "Public secret DRNs, the OCI provider manager, and the console’s move",
-    "body": "Version 0.12 added inert secret DRNs with an owner-only private map, an offline exact-reference provider manager in dekopon-brokerd, and moved the interactive console to its own repository.",
-    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.12.0",
-    "label": "View 0.12"
+    "version": "v0.16.0",
+    "title": "WhatsApp images and native-first progress",
+    "body": "The previous release added scoped WhatsApp image editing and PNG replies. Enabled progress prefers native status or typing indicators, and the TLS dependency update fixes a handshake vulnerability.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.16.0",
+    "label": "View 0.16"
   },
   "closing": {
-    "title": "Pick a way to run it.",
-    "body": "Pick a deployment path, or take the guided tour from authenticated request to the trace that records it."
+    "title": "Two daemons on your hardware.",
+    "body": "Choose an install path, then check the upgrade notes before replacing a running deployment."
   }
 }
