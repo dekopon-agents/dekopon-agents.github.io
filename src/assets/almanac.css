@@ -96,7 +96,7 @@
 
 .almanac-chapter-nav-inner {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .almanac-chapter-link {
@@ -4176,7 +4176,7 @@
   .almanac-chapter-nav-inner {
     width: max-content;
     min-width: 100%;
-    grid-template-columns: repeat(5, minmax(112px, 1fr));
+    grid-template-columns: repeat(6, minmax(112px, 1fr));
   }
 
   .almanac-chapter-link {

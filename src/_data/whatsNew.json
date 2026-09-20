@@ -1,78 +1,78 @@
 {
   "hero": {
     "eyebrow": "What’s new",
-    "title": "Disk-backed images and compiled Wasm.",
-    "lede": "The gateway keeps retained images in temporary files instead of heap buffers. The broker maps verified compiled providers from disk, and chat connections recover within a finite retry budget."
+    "title": "Files cross as descriptors.",
+    "lede": "A chat image reaches a provider as a read-only file handle over the broker socket. The broker keeps no copy, the model never sees the bytes, and every ceiling counts decoded bytes."
   },
-  "summary": "Retain images without keeping their bulk bytes on the heap, and reuse compiled providers across compatible broker starts. Neither change moves permission out of the broker.",
+  "summary": "Move images through the capability boundary without copying them into JSON, and bound what a provider can upload or attach. Permission still lives in the broker.",
   "metrics": [
-    { "value": "256 MiB", "label": "default asset-retention budget" },
-    { "value": "1", "label": "compiled-hash check per artifact per startup" },
-    { "value": "3 s", "label": "default WhatsApp burst window" },
-    { "value": "0", "label": "automatic compiled-cache repairs" }
+    { "value": "5.7 MB", "label": "lasting RSS rise after five 4 MiB edits, was 41.1" },
+    { "value": "0", "label": "copies of an asset inside a broker frame" },
+    { "value": "40 MiB", "label": "decoded bytes per invocation, in and out" },
+    { "value": "4", "label": "new sends per turn" }
   ],
   "highlights": [
     {
       "number": "01",
-      "kicker": "Gateway · retained images",
-      "title": "Images live in a bounded disk cache.",
-      "body": "The gateway keeps one copy of retained image bytes in private temporary files. Generated PNGs receive scoped IDs you can reuse in later edits. When the cache reclaims an image, model history gets a release notice instead of stale bytes.",
-      "points": ["sessions.assetRetentionBytes sets the budget; zero disables assets", "Unavailable edit inputs fail without refetching or substituting an image", "Use disk-backed scratch; decode and upload buffers still use memory"]
+      "kicker": "Broker · asset handles",
+      "title": "The guest gets a handle, never a path.",
+      "body": "chat-asset:3 in a proposal becomes a read-only descriptor passed with the request. The Wasm guest reads it positionally in 64 KiB pieces and never holds the fd. Outputs come back the same way: attached, unlinked, and admitted by the gateway without a copy.",
+      "points": ["attach retains; asset send delivers, four per turn", "5 files and 40 MiB decoded per invocation", "A trap, denial, or timeout admits no asset effect"]
     },
     {
       "number": "02",
-      "kicker": "Broker · managed providers",
-      "title": "Compatible starts reuse compiled Wasm files.",
-      "body": "The first start compiles each managed provider and stores a hash-addressed artifact. Later starts verify the compiled bytes once and memory-map the file. Each invocation still gets a fresh Wasm sandbox with its existing limits.",
-      "points": ["compileOnLoad: true bypasses all compiled-cache reads and writes", "A missing index compiles once; corruption fails startup", "Stop every user of a mapped artifact before clearing the cache"]
+      "kicker": "HTTP host · streamed bodies",
+      "title": "Uploads are exact-length and hashed as they leave.",
+      "body": "A provider composes a body from literal parts and asset parts; the host re-encodes on the fly, declares Content-Length, and records the SHA-256 of what it sent. Every asset occurrence is charged before dispatch, repeats included.",
+      "points": ["maxHttpRequestBytes covers method, URL, headers, and literals", "Asset bytes count against the 40 MiB decoded ceiling", "A response with Content-Encoding is refused"]
     },
     {
       "number": "03",
-      "kicker": "Gateway · chat connections",
-      "title": "Connection recovery has a finite budget.",
-      "body": "Chat adapters start concurrently and share bounded backoff rules. Healthy connections keep serving while another reconnects. If one adapter exhausts its budget, the gateway drains and exits nonzero for its supervisor to restart.",
-      "points": ["Repeated flapping spends the same finite recovery budget", "Monitor recovery and exit events, not only gateway_started", "Connection recovery never replays outbound effects"]
+      "kicker": "Config · breaking",
+      "title": "Old attachment keys refuse to load.",
+      "body": "providerAttachments and chatAssetInputs no longer parse, even empty. References resolve automatically; delivery needs an asset.send grant. Asset-producing providers must be rebuilt on dekopon:asset; the old base64 result envelope is refused after the call.",
+      "points": ["Core, providers, and chart land in one order", "Grant asset.send to the asset command provider only", "References and queued sends don’t survive restart"]
     }
   ],
   "path": {
-    "kicker": "Warm managed-provider startup",
-    "title": "The broker verifies before it maps.",
-    "body": "A compatible cache avoids compilation, not verification. The provider store must stay trusted and immutable while its compiled files are mapped.",
-    "ariaLabel": "A compatible cached provider loading into the broker",
+    "kicker": "One 8 MiB edit",
+    "title": "Six hops, zero copies.",
+    "body": "The descriptor rides the sendmsg that carries the frame’s first byte, so file and request arrive together.",
+    "ariaLabel": "One 8 MiB chat image crossing to a provider and back",
     "steps": [
-      { "name": "Verify source", "detail": "check the locked Wasm bytes" },
-      { "name": "Select engine key", "detail": "match engine compatibility" },
-      { "name": "Read index", "detail": "find the compiled artifact" },
-      { "name": "Verify artifact", "detail": "stream its hash once" },
-      { "name": "Map file", "detail": "load the compiled component" },
-      { "name": "Reuse in registry", "detail": "no per-call reopen or rehash" }
+      { "name": "Spool upload", "detail": "gateway private disk" },
+      { "name": "Open read-only", "detail": "fresh, close-on-exec" },
+      { "name": "Pass with the frame", "detail": "SCM_RIGHTS" },
+      { "name": "Admit", "detail": "regular file, O_RDONLY, size matches" },
+      { "name": "Stream and hash", "detail": "exact-length body" },
+      { "name": "Attach and return", "detail": "reopen, unlink, pass back" }
     ]
   },
   "changes": [
     {
-      "tag": "Provider telemetry",
-      "title": "Traces report observed memory growth and fuel use.",
-      "body": "Provider calls report the largest observed individual linear memory alongside fuel consumed when a final reading exists. Startup spans separate compilation cost from cache verification and mapping. These values are not process RAM or a heap profile.",
+      "tag": "Telemetry",
+      "title": "The input attribute stops at 4096 bytes.",
+      "body": "input.bytes carries the uncut length; recording it whole cost 96.0 MiB of allocator peak for one 8 MiB image.",
       "link": { "label": "Read the measurement contract", "sourcePath": "docs/observability.md" }
     },
     {
-      "tag": "Incoming media",
-      "title": "Related media can enter one session.",
-      "body": "WhatsApp collects media-first bursts for three seconds by default; debounceMs: 0 keeps immediate admission. Telegram collects native media groups in a fixed three-second window. Each receipt keeps its trace, linked to the shared execution.",
-      "link": { "label": "Read the media handling contract", "sourcePath": "docs/dekopond.md" }
+      "tag": "Model requests",
+      "title": "Request bodies are built once, compact, with Content-Length.",
+      "body": "One 8 MiB image cost 33.8 MB per step before; frames are allocated at the size they carry.",
+      "link": { "label": "Read the request contract", "sourcePath": "docs/dekopond.md" }
     },
     {
-      "tag": "Upgrade",
-      "title": "Check scratch mounts and remove compileCachePath.",
-      "body": "An old tmpfs mount still consumes RAM even when image bytes leave the heap. Use disk-backed gateway scratch with room for the retention budget and temporary IO. Remove the retired compileCachePath field, and allow the provider store to write compiled artifacts on a cache miss.",
-      "link": { "label": "Read the upgrade steps", "sourcePath": "docs/upgrading.md" }
+      "tag": "Chart 0.10.0",
+      "title": "The broker gets a disk-backed asset volume.",
+      "body": "The volume is 320Mi and mounts in the broker container only, so the gateway can’t see it. Write the assets: block into the inline broker config yourself.",
+      "link": { "label": "Read the chart storage notes", "sourcePath": "charts/dekopon/README.md" }
     }
   ],
-  "detailsIntro": "The new traces help you compare startup and invocation costs. Check your deployment’s storage before expecting either disk-backed change to help.",
+  "detailsIntro": "The chart provisions the volume; your inline broker config names it. A broker without an assets section still reads handles but refuses allocate and stream.",
   "telemetry": {
     "value": "0",
     "title": "authority moved to the gateway or model",
-    "body": "The model still asks and the separate broker still authorizes. Cache files and retained images grant no permission to call a provider.",
+    "body": "The model still asks and the broker still authorizes. A passed descriptor grants nothing; attach, remove, and send are three separate grants.",
     "note": "A compromised gateway can vouch for any subject in its attestor lane. This release does not harden that boundary."
   },
   "packages": [
@@ -95,23 +95,23 @@
   "installIntro": "Install both daemons from the attested archives, or use one of the packages below. The Helm chart has its own publication schedule.",
   "scope": {
     "current": [
-      "Disk-backed retained images with a process-wide byte budget",
-      "Verified mmap loading for managed providers with a compile-on-load bypass",
-      "Bounded chat recovery and per-provider cost tracing"
+      "Read-only descriptor passing for chat assets and provider outputs",
+      "Exact-length streamed uploads with decoded-byte ceilings",
+      "Bounded proposal input in traces and compact model request bodies"
     ],
     "next": [
-      "A measured RAM reduction for your workload",
-      "Persistent image storage across restarts",
-      "Automatic repair of corrupt compiled artifacts"
+      "Streaming the model leg, which still costs 134.5 MB at four images",
+      "Persistent assets across restarts",
+      "gpt-image, heic and file until their dekopon:asset rebuilds ship"
     ]
   },
-  "scopeIntro": "Xavier runs Dekopon on a Raspberry Pi. That deployment is not a hardened multi-tenant service, and this release makes no measured production memory-saving claim.",
+  "scopeIntro": "Xavier runs Dekopon on a Raspberry Pi. The after-measurements use a measurement-only provider build, one run per full-size case, not the published gpt-image.",
   "previous": {
-    "version": "v0.16.0",
-    "title": "WhatsApp images and native-first progress",
-    "body": "The previous release added scoped WhatsApp image editing and PNG replies. Enabled progress prefers native status or typing indicators, and the TLS dependency update fixes a handshake vulnerability.",
-    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.16.0",
-    "label": "View 0.16"
+    "version": "v0.17.0",
+    "title": "Disk-backed images and compiled Wasm",
+    "body": "The previous release moved retained chat images into a bounded disk cache and let compatible broker starts memory-map verified compiled providers.",
+    "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.17.0",
+    "label": "View 0.17"
   },
   "closing": {
     "title": "Two daemons on your hardware.",

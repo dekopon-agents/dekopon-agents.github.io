@@ -33,6 +33,7 @@
         { "label": "Trusted identity", "href": "/almanac/identity/" },
         { "label": "Cedar permissions", "href": "/almanac/permissions/" },
         { "label": "One-tool runtime", "href": "/almanac/one-tool-runtime/" },
+        { "label": "Chat assets", "href": "/almanac/assets/" },
         { "label": "Model inference & memory", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/inference.md" },
         { "label": "Build a provider", "href": "/guides/provider-sdk/" },
         { "label": "OpenTelemetry", "href": "/almanac/observability/" }
