@@ -1,139 +1,34 @@
 {
   "hero": {
-    "eyebrow": "Sandboxed · Authorization · Introspection",
+    "eyebrow": "Self-hosted AI agents \u00b7 Rust + Wasm",
     "title": "Agents forced",
     "titleAccent": "to play nice",
-    "lede": "Dekopon is the pluggable, remixable, safe way to run your own AI agents. Models request actions and your dekopon gates everything. Agents can't even see credentials, everything is stored safely inside of dekopon.",
+    "lede": "Models already know shell workflows. Dekopon runs them in a controlled runtime on your hardware, with explicit access to services\u2014not a host shell.",
     "primaryCta": {
-      "label": "Dekopon's Guiding Principles",
-      "href": "#constitution"
+      "label": "Deploy on Kubernetes",
+      "href": "/deploy/kubernetes/"
     },
     "secondaryCta": {
       "label": "Explore tools and providers",
       "href": "#providers"
     },
     "visual": {
-      "caption": "The model requests an action. The broker grants permission and attaches the credential.",
+      "caption": "GitHub receives the broker-injected token; the script and Wasm guest do not. Trust the allowed endpoint: it can reflect what it receives.",
       "request": "Comment on PR #456"
     }
   },
-  "constitution": {
-    "kicker": "docs/design.md",
-    "title": "A change is judged by which goal it serves.",
-    "intro": "Three goals, in priority order; a subsystem that serves none of them is a deletion candidate, however well built.",
-    "goals": [
-      {
-        "title": "Credentials are unleakable.",
-        "body": "A model may reference a secret; it cannot read any: secret bytes exist only inside the broker, and the native HTTP engine injects them after the component has built its request."
-      },
-      {
-        "title": "One trace, complete.",
-        "body": "One W3C trace per message carries the whole run: every prompt, every command word with its arguments, every decision, every HTTP call."
-      },
-      {
-        "title": "Extensible through Wasm providers.",
-        "body": "New capability arrives as an out-of-tree component with a manifest and command words, executed under exact owner-authored constraints; nothing in this tree grows to add one."
-      }
-    ],
-    "nonGoals": {
-      "title": "Six non-goals",
-      "note": "An argument for keeping or adding code on any of these grounds is rejected on sight.",
-      "items": [
-        "Idempotency, exactly-once, duplicate-effect defense, automatic retries",
-        "Crash durability, reconcilable state, audit tamper-detection",
-        "Transformed reflection at the endpoint",
-        "End-user privacy from the operator",
-        "A compromised host, root, or a malicious process in the broker’s trust domain",
-        "Production-sandbox claims for Wasmtime"
-      ]
-    },
-    "link": {
-      "label": "Read the constitution in docs/design.md",
-      "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/design.md#constitution"
-    }
-  },
   "useCases": {
-    "kicker": "",
-    "title": "Familiar tools, bounded access.",
-    "intro": "Bash is built in; add Wasm providers for the jobs you want your agent to do. Start with the established tools, then explore the newer integrations.",
-    "items": [
-      {
-        "label": "bash",
-        "kind": "Built-in tool",
-        "title": "Bash-style workflows",
-        "body": "Chain tools with structured pipelines, loops, and text processing. No OS shell or host filesystem.",
-        "detail": "Built into the agent runtime",
-        "href": "/almanac/one-tool-runtime/",
-        "accent": "purple"
-      },
-      {
-        "label": "gh",
-        "kind": "Wasm provider",
-        "title": "GitHub reviews and triage",
-        "body": "Read pull requests and CI results; comment, review, or merge with separate grants.",
-        "detail": "Scoped GitHub commands",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-gh",
-        "accent": "purple"
-      },
-      {
-        "label": "ripgrep",
-        "kind": "Wasm provider",
-        "title": "Search supplied text",
-        "body": "Use real ripgrep matching with context and precise locations. Documents are inputs, not host files.",
-        "detail": "Regex + literal matching",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-ripgrep",
-        "accent": "mint"
-      },
-      {
-        "label": "python",
-        "kind": "Wasm provider",
-        "title": "Python for data work",
-        "body": "Calculate and transform JSON or YAML in a fresh RustPython sandbox. No pip or host files.",
-        "detail": "Selected imports · bounded execution",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-python",
-        "accent": "orange"
-      },
-      {
-        "label": "curl",
-        "kind": "Wasm provider",
-        "title": "Fetch approved URLs",
-        "body": "Read HTTPS pages and API responses through broker-controlled destinations and authentication.",
-        "detail": "GET only · bounded responses",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-curl",
-        "accent": "cyan"
-      },
-      {
-        "label": "gpt-image",
-        "kind": "Wasm provider",
-        "title": "Generate and remix images",
-        "body": "Create a PNG from a prompt or reference photos using your ChatGPT subscription.",
-        "detail": "Uses undocumented subscription endpoints",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-gpt-image",
-        "accent": "rose"
-      },
-      {
-        "label": "SQL · Turso",
-        "kind": "Wasm provider",
-        "title": "SQLite-compatible records",
-        "body": "Query and store structured data in broker-managed storage. Oversized writes can leave a database unreadable.",
-        "detail": "Early SQL support · not the SQLite engine",
-        "href": "https://github.com/dekopon-agents/dekopon-provider-turso-sql",
-        "accent": "cyan"
-      }
-    ],
-    "link": {
-      "label": "Build a provider with the Rust SDK",
-      "href": "/guides/provider-sdk/"
-    }
+    "title": "Shell workflows, without a host shell.",
+    "intro": "Compose structured data with builtins, then call installed providers for specific jobs. These command words are not the host\u2019s executables."
   },
   "closing": {
-    "kicker": "Open source · Self-hosted",
-    "title": "Start with one capability",
-    "titleAccent": "and one exact policy.",
-    "body": "One capability, one policy, one trace. Let the model explore the rest without handing it the host.",
+    "kicker": "Open source \u00b7 Self-hosted",
+    "title": "Run it on your hardware.",
+    "titleAccent": "",
+    "body": "Start with the broker probe, then connect a chat service and model. Dekopon is pre-production software.",
     "primaryCta": {
-      "label": "Get the latest release",
-      "href": "/whats-new/"
+      "label": "Choose an install path",
+      "href": "/deploy/"
     },
     "secondaryCta": {
       "label": "Build a provider",
@@ -167,7 +62,7 @@
         "conversation": "Individual chats",
         "inputs": "Images",
         "outputs": "Text + generated PNGs",
-        "feedback": "Typing · no streaming"
+        "feedback": "Typing \u00b7 no streaming"
       },
       {
         "name": "Telegram",

@@ -1,0 +1,79 @@
+/* Task pages share the brand, not the landing page's hero scale. */
+.field-guide { max-width: 1120px; padding-top: 124px; padding-bottom: 64px; color: #26314a; font-size: 16px; line-height: 1.65; }
+.guide-intro { max-width: 850px; margin-bottom: 24px; }
+.guide-baseline { font-size: 13px; color: #59647b; }
+.field-guide h1 { font-size: clamp(32px, 4.2vw, 54px); line-height: 1.12; letter-spacing: -.035em; color: #202640; margin: 12px 0 18px; }
+.field-guide h2, .home-workbench h2, .home-transports h2 { font-size: clamp(24px, 2.5vw, 34px); line-height: 1.2; letter-spacing: -.025em; margin: 0 0 16px; }
+.field-guide h3 { font-size: 20px; line-height: 1.35; margin: 18px 0 10px; }
+.field-guide h4 { font-size: 18px; margin: 0 0 10px; }
+.field-guide p, .home-workbench p, .home-transports p { margin: 12px 0; }
+.field-guide section { border-top: 1px solid #dce1ef; padding-top: 28px; margin-top: 32px; scroll-margin-top: 100px; }
+.field-guide a:not(.button), .home-workbench a:not(.button), .home-transports a { color: #5145ca; text-decoration: underline; text-underline-offset: 3px; }
+.guide-jumps { display: flex; gap: 12px 24px; flex-wrap: wrap; padding: 8px 0; font-weight: 650; }
+.field-guide code, .home-workbench code, .home-transports code { font-size: .88em; overflow-wrap: anywhere; }
+.field-guide pre, .home-workbench pre { padding: 20px; background: #172338; color: #eaf1ff; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: 14px; margin: 18px 0; }
+.field-guide pre code, .home-workbench pre code { font-size: inherit; }
+.guide-table { margin: 20px 0; }
+.guide-table table { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 15px; line-height: 1.55; }
+.guide-table th, .guide-table td { text-align: left; vertical-align: top; padding: 13px 15px; border-bottom: 1px solid #dce1ef; overflow-wrap: anywhere; }
+.guide-table thead th { background: #edf0fa; color: #344067; font-size: 13px; }
+.guide-table th:first-child { width: 25%; }
+.guide-table tbody th { font-weight: 650; }
+.field-guide ul, .field-guide ol { padding-left: 24px; }
+.field-guide li { padding: 4px 0; }
+.ownership-map, .trace-map, .pod-map { margin: 22px 0; border: 1px solid #cfd7ec; border-radius: 14px; padding: 20px; background: #f5f7fd; }
+.map-input, .pod-inputs { padding: 4px 12px 12px; }
+.map-zone { background: white; border: 1px solid #b6c9de; border-left: 4px solid #258c93; border-radius: 9px; padding: 16px 20px; }
+.map-zone h3, .map-zone h4 { margin-top: 0; }
+.broker-zone { border-color: #c6baf6; border-left-color: #7560d6; background: #f3f0ff; }
+.flow-label { text-align: center; font-size: 14px; font-weight: 650; color: #4b5977; padding: 6px; }
+.ownership-map figcaption, .trace-map figcaption, .pod-map figcaption { font-size: 14px; line-height: 1.55; color: #46536d; margin-top: 16px; }
+.trace-map { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.trace-map > div { border-left: 3px solid #7761d8; padding-left: 16px; }
+.trace-map figcaption { grid-column: 1 / -1; }
+.pod-boundary { border: 2px solid #7761d8; border-radius: 12px; padding: 18px; }
+.pod-boundary > h3 { margin-top: 0; }
+.pod-processes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pod-socket { text-align: center; background: #e4e4fc; padding: 14px; border-radius: 8px; }
+.pod-persistence { border-top: 1px dashed #9a9aba; padding-top: 12px; }
+.home-workbench { padding: 54px 0; background: #f7f8ff; color: #26314a; font-size: 16px; line-height: 1.65; }
+.home-transports { padding: 44px 0 56px; color: #26314a; font-size: 16px; line-height: 1.65; }
+.workbench-flow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; margin: 24px 0; }
+.workbench-flow > div { border: 1px solid #c4cbe7; border-radius: 10px; padding: 18px; background: white; }
+.workbench-example { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+.workbench-example h3 { font-size: 22px; }
+.compat-anchor { display: block; scroll-margin-top: 110px; }
+.home-page .closing-section { min-height: 0; padding: 0; }
+.home-page .closing-content { padding-top: 48px; padding-bottom: 48px; }
+.home-page .closing-content h2 { font-size: clamp(30px, 4vw, 48px); }
+.moved-links { display: grid; gap: 12px; }
+@media (max-width: 768px) {
+  .field-guide { padding-top: 100px; }
+  .guide-table th, .guide-table td { padding: 10px 8px; font-size: 14px; }
+  .guide-table th:first-child { width: 29%; }
+  .workbench-flow, .workbench-example, .pod-processes, .trace-map { grid-template-columns: 1fr; }
+  .ownership-map, .trace-map, .pod-map { padding: 14px; }
+  .pod-boundary { padding: 12px; }
+  .map-zone { padding: 14px; }
+  .workbench-flow .flow-label { margin: 0; }
+}
+@media (max-width: 420px) {
+  .field-guide { font-size: 16px; }
+  .guide-table { overflow-x: auto; }
+  .guide-table table { table-layout: auto; }
+  .guide-table th:first-child { width: auto; }
+  .guide-table th, .guide-table td { padding: 10px 6px; }
+  .field-guide pre, .home-workbench pre { padding: 14px; font-size: 13px; }
+}
+/* On narrow screens, compare complete rows rather than splitting words into slivers. */
+@media (max-width: 600px) {
+  .guide-table table, .sdk-table { width: 100%; }
+  .guide-table thead, .sdk-table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+  .guide-table tbody, .sdk-table tbody { display: block; }
+  .guide-table tr, .sdk-table tr { display: block; padding: 14px 0; border-bottom: 1px solid #cfd7e7; }
+  .guide-table th, .guide-table td, .sdk-table th, .sdk-table td { display: block; width: auto !important; border: 0; padding: 4px 8px; font-size: 15px; }
+  .guide-table tbody th, .sdk-table tbody th { color: #202e4e; font-size: 17px; }
+  .guide-table td::before, .sdk-table td::before { content: attr(data-label); display: block; color: #59647b; font-size: 12px; font-weight: 650; margin-top: 4px; }
+}
+.site-footer .footer-links a { font-size: 13px; }
+.site-footer .footer-links h2 { font-size: 14px; }

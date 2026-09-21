@@ -1,26 +1,73 @@
-<section class="home-providers section" id="providers" aria-labelledby="home-providers-title">
-  <div class="provider-ecosystem-glow" aria-hidden="true"></div>
-  <div class="shell">
-    <div class="section-heading split-heading home-providers-heading">
-      <div>
-        {% if home.useCases.kicker %}<span class="section-kicker cyan">{{ home.useCases.kicker }}</span>{% endif %}
-        <h2 id="home-providers-title">{{ home.useCases.title }}</h2>
-      </div>
-      <p>{{ home.useCases.intro }}</p>
-    </div>
-
-    <div class="provider-ecosystem-grid">
-      {% for item in home.useCases.items %}
-        <a class="provider-ecosystem-card provider-ecosystem-{{ item.accent }} reveal{% if loop.index % 2 == 0 %} reveal-delay-1{% endif %}" href="{{ item.href }}">
-          <div><span>{{ item.label }}</span><i aria-hidden="true">↗</i></div>
-          <span class="provider-kind">{{ item.kind }}</span>
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.body }}</p>
-          <small>{{ item.detail }}</small>
-        </a>
-      {% endfor %}
-    </div>
-
-    <a class="button button-primary provider-ecosystem-cta" href="{{ home.useCases.link.href }}">{{ home.useCases.link.label }} <span aria-hidden="true">→</span></a>
-  </div>
+<section class="home-workbench" id="providers" aria-labelledby="workbench-heading">
+<div class="shell">
+<span id="constitution" class="compat-anchor" aria-hidden="true"></span>
+<h2 id="workbench-heading">{{ home.useCases.title }}</h2>
+<p>{{ home.useCases.intro }}</p>
+<div class="workbench-flow">
+<div><strong>Controlled interpreter</strong>
+<p>Variables, loops and structured pipes<br><code>jq</code> · <code>grep</code> · <code>cat</code>
+</p>
+</div>
+<p class="flow-label">Provider command →<br>← structured result</p>
+<div><strong>Broker / fresh Wasm instance</strong>
+<p>Static access rules + bounded host services<br>No ambient filesystem or raw sockets</p>
+</div>
+</div>
+<div class="guide-table" tabindex="0" role="region" aria-label="Provider comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Provider</th>
+<th scope="col">Compose with the shell</th>
+<th scope="col">What differs from a host tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row"><a href="https://github.com/dekopon-agents/dekopon-provider-gh">gh</a>
+</th>
+<td data-label="Compose with the shell">Read PR metadata → filter with <code>jq</code> → comment with a separate grant.</td>
+<td data-label="What differs from a host tool">GitHub-shaped commands, not the GitHub CLI; no arbitrary API passthrough.</td>
+</tr>
+<tr>
+<th scope="row"><a href="https://github.com/dekopon-agents/dekopon-provider-ripgrep">ripgrep</a> / <a href="https://github.com/dekopon-agents/dekopon-provider-python">python</a>
+</th>
+<td data-label="Compose with the shell">Search supplied documents or transform structured data in RustPython.</td>
+<td data-label="What differs from a host tool">Document paths are labels, not host files. Python has selected imports, not pip.</td>
+</tr>
+<tr>
+<th scope="row"><a href="https://github.com/dekopon-agents/dekopon-provider-curl">curl</a>
+</th>
+<td data-label="Compose with the shell">Fetch an allowed HTTPS URL into a structured pipeline.</td>
+<td data-label="What differs from a host tool">GET only; destination and byte limits still apply to model-chosen URLs.</td>
+</tr>
+<tr>
+<th scope="row"><a href="https://github.com/dekopon-agents/dekopon-provider-turso-sql">turso</a>
+</th>
+<td data-label="Compose with the shell">Store and query records with the Rust Turso SQL engine.</td>
+<td data-label="What differs from a host tool">Broker-owned durable files; exceeding write budgets can leave a database unreadable.</td>
+</tr>
+<tr>
+<th scope="row"><a href="https://github.com/dekopon-agents/dekopon-provider-gpt-image">gpt-image</a>
+</th>
+<td data-label="Compose with the shell">Generate or edit PNGs using a ChatGPT subscription.</td>
+<td data-label="What differs from a host tool">Undocumented upstream endpoints; asset integration requires a compatible provider rebuild.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="workbench-example">
+<div>
+<h3>Read a PR, keep two fields</h3>
+<p>Illustrative script for Dekopon’s <code>bash</code> tool, not your terminal. Replace the repository and PR number; install a compatible <code>gh</code> component and grant <code>gh.pull-request.read</code> first.</p>
+</div>
+<pre tabindex="0" aria-label="Illustrative read-only GitHub workflow"><code>set -e
+set -o pipefail
+gh pr view 7 -R owner/repo | jq '{title, state}'</code>
+</pre>
+</div>
+<p>The result is an object with <code>title</code> and <code>state</code>, not a file checkout. A missing session grant exits 127; a broker denial exits 126. <a href="/guides/runtime/#workflow">Prerequisites and failure behavior</a>.</p>
+<p>Providers ship independently: check their SDK compatibility before loading them. <a href="/guides/provider-sdk/">Build and test a provider</a> · <a href="/guides/access/">Configure access</a>
+</p>
+</div>
 </section>

@@ -2,53 +2,100 @@
   "name": "Dekopon",
   "wordmark": "dekopon",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon — Agents forced to play nice",
-  "description": "A pluggable, remixable runtime for your own AI agents. Models request actions; Dekopon gates execution and keeps provider credentials inside the broker.",
+  "title": "Dekopon \u2014 Agents forced to play nice",
+  "description": "Self-hosted AI agents with familiar shell workflows in a controlled runtime, Wasm providers and explicit service access.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
   "releases": "https://github.com/dekopon-agents/dekopon/releases",
   "releaseNotes": "/whats-new/",
   "docs": "https://github.com/dekopon-agents/dekopon/tree/main/docs",
   "nav": [
-    { "label": "How it works", "href": "/almanac/identity/" },
-    { "label": "Providers", "href": "/#providers" },
-    { "label": "Deploy", "href": "/deploy/" },
-    { "label": "What’s new", "href": "/whats-new/" }
+    {
+      "label": "How it works",
+      "href": "/how-it-works/"
+    },
+    {
+      "label": "Providers",
+      "href": "/#providers"
+    },
+    {
+      "label": "Deploy",
+      "href": "/deploy/"
+    },
+    {
+      "label": "What\u2019s new",
+      "href": "/whats-new/"
+    }
   ],
   "footer": [
     {
       "heading": "Project",
       "links": [
-        { "label": "Repository", "href": "https://github.com/dekopon-agents/dekopon" },
-        { "label": "Latest release", "href": "https://github.com/dekopon-agents/dekopon/releases/latest" },
-        { "label": "What’s new", "href": "/whats-new/" },
-        { "label": "How Dekopon works", "href": "/almanac/identity/" },
-        { "label": "Deployment guides", "href": "/deploy/" }
+        {
+          "label": "Repository",
+          "href": "https://github.com/dekopon-agents/dekopon"
+        },
+        {
+          "label": "What\u2019s new",
+          "href": "/whats-new/"
+        },
+        {
+          "label": "Install options",
+          "href": "/deploy/"
+        },
+        {
+          "label": "Kubernetes",
+          "href": "/deploy/kubernetes/"
+        }
       ]
     },
     {
       "heading": "Learn",
       "links": [
-        { "label": "The constitution", "href": "/#constitution" },
-        { "label": "Trusted identity", "href": "/almanac/identity/" },
-        { "label": "Cedar permissions", "href": "/almanac/permissions/" },
-        { "label": "One-tool runtime", "href": "/almanac/one-tool-runtime/" },
-        { "label": "Chat assets", "href": "/almanac/assets/" },
-        { "label": "Model inference & memory", "href": "https://github.com/dekopon-agents/dekopon/blob/main/docs/inference.md" },
-        { "label": "Build a provider", "href": "/guides/provider-sdk/" },
-        { "label": "OpenTelemetry", "href": "/almanac/observability/" }
+        {
+          "label": "How it works",
+          "href": "/how-it-works/"
+        },
+        {
+          "label": "Identity and access",
+          "href": "/guides/access/"
+        },
+        {
+          "label": "Shell and files",
+          "href": "/guides/runtime/"
+        },
+        {
+          "label": "Build a provider",
+          "href": "/guides/provider-sdk/"
+        },
+        {
+          "label": "Trace a request",
+          "href": "/guides/traces/"
+        }
       ]
     },
     {
       "heading": "Community",
       "links": [
-        { "label": "Latest technical docs", "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs" },
-        { "label": "Contributing", "href": "https://github.com/dekopon-agents/dekopon/blob/main/CONTRIBUTING.md" },
-        { "label": "Issues", "href": "https://github.com/dekopon-agents/dekopon/issues" },
-        { "label": "Report a vulnerability", "href": "https://github.com/dekopon-agents/dekopon/blob/main/SECURITY.md" }
+        {
+          "label": "Latest technical docs",
+          "href": "https://github.com/dekopon-agents/dekopon/tree/main/docs"
+        },
+        {
+          "label": "Contributing",
+          "href": "https://github.com/dekopon-agents/dekopon/blob/main/CONTRIBUTING.md"
+        },
+        {
+          "label": "Issues",
+          "href": "https://github.com/dekopon-agents/dekopon/issues"
+        },
+        {
+          "label": "Report a vulnerability",
+          "href": "https://github.com/dekopon-agents/dekopon/blob/main/SECURITY.md"
+        }
       ]
     }
   ],
-  "copyright": "© 2026 Dekopon contributors.",
-  "footerNote": "Your agent can ask. It can’t approve itself."
+  "copyright": "\u00a9 2026 Dekopon contributors.",
+  "footerNote": "Rust + Wasm \u00b7 Apache-2.0 / MIT"
 }

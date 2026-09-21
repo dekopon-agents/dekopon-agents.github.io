@@ -14,6 +14,16 @@ const PAIR_BUDGET = 3;
 const PERSUASIVE = new Set(["index.html", "whats-new/index.html", "404.html"]);
 
 const BANNED = [
+    "constitution",
+    "Guiding Principles",
+    "non-goals",
+    "Credentials are unleakable",
+    "everything is stored safely",
+    "One trace, complete",
+    "nothing withheld",
+    "Six hops, zero copies",
+    "The model sees exactly one tool",
+    "Your agent can ask. It can’t approve itself.",
     "It is important to note",
     "It should be noted",
     "In order to",
@@ -91,7 +101,7 @@ for (const file of (await walk(outputDirectory)).filter((f) => f.endsWith(".html
     }
 
     for (const phrase of BANNED) {
-        if (strip(html).includes(phrase)) {
+        if (strip(html).toLowerCase().includes(phrase.toLowerCase())) {
             failures.push(`${page}: banned construction "${phrase}"`);
         }
     }

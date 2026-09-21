@@ -1,0 +1,91 @@
+---
+layout: layouts/base.njk
+pageTitle: How Dekopon works — Dekopon
+pageDescription: Two local processes connect chat and models to a controlled shell runtime and permissioned services.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>How Dekopon works</h1>
+<p>Two local processes connect chat and models to a controlled shell runtime and permissioned services.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#processes">What runs where</a><a href="#configure">What you configure</a><a href="#follow">Follow a request</a>
+</nav>
+<section id="processes">
+<h2>The gateway owns the conversation; the broker runs providers.</h2>
+<figure class="ownership-map">
+<div class="map-input"><strong>Chat service ↔ gateway ↔ model endpoint</strong>
+<p>Messages and replies · prompts and tool results</p>
+</div>
+<div class="map-zone">
+<h3>Gateway · dekopond</h3>
+<p>Conversation history, attachment spool and controlled shell interpreter</p>
+<p><code>bash({ script })</code> dispatches builtins locally and provider commands over the socket.</p>
+</div>
+<p class="flow-label">Unix socket: authenticated peer + subject attestation ↓ requests / results ↑</p>
+<div class="map-zone broker-zone">
+<h3>Broker · dekopon-brokerd</h3>
+<p>Peer/subject mapping → Cedar decision → fresh Wasm invocation</p>
+<p>Native HTTP, storage and asset services enforce separate execution constraints.</p>
+<p>Provider credential → native HTTP → allowed remote endpoint</p>
+</div>
+<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway. Both processes send telemetry to your collection backend.</figcaption>
+</figure>
+<p>These are local processes joined by a protected Unix socket, not a multi-tenant network service. Wasmtime runs inside the broker process; a runtime vulnerability or compromised broker host defeats that boundary.</p>
+</section>
+<section id="configure">
+<h2>Four inputs turn the runtime into your agent.</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Input comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Input</th>
+<th scope="col">Controls</th>
+<th scope="col">Next task</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Gateway config + catalog</th>
+<td data-label="Controls">Transport, model endpoint and agent behavior; catalog entries do not grant effects.</td>
+<td data-label="Next task"><a href="/deploy/kubernetes/#gateway">Connect chat and a model</a>
+</td>
+</tr>
+<tr>
+<th scope="row">Identity + Cedar policy</th>
+<td data-label="Controls">Which authenticated subject may use an agent and its capabilities.</td>
+<td data-label="Next task"><a href="/guides/access/">Map users and grant actions</a>
+</td>
+</tr>
+<tr>
+<th scope="row">Provider components + constraints</th>
+<td data-label="Controls">Command implementations and their permitted I/O.</td>
+<td data-label="Next task"><a href="/guides/provider-sdk/">Build a component</a>
+</td>
+</tr>
+<tr>
+<th scope="row">Telemetry collection</th>
+<td data-label="Controls">Where prompts, decisions and results are retained.</td>
+<td data-label="Next task"><a href="/guides/traces/">Trace a request</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="follow">
+<h2>One PR read crosses both processes.</h2>
+<ol>
+<li>The gateway receives a chat sender identifier and builds a canonical subject. It asks the model for a response using that agent’s configured tools.</li>
+<li>The model can use a script to read a PR and filter its structured result. The interpreter is not Bash and cannot spawn the host’s <code>gh</code> executable.</li>
+<li>The broker checks the peer and subject mapping, evaluates static rules, then invokes the provider inside its configured HTTP limits. The result returns to the script and model.</li>
+</ol>
+<p>Rules do not judge intent: an allowed action can still be harmful. <a href="/guides/access/#policy">The PR-commenter decision</a> shows how separate grants and constraints fit together; <a href="/guides/runtime/#workflow">the shell example</a> shows what the model can compose.</p>
+<p><a href="/deploy/kubernetes/">Install on Kubernetes</a> · <a href="{{ source }}/docs/security-model.md">Read the pinned security model ↗</a>
+</p>
+</section>
+</article>

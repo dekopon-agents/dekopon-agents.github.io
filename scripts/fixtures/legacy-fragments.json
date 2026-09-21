@@ -1,0 +1,58 @@
+{
+  "/almanac/observability/": [
+    "waterfall",
+    "correlation",
+    "signals",
+    "logs",
+    "privacy",
+    "openobserve"
+  ],
+  "/almanac/permissions/": [
+    "model",
+    "catalog",
+    "broker",
+    "policy",
+    "decision",
+    "limits"
+  ],
+  "/almanac/": [],
+  "/almanac/providers/": [
+    "contract",
+    "hosts",
+    "fresh",
+    "http",
+    "storage",
+    "credential",
+    "scope"
+  ],
+  "/almanac/one-tool-runtime/": [
+    "one-tool",
+    "explore",
+    "commenter",
+    "not-bash",
+    "data",
+    "bounds"
+  ],
+  "/almanac/assets/": [
+    "handle",
+    "hops",
+    "invariants",
+    "ceilings",
+    "one-kernel",
+    "receipts"
+  ],
+  "/almanac/run-lifecycle/": [],
+  "/almanac/scheduling/": [],
+  "/almanac/components/": [],
+  "/almanac/identity/": [
+    "origin",
+    "chain",
+    "configuration",
+    "cedar",
+    "audit",
+    "limit"
+  ],
+  "/almanac/boundaries/": [],
+  "/architecture/": [],
+  "/deploy/credentials/": []
+}

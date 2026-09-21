@@ -1,0 +1,177 @@
+---
+layout: layouts/base.njk
+pageTitle: Shell workflows and files — Dekopon
+pageDescription: Reuse familiar shell patterns inside Dekopon’s interpreter; pass structured values and file references rather than host paths.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Shell workflows and files</h1>
+<p>Reuse familiar shell patterns inside Dekopon’s interpreter; pass structured values and file references rather than host paths.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#shell">Shell differences</a><a href="#workflow">PR read example</a><a href="#limits">Runtime limits</a><a href="#assets">Files and delivery</a>
+</nav>
+<section id="shell">
+<h2>Provider commands share a scripting tool.</h2>
+<p>The model submits <code>bash({ script })</code>. Builtins run in the gateway; installed provider command words dispatch to broker-hosted Wasm. Other model tools may also be configured—the whole interface is not limited to one tool.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Shell habit comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Shell habit</th>
+<th scope="col">Dekopon behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Variables and pipes</th>
+<td data-label="Dekopon behavior">Values are JSON: arrays and objects survive assignment and pipelines. Provider stdin renders strings verbatim and other values as compact JSON.</td>
+</tr>
+<tr>
+<th scope="row">Loops, functions and conditionals</th>
+<td data-label="Dekopon behavior">Supported, along with command substitution and set -e / -u / -o pipefail. Pipeline stages share scope; this is not complete Bash/POSIX compatibility.</td>
+</tr>
+<tr>
+<th scope="row">Redirection</th>
+<td data-label="Dekopon behavior">Named in-memory buffers, not host files. cat reads those buffers. No inherited process environment or arbitrary executables.</td>
+</tr>
+<tr>
+<th scope="row">Expansion</th>
+<td data-label="Dekopon behavior">Globbing, brace/tilde expansion and POSIX IFS splitting are inert literal text.</td>
+</tr>
+<tr>
+<th scope="row">Rejected operations</th>
+<td data-label="Dekopon behavior">Process substitution, subshells and job control are rejected, as are eval, exec, source and export.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Start with <code>cap --list</code> to see session grants, <code>cap --describe &lt;id&gt;</code> for a capability, and an installed word’s <code>--help</code> for syntax. Provider <code>gh</code> is not the installed GitHub CLI.</p>
+</section>
+<section id="workflow">
+<h2>Read a PR and filter its structured result.</h2>
+<p><strong>Illustrative, read-only workflow.</strong> In an agent session, ask the model to submit this script through the <code>bash</code> tool. Replace <code>owner/repo</code> and <code>7</code>. It needs a compatible GitHub component, the <code>gh.pull-request.read</code> session/Cedar grant, and broker-bound GET access to <code>api.github.com</code> with a credential allowed to read the repository.</p>
+<pre tabindex="0" aria-label="Illustrative PR read script"><code>set -e
+set -o pipefail
+gh pr view 7 -R owner/repo | jq '{title, state}'</code>
+</pre>
+<p>Expected shape: <code>{"title":"Fix the build","state":"open"}</code>, with values from your PR. The pipe passes the PR object directly to <code>jq</code>, without converting it to text. This performs one remote read and no write; the example was source-checked, not run against GitHub.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Failure comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Failure</th>
+<th scope="col">Shell status</th>
+<th scope="col">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Unknown word or capability absent from the session</th>
+<td data-label="Shell status">127</td>
+<td data-label="Meaning">Nothing invokes that capability.</td>
+</tr>
+<tr>
+<th scope="row">Broker refusal</th>
+<td data-label="Shell status">126</td>
+<td data-label="Meaning">Access was denied; do not treat it as an empty successful result.</td>
+</tr>
+<tr>
+<th scope="row">Provider / host execution error</th>
+<td data-label="Shell status">1</td>
+<td data-label="Meaning">Execution failed; an earlier external effect may already have happened.</td>
+</tr>
+<tr>
+<th scope="row">Invalid provider arguments</th>
+<td data-label="Shell status">2</td>
+<td data-label="Meaning">Read the installed command’s help.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code>pipefail</code> keeps a failed read from becoming a successful empty filter. Re-running a write is not deduplication or rollback. <a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/5916c6d/src/commands.rs">Verified command parser ↗</a> · <a href="/guides/access/#policy">Separate write grants</a>
+</p>
+</section>
+<section id="limits">
+<h2>Limits apply at different layers.</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Layer comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Layer</th>
+<th scope="col">What stops work</th>
+<th scope="col">What remains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Interpreter</th>
+<td data-label="What stops work">Step, recursion, value/output and capability-call budgets; script deadline.</td>
+<td data-label="What remains">A non-yielding jq filter can outlive the deadline on a worker thread until process exit. Abandoned-worker limits cap further workers, not that CPU use.</td>
+</tr>
+<tr>
+<th scope="row">Wasm invocation</th>
+<td data-label="What stops work">Fresh store and instance with fuel, memory and deadline bounds.</td>
+<td data-label="What remains">Compiled code may be reused. Wasmtime is in-process, not an OS isolation boundary.</td>
+</tr>
+<tr>
+<th scope="row">Host effects</th>
+<td data-label="What stops work">HTTP and storage constraints are checked by native services.</td>
+<td data-label="What remains">Completed external writes and direct storage writes are not rolled back by a later trap or timeout.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Command arguments, stdin and output enter size-bounded telemetry. Do not type secret values into scripts expecting redaction. <a href="/guides/traces/#privacy">What operators can see</a>.</p>
+</section>
+<section id="assets">
+<h2>References select files; handles bound access.</h2>
+<figure class="ownership-map">
+<div class="map-zone">
+<h3>Gateway owns the conversation</h3>
+<p><code>chat-asset:3</code> → conversation metadata + private upload spool</p>
+<p>Optional model fetch sends image content to the model endpoint.</p>
+</div>
+<p class="flow-label">Unix socket / SCM_RIGHTS ↓ JSON metadata + read-only descriptors</p>
+<div class="map-zone broker-zone">
+<h3>Broker owns the host descriptors</h3>
+<p>Wasm receives an opaque invocation-scoped handle, not a host path or OS descriptor.</p>
+<p>Handle → bounded guest reads OR native streamed HTTP upload</p>
+<p>Output writer → attach → read-only unlinked descriptor ↑ gateway</p>
+</div>
+<figcaption>Asset payloads stay out of broker JSON frames. Guest reads still copy bytes; model image requests still carry image data. This is not end-to-end zero-copy transport.</figcaption>
+</figure>
+<p><strong>Attach is not send.</strong> Attach retains an output for the conversation; a separately granted <code>asset.send</code> operation delivers it. Failed invocations admit no asset effects. References and queued deliveries do not survive restart, and closing the last descriptor releases an unlinked file.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Asset budget comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Asset budget</th>
+<th scope="col">Limit / accounting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">One asset / one invocation</th>
+<td data-label="Limit / accounting">8 MiB decoded per asset; 40 MiB cumulative decoded input or output. Repeated upload occurrences count again.</td>
+</tr>
+<tr>
+<th scope="row">Host copy / descriptor count</th>
+<td data-label="Limit / accounting">64 KiB per host call; at most five input descriptors per invocation.</td>
+</tr>
+<tr>
+<th scope="row">Conversation / delivery</th>
+<td data-label="Limit / accounting">32 rows in the conversation table; at most four new sends per turn. Retention and spool budgets count stored bytes, separately from decoded-content ceilings.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Asset-producing providers must implement the current asset interfaces; old base64 result envelopes are refused. Do not treat the published image provider’s older data-URL examples as a working descriptor recipe. <a href="/whats-new/#migration">Release migration</a>.</p>
+<p><a href="/guides/provider-sdk/#interfaces">Implement asset I/O</a> · <a href="/deploy/kubernetes/#state">Size temporary volumes</a> · <a href="{{ source }}/crates/dekopon-shell/README.md">Read the shell contract ↗</a> · <a href="{{ source }}/crates/dekopon-provider-sdk/src/asset.rs">Asset API ↗</a>
+</p>
+</section>
+</article>

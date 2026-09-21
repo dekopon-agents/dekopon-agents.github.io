@@ -16,7 +16,7 @@ eleventyExcludeFromCollections: true
     <loc>{{ site.url }}/guides/provider-sdk/</loc>
     <changefreq>monthly</changefreq>
   </url>
-  {% for chapter in almanac.chapters %}
+  {% for chapter in almanac.pages %}
   <url>
     <loc>{{ site.url }}{{ chapter.href }}</loc>
     <changefreq>monthly</changefreq>
