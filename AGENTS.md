@@ -17,6 +17,25 @@ storytelling. Blunt is welcome; theatrical is not. When a tighter version of
 an existing sentence competes with a more dramatic rewrite, the tighter one
 wins.
 
+## Technical guides: understanding per screen
+
+Write for a senior engineer choosing what to build, not someone following a Rust lesson.
+
+| This | Not that |
+|---|---|
+| One mental model, capability chooser, working example | Architecture essay + tutorial + API reference + deployment manual on one page |
+| A relationship map: ownership, labeled calls, credential boundary | Equal boxes that merely repeat a numbered list |
+| A tested, release-pinned example with commands and expected results | Screens of copied source or fragments the reader must assemble |
+| Compact headings and task links in the first viewport | Giant chapter numbers, heroes, repeated release cards and 13-item rails |
+| Tables for comparisons; code for executable instructions | A diagram for every paragraph |
+| Security limits beside the claim they qualify | Absolute promises with distant fine print |
+| Separate recipes/reference reached by specific links | The same long page hidden in accordions; duplicated coding-agent prompts |
+| Less padding and repetition, readable type | Smaller fonts to cram more in |
+
+Verify the pinned code, not historical prose. Review desktop and narrow viewport screenshots;
+use full-page captures for rhythm, readable crops for content. Ask: who owns this, what can I
+build, what must I change, and what proves it works? Don't retain a section just because it exists.
+
 ## Voice
 
 ### 1. At most three two-beat fragment pairs exist on the entire site

@@ -163,6 +163,41 @@ for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides
     }
 }
 
+// The provider guide is an orientation page, not an inline SDK or deployment manual.
+const providerGuide = await readFile(path.join(outputDirectory, "guides/provider-sdk/index.html"), "utf8");
+const guideMain = providerGuide.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
+for (const id of ["provider-map", "interfaces", "start"]) {
+    if (!guideMain.includes(`id="${id}"`)) failures.push(`provider guide: missing #${id}`);
+}
+for (const retired of ["article-rail", "almanac-article-number", 'id="coding-agent-prompt"', "export_provider!", "export_provider_with_bindings!", "resolve-command", "<details"]) {
+    if (guideMain.includes(retired)) failures.push(`provider guide: retired tutorial structure/API ${retired}`);
+}
+for (const required of ["run_command()", "invoke()", "export_provider_with_cli!", "stream", "attaching does not send", "Not a policy test", "transformed reflection", "a_command_word_renders_its_help_page_and_proposes"]) {
+    if (!guideMain.includes(required)) failures.push(`provider guide: missing contract/check ${required}`);
+}
+if (!guideMain.includes(`--branch ${release.tag}`) || !guideMain.includes(`${release.sourceUrl}/examples/providers/cli-probe`)) {
+    failures.push("provider guide: example must use the current release and pinned source");
+}
+if ([...guideMain.matchAll(/<pre\b/g)].length !== 2) failures.push("provider guide: keep two command panels, not full source listings");
+const guideWords = guideMain.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length;
+if (guideWords > 1600) failures.push(`provider guide: ${guideWords} words exceeds the 1600-word orientation budget`);
+const guideBoundaries = new Map();
+const guideStack = [];
+for (const tag of guideMain.matchAll(/<div\b[^>]*>|<\/div>/g)) {
+    if (tag[0] !== "</div>") {
+        guideStack.push({ start: tag.index, name: tag[0].match(/data-sdk-boundary="([^"]+)"/)?.[1] });
+    } else {
+        const opening = guideStack.pop();
+        if (opening?.name) guideBoundaries.set(opening.name, guideMain.slice(opening.start, tag.index + tag[0].length));
+    }
+}
+for (const child of ["guest", "policy", "host", "credential"]) {
+    if (!guideBoundaries.get("broker")?.includes(`data-sdk-boundary="${child}"`)) failures.push(`provider guide: ${child} must be inside broker`);
+}
+for (const child of ["policy", "host", "credential"]) {
+    if (guideBoundaries.get("guest")?.includes(`data-sdk-boundary="${child}"`)) failures.push(`provider guide: ${child} must stay outside guest`);
+}
+
 for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");
     const relativeFile = path.relative(outputDirectory, file);
