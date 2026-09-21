@@ -53,13 +53,7 @@ Reuse compiled code. Reset the dangerous state.
   → Reuse the compiled code, reset the dangerous state.
 ```
 
-`npm test` fails the build at four. The three slots are currently spent on:
-
-1. `site.footerNote` — "Your agent can ask. It can't approve itself."
-2. `home.journey.title` — "Alice may comment. Merge stays absent."
-3. `almanac/permissions` — "Principal. Action. Resource. Context."
-
-Want a fourth? Delete one of those first. A pair earns its slot only when
+`npm test` fails the build at four. Before adding a fourth pair, remove an existing one. A pair earns its slot only when
 beat two **withdraws** something beat one implied, or names a literal schema.
 A pair whose beats merely rhyme is filler.
 
@@ -234,34 +228,21 @@ revocable authority around an untrusted model.
 Use the precise internal term when it matters in a "How it works" guide, but
 define it in plain language first.
 
-## Positioning: static and verifiable, not models watching models
+## Public voice: mechanisms, not implementer doctrine
 
-This is the load-bearing claim about what Dekopon *is*, and it should show up
-wherever the security story is told. Do not let a rewrite soften it into a
-generic "secure by design."
+Each page has one task. Keep the landing relationship map; use compact ownership
+maps and comparisons on technical pages. Identity and Cedar share one access
+guide; files belong with runtime behavior; provider authors start at the SDK.
 
-The authorization path contains no model. Cedar policy and the constraint sets
-are static files; the broker evaluates them in native Rust and reaches the same
-decision every time. Nothing asks a model whether an action looks safe, nothing
-scores intent, and no supervisor model reviews a worker model's proposal.
+| This | Not that |
+|---|---|
+| Models already know shell workflows; these run in a controlled interpreter. | A fully compatible Bash shell or unrestricted tools. |
+| The endpoint receives the injected credential; trust that endpoint. | Credentials are unleakable. |
+| Static rules check declared access, not intent. | A public constitution, goals/non-goals manifesto, or repeated ask/approve slogan. |
+| Collected traces link decisions to results; retention is your responsibility. | One complete trace, nothing withheld. |
 
-The receipt is a dependency edge that does not exist: `dekopon-brokerd`'s normal tree
-excludes `dekopon-agent`, `dekopon-shell`, `dekopon-process` and `dekopon-config`,
-and the gateway excludes every broker crate but `dekopon-broker-protocol`. Prefer
-that fact, checkable with `cargo tree` and gated in CI, over any adjective. Do not
-say "neither depends on `dekopon-model`": the broker links it for the ChatGPT
-credential refresh. Re-verify against `../dekopon` before repeating it.
-
-**Always carry the caveat.** Admins are encouraged to use a strong model to
-*write* the policy and constraint YAML, then roll it out through gitops like any
-other production config. The position is not "models are untrustworthy"; it is
-"authoring time is where a model belongs, decision time is not." Stating the
-claim without the caveat reads as anti-AI posturing, which is neither true nor
-the point.
-
-**Always carry the cost.** Static rules can't read intent: grant a capability
-and it is granted, whatever the model then does with it. A page that claims the
-verifiability without naming that limit breaks rule 6.
+Preserve old routes and fragments through meaningful section mappings and tests.
+Do not turn removed essays into accordions. Keep body text readable at 320px.
 
 ## Accuracy and security guardrails
 
@@ -287,28 +268,17 @@ to justify weakening one of these.
   lane, audit lives only in the trace and dies with the exporter, no multi-tenant
   transport, no automatic durable-memory replay, and no production-hardening
   claim.
-- Version 0.13 is the constitution release: audit is one log record per broker
-  decision inside the W3C trace, there is no audit file and no metadata-only
-  telemetry mode, and idempotency, the replay ledger, the namespace key, and the
-  catalog's `Provider` and `Capability` kinds are deleted. Only `dekopond` and
-  `dekopon-brokerd` ship as executables; the console is the sibling
-  `dekopon-console` repository.
+- Audit records belong to the W3C trace; there is no durable local audit archive.
+  Only `dekopond` and `dekopon-brokerd` ship as executables; the console is separate.
 - The latest application version lives only in `src/_data/release.json`. Derive
   headers, install commands, source links, and release CTAs from it rather than
   copying a version into page data. This is why the hero proof chips say "two
   arm64 executables" and not a byte count — `home.json` must not pin a version.
-- Distinguish the current application from the independently versioned chart.
-  As of 12 September 2026, published chart 0.5.0 deploys application 0.13.0
-  and is the first chart that runs the gateway (65533) and the broker (65532)
-  as different UIDs over a 0660 socket. Verify GHCR's tag list before moving
-  `release.chart.publishedVersion`.
-  A source version is not an install path, and a published chart is not proof
-  of a live-cluster deployment.
-- Say "every public crate", never a crate count. Verify crates.io before
-  claiming a version is published there: on 12 September 2026 every crate stood
-  at 0.11.1. Homebrew, attested release archives, and the multi-architecture
-  image are current install paths; verify remote publication before changing
-  that claim.
+- Distinguish the application from the independently versioned chart. Read current
+  pins from `release.json`, check registry publication before changing availability
+  claims, and do not mistake a published chart for a live deployment.
+- Verify crates.io before advertising a pinned SDK dependency. Homebrew archives,
+  images and chart publication need their own remote receipts.
 - Never claim the static model "prevents misuse" or "understands" anything. It
   decides an exact allow/deny against declared entities. Its whole value is that
   it cannot be talked into a different answer.
@@ -320,7 +290,7 @@ to justify weakening one of these.
 ## Source of truth and checks
 
 The canonical implementation lives in `../dekopon`. "How it works" copy is
-pinned to the revision in `src/_data/almanac.json`; do not move that snapshot
+pinned to the revision in `src/_data/release.json`; do not move that snapshot
 without rechecking the tagged code and docs.
 
 Public concept pages must explain their subject completely before linking away.

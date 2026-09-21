@@ -1,154 +1,18 @@
 ---
 layout: layouts/base.njk
-permalink: almanac/one-tool-runtime/index.html
-pageTitle: One-tool runtime — How Dekopon works
-pageDescription: How Dekopon gives a model the bash it already knows, with no processes, files, or sockets underneath.
-bodyClass: almanac-page almanac-article-page almanac-runtime-page
-almanacPage: true
-almanacSection: runtime
-ogType: article
+pageTitle: Guide moved — Dekopon
+pageDescription: This guide has moved to a focused task page.
+bodyClass: technical-page
+canonical: https://dekopon-agents.github.io/guides/runtime/
+eleventyExcludeFromCollections: true
 ---
-{% from "components/almanac.njk" import chapterNav, sourceStamp, chapterPager, pageHero, docsCta %}
-
-{{ pageHero("03", "One-tool runtime", "Bash habits<br><span>with no host shell underneath.</span>", "Dekopon keeps the pipes, loops, and exit codes models already write, and replaces the operating system underneath with capability calls.", "current", "Shipping in " ~ release.tag) }}
-{{ chapterNav("runtime", almanac.chapters) }}
-
-<div class="almanac-article-shell shell">
-  <aside class="article-rail" aria-label="Article navigation and release">
-    <nav aria-label="On this page">
-      <span>On this page</span>
-      <a href="#one-tool">What the model sees</a>
-      <a href="#explore">How it explores</a>
-      <a href="#commenter">A complete plan</a>
-      <a href="#not-bash">Why it isn’t bash</a>
-      <a href="#data">Structured data</a>
-      <a href="#bounds">Hard limits</a>
-    </nav>
-    {{ sourceStamp(release) }}
-  </aside>
-
-  <article class="almanac-prose">
-    <section id="one-tool" class="article-section">
-      <div class="article-heading">
-        <span>03.1 · one fixed schema</span>
-        <h2>The model sees exactly one tool.</h2>
-        <p>Three capabilities or three hundred, the model-facing schema stays one function named <code>bash</code> with one string argument, <code>script</code>. A new provider adds no function definition to any model turn.</p>
-      </div>
-
-      <div class="one-tool-contract">
-        <div><small>tool</small><strong><code>bash</code></strong></div>
-        <div><small>input</small><strong><code>{ script: string }</code></strong></div>
-        <div><small>result</small><strong>bounded output + exit code</strong></div>
-      </div>
-
-      <div class="article-callout callout-decision">
-        <strong>“bash” names a language the model recognizes.</strong>
-        <p>It doesn’t launch <code>/bin/bash</code>. <code>dekopon-shell</code> is a native Rust parser and interpreter with its own value model, builtins, limits, and one abstract capability seam.</p>
-      </div>
-    </section>
-
-    <section id="explore" class="article-section">
-      <div class="article-heading">
-        <span>03.2 · trained exploration</span>
-        <h2>Models already know how to explore an unfamiliar host.</h2>
-        <p>List what exists, inspect one command, try a narrow operation, read the exit code — Dekopon hands that habit a much smaller world.</p>
-      </div>
-
-      <div class="shell-discovery">
-        <div><span>$</span><code>cap --list</code><small>What commands exist?</small></div>
-        <i aria-hidden="true">↓</i>
-        <div><span>$</span><code>cap --describe gh.pull-request.comment</code><small>What JSON does this one accept?</small></div>
-        <i aria-hidden="true">↓</i>
-        <div><span>$</span><code>gh pr view 42 -R example/widgets</code><small>Read before writing.</small></div>
-        <i aria-hidden="true">↓</i>
-        <div><span>$?</span><code>0, 1, 2, 126, or 127</code><small>Did it succeed, fail, get denied, or not exist?</small></div>
-      </div>
-
-      <p>The room is intentionally dark but not deceptive: unsupported constructs fail by name, ungranted capabilities are absent, policy denial has its own exit code. No search finds a hidden path to the host.</p>
-    </section>
-
-    <section id="commenter" class="article-section">
-      <div class="article-heading">
-        <span>03.3 · several operations, one tool call</span>
-        <h2>A PR review becomes one replayable script.</h2>
-      </div>
-
-      <pre><code><span class="code-comment"># Model-authored Dekopon script</span>
-set -euo pipefail
-pr=$(gh pr view 42 -R example/widgets)
-
-if [[ "${pr[state]}" != "open" ]]; then
-  echo "PR 42 is not open; no comment left."
-  exit 1
-fi
-
-count=$(gh pr files 42 -R example/widgets | jq '.files | length')
-
-body=$(printf "Reviewed PR 42 at %s. It changes %s files." \
-  "${pr[headSha]}" "$count")
-
-gh pr review 42 -R example/widgets --comment --body "$body"</code></pre>
-
-      <p>One tool call, three operations, no model round trip between them. The <code>gh</code> provider routes subcommands rather than bundling the GitHub CLI: <code>gh api</code> is refused, because raw passthrough would collapse the capability boundary.</p>
-    </section>
-
-    <section id="not-bash" class="article-section">
-      <div class="article-heading">
-        <span>03.4 · no operating-system shell</span>
-        <h2>Familiar syntax over radically smaller authority.</h2>
-      </div>
-
-      <div class="comparison-table-wrap">
-        <table class="almanac-table strategy-table">
-          <thead><tr><th scope="col">The language keeps</th><th scope="col">The runtime deliberately lacks</th></tr></thead>
-          <tbody>
-            <tr><td><code>if</code>, loops, functions, case, groups, <code>[[ ]]</code>, <code>read</code></td><td>process creation, job control, subshells, <code>exec</code>, <code>eval</code></td></tr>
-            <tr><td>variables, parameter expansion, command substitution, arithmetic, here-documents</td><td>host environment variables, <code>export</code>, <code>source</code></td></tr>
-            <tr><td><code>set -e</code>, <code>set -u</code>, <code>pipefail</code>, and <code>PIPESTATUS</code></td><td>unsupported shell options silently doing nothing</td></tr>
-            <tr><td><code>jq</code>, grep, sed, cut, sort, base64, xargs</td><td>filesystem paths, devices, or operating-system byte pipes</td></tr>
-            <tr><td>bounded in-memory stdout/stderr redirection</td><td>host file descriptors or opening redirection paths</td></tr>
-            <tr><td>capability-backed <code>gh</code> and optional <code>curl</code></td><td>raw sockets, DNS, ambient HTTP, a general API escape hatch</td></tr>
-            <tr><td>a provider’s <code>date</code> word, reading the broker’s clock during an authorized invoke</td><td>a clock builtin, timezone environment, setting time</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p>The interpreter crate links no Wasmtime, broker, HTTP client, or filesystem code. Every external action reaches one <code>CapabilityInvoker</code>.</p>
-    </section>
-
-    <section id="data" class="article-section">
-      <div class="article-heading">
-        <span>03.5 · JSON-native values</span>
-        <h2>Structured data survives the whole plan.</h2>
-      </div>
-
-      <div class="one-tool-contract">
-        <div><small>variables</small><strong>arrays + objects</strong></div>
-        <div><small>pipeline</small><strong>values, not reparsed text</strong></div>
-        <div><small>flags</small><strong><code>--head-sha</code> → <code>headSha</code></strong></div>
-      </div>
-
-      <p>Provider schemas help the model discover input, while providers still validate operation-specific values. A schema shown to an untrusted model is useful metadata; it isn’t an authorization mechanism.</p>
-    </section>
-
-    <section id="bounds" class="article-section">
-      <div class="article-heading">
-        <span>03.6 · a budget at every layer</span>
-        <h2>Exploration is useful only when it ends.</h2>
-      </div>
-
-      <div class="invariant-notes">
-        <article><span>script</span><h3>Interpreter budget</h3><p>Steps, recursion, value bytes, output bytes and lines, deadline, and capability calls.</p></article>
-        <article><span>session</span><h3>Model budget</h3><p>Model turns, tool calls per turn, and one capability-call budget shared across every script.</p></article>
-        <article><span>Wasm</span><h3>Provider budget</h3><p>Fresh memory, fuel, input, output, and wall-clock bounds for each component call.</p></article>
-        <article><span>broker</span><h3>Effect budget</h3><p>Policy, destination, method, HTTP calls, bytes, timeout, and credential.</p></article>
-      </div>
-
-      <p>Every command word gets a <code>shell.command</code> span: name, argument count, exit code, outcome. Argument values stay a count — a <code>curl -d</code> body is secret bytes wearing argv’s clothes.</p>
-
-      {{ docsCta("Open the current shell language contract", "https://github.com/dekopon-agents/dekopon/blob/main/crates/dekopon-shell/README.md", "See the complete grammar, builtin behavior, rejected constructs, and residual limits.") }}
-    </section>
-
-    {{ chapterPager(almanac.chapters[1], almanac.chapters[3]) }}
-  </article>
-</div>
+<article class="shell field-guide"><h1>This guide has moved.</h1>
+<p><a data-move-default href="/guides/runtime/">Continue to the updated guide →</a></p>
+<nav class="moved-links" aria-label="Moved sections">
+<a id="one-tool" data-move-fragment href="/guides/runtime/#shell">One tool →</a>
+<a id="explore" data-move-fragment href="/guides/runtime/#workflow">Explore →</a>
+<a id="commenter" data-move-fragment href="/guides/runtime/#workflow">Commenter →</a>
+<a id="not-bash" data-move-fragment href="/guides/runtime/#shell">Not bash →</a>
+<a id="data" data-move-fragment href="/guides/runtime/#shell">Data →</a>
+<a id="bounds" data-move-fragment href="/guides/runtime/#limits">Bounds →</a>
+</nav></article>

@@ -1,46 +1,20 @@
 {
-  "chapters": [
+  "pages": [
     {
-      "number": "01",
-      "key": "identity",
-      "label": "Trusted identity",
-      "shortLabel": "Identify",
-      "href": "/almanac/identity/"
+      "href": "/how-it-works/",
+      "label": "How it works"
     },
     {
-      "number": "02",
-      "key": "permissions",
-      "label": "Cedar permissions",
-      "shortLabel": "Permit",
-      "href": "/almanac/permissions/"
+      "href": "/guides/access/",
+      "label": "Identity and access"
     },
     {
-      "number": "03",
-      "key": "runtime",
-      "label": "One-tool runtime",
-      "shortLabel": "Explore",
-      "href": "/almanac/one-tool-runtime/"
+      "href": "/guides/runtime/",
+      "label": "Shell and files"
     },
     {
-      "number": "04",
-      "key": "providers",
-      "label": "Wasm providers",
-      "shortLabel": "Isolate",
-      "href": "/almanac/providers/"
-    },
-    {
-      "number": "05",
-      "key": "observability",
-      "label": "One trace",
-      "shortLabel": "Observe",
-      "href": "/almanac/observability/"
-    },
-    {
-      "number": "06",
-      "key": "assets",
-      "label": "Chat assets",
-      "shortLabel": "Attach",
-      "href": "/almanac/assets/"
+      "href": "/guides/traces/",
+      "label": "Trace a request"
     }
   ]
 }

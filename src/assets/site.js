@@ -116,3 +116,12 @@ if ("IntersectionObserver" in window) {
 } else {
     revealItems.forEach((item) => item.classList.add("is-visible"));
 }
+
+// Preserve old deep links, including useful no-JavaScript destinations in the HTML.
+const movedDefault = document.querySelector('[data-move-default]');
+if (movedDefault) {
+    const fragment = decodeURIComponent(window.location.hash.slice(1));
+    const movedSection = [...document.querySelectorAll('[data-move-fragment]')]
+        .find((link) => link.id === fragment);
+    window.location.replace((movedSection || movedDefault).href);
+}

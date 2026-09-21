@@ -1,183 +1,64 @@
 ---
 layout: layouts/base.njk
-permalink: whats-new/index.html
-bodyClass: whats-new-page
-pageTitle: What’s new in Dekopon
-pageDescription: Chat images cross to providers as read-only file descriptors instead of base64 in a frame. Exact-length streamed uploads, decoded-byte ceilings, and a required provider rebuild.
+pageTitle: Files cross as descriptors — Dekopon
+pageDescription: The current release moves asset payloads out of broker JSON frames and adds bounded streaming between provider handles and native HTTP.
+bodyClass: technical-page
+technicalPage: true
 ogType: article
 ---
-<section class="release-hero">
-  <div class="release-hero-mesh" aria-hidden="true"><span></span><span></span><span></span></div>
-  <div class="shell release-hero-grid">
-    <div class="release-hero-copy">
-      <p class="release-eyebrow reveal"><span aria-hidden="true"></span>{{ whatsNew.hero.eyebrow }} · {{ release.date }}</p>
-      <h1 class="reveal reveal-delay-1"><span>{{ release.tag }}</span>{{ whatsNew.hero.title }}</h1>
-      <p class="release-lede reveal reveal-delay-2">{{ whatsNew.hero.lede }}</p>
-      <div class="release-actions reveal reveal-delay-3">
-        <a class="button button-primary" href="#get-latest">Get {{ release.tag }} <span aria-hidden="true">↓</span></a>
-        <a class="button button-secondary" href="{{ release.url }}">GitHub release <span aria-hidden="true">↗</span></a>
-      </div>
-    </div>
-
-    <aside class="release-card reveal reveal-delay-2" aria-label="{{ release.tag }} release details">
-      <div class="release-card-top">
-        <span><i aria-hidden="true"></i> Current release</span>
-        <code>{{ release.shortRevision }}</code>
-      </div>
-      <strong>{{ release.tag }}</strong>
-      <p>Released <time datetime="{{ release.dateIso }}">{{ release.date }}</time></p>
-      <div class="release-command" data-copy-group>
-        <span aria-hidden="true">$</span>
-        <code>{{ release.installCommand }}</code>
-        <button type="button" data-copy="{{ release.installCommand }}" aria-label="Copy install command">
-          <span class="copy-label">Copy</span>
-        </button>
-      </div>
-      <a href="{{ release.sourceUrl }}">See the code for this release <span aria-hidden="true">→</span></a>
-    </aside>
-  </div>
-
-  <div class="shell release-metrics reveal reveal-delay-4">
-    {% for metric in whatsNew.metrics %}
-      <div><strong>{{ metric.value }}</strong><span>{{ metric.label }}</span></div>
-    {% endfor %}
-  </div>
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Files cross as descriptors</h1>
+<p>The current release moves asset payloads out of broker JSON frames and adds bounded streaming between provider handles and native HTTP.</p>
+</header>
+<p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ release.sourceUrl }}">{{ release.shortRevision }}</a>
+</p>
+<section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span>
+<h2>Three changes to file handling</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Change comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Change</th>
+<th scope="col">Practical consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Descriptor transport</th>
+<td data-label="Practical consequence">The gateway passes read-only descriptors over the local Unix socket. Wasm receives handles; bounded guest reads still copy bytes.</td>
+</tr>
+<tr>
+<th scope="row">Streamed HTTP bodies</th>
+<td data-label="Practical consequence">Native HTTP encodes and hashes exact-length uploads. Each asset occurrence counts toward decoded-content ceilings.</td>
+</tr>
+<tr>
+<th scope="row">Separate disk volume</th>
+<td data-label="Practical consequence">Chart {{ release.chart.publishedVersion }} provisions a broker-only 320Mi asset volume; custom broker config must name it explicitly.</td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
-
-<section class="release-summary section" aria-labelledby="release-summary-title">
-  <div class="shell">
-    <div class="release-section-heading">
-      <div>
-        <span class="section-kicker purple">The short version</span>
-        <h2 id="release-summary-title">The release in three points.</h2>
-      </div>
-      <p>{{ whatsNew.summary }}</p>
-    </div>
-
-    <div class="release-highlight-grid">
-      {% for highlight in whatsNew.highlights %}
-        <article class="release-highlight reveal{% if loop.index > 1 %} reveal-delay-{{ loop.index - 1 }}{% endif %}">
-          <div class="release-highlight-top"><span>{{ highlight.number }}</span><small>{{ highlight.kicker }}</small></div>
-          <h3>{{ highlight.title }}</h3>
-          <p>{{ highlight.body }}</p>
-          <ul>
-            {% for point in highlight.points %}<li>{{ point }}</li>{% endfor %}
-          </ul>
-        </article>
-      {% endfor %}
-    </div>
-  </div>
+<section id="migration"><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
+<h2>Upgrade core, providers and configuration together.</h2>
+<p>Rebuild asset-producing providers for the current <code>dekopon:asset</code> interfaces before relying on file workflows. Old base64 attachment result envelopes are refused. <code>providerAttachments</code> and <code>chatAssetInputs</code> no longer parse, even when empty.</p>
+<p>References resolve automatically, but delivery requires an <code>asset.send</code> grant. Attach retains a file; it does not send it. <a href="/guides/runtime/#assets">Files and delivery limits</a>.</p>
+<p><code>maxHttpRequestBytes</code> covers request metadata and literal body parts; assets have decoded-content accounting. Disk retention counts stored bytes instead. <a href="/deploy/kubernetes/#state">Configure the asset volume and broker path</a>.</p>
 </section>
-
-<section class="release-path-section" aria-labelledby="release-path-title">
-  <div class="shell">
-    <div class="release-path-heading">
-      <div><span class="section-kicker mint">{{ whatsNew.path.kicker }}</span><h2 id="release-path-title">{{ whatsNew.path.title }}</h2></div>
-      <p>{{ whatsNew.path.body }}</p>
-    </div>
-    <ol class="release-path" aria-label="{{ whatsNew.path.ariaLabel }}">
-      {% for step in whatsNew.path.steps %}
-        <li><span>0{{ loop.index }}</span><strong>{{ step.name }}</strong><small>{{ step.detail }}</small></li>
-      {% endfor %}
-    </ol>
-  </div>
+<section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
+<h2>What this release does not change</h2>
+<p>Model image requests still carry image data; this is not end-to-end zero-copy transport. Asset references and queued sends do not survive restart. Check independently versioned providers for compatible asset support rather than treating a core release as their publication.</p>
+<p>Telemetry payload attributes stop at 4096 bytes and retain full-length byte counts. Model request bodies use compact encoding with Content-Length; the model leg still allocates image data. <a href="/guides/traces/#privacy">Telemetry visibility</a>.</p>
+<p>The release’s image-memory experiment used a measurement-only provider build, not the published gpt-image component. It is not a reproducible shipping-workflow benchmark or a per-request memory guarantee.</p>
 </section>
-
-<section class="release-details section" aria-labelledby="release-details-title">
-  <div class="shell">
-    <div class="release-section-heading release-details-heading">
-      <div>
-        <span class="section-kicker orange">Under the hood</span>
-        <h2 id="release-details-title">{{ whatsNew.changes | length }} changes in {{ release.tag }}.</h2>
-      </div>
-      <p>{{ whatsNew.detailsIntro }}</p>
-    </div>
-
-    <div class="release-change-list">
-      {% for change in whatsNew.changes %}
-        <article class="release-change reveal">
-          <div class="release-change-index"><span>0{{ loop.index }}</span><i aria-hidden="true"></i></div>
-          <div>
-            <small>{{ change.tag }}</small>
-            <h3>{{ change.title }}</h3>
-            <p>{{ change.body }}</p>
-            <a class="text-link" href="{% if change.link.sourcePath %}https://github.com/dekopon-agents/dekopon/blob/{{ release.revision }}/{{ change.link.sourcePath }}{% elif change.link.release %}{{ release.url }}{% else %}{{ change.link.href }}{% endif %}">{{ change.link.label }} <span aria-hidden="true">→</span></a>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-
-    <aside class="release-telemetry reveal" aria-label="{{ release.tag }} authority change">
-      <div><span>Authority boundary</span><strong>{{ whatsNew.telemetry.value }}</strong><small>{{ whatsNew.telemetry.title }}</small></div>
-      <div><p>{{ whatsNew.telemetry.body }}</p><small>{{ whatsNew.telemetry.note }}</small></div>
-    </aside>
-  </div>
+<section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
+<h2>Get the application or chart.</h2>
+<p>Application <strong>{{ release.tag }}</strong> and chart <strong>{{ release.chart.publishedVersion }}</strong> are separate packages. The published chart deploys application <strong>{{ release.chart.publishedAppVersion }}</strong>.</p>
+<p><a class="button button-primary" href="/deploy/">Install options →</a> <a href="/guides/provider-sdk/#start">Provider build and test steps</a>
+</p>
+<p>Previous: <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.17.0">v0.17.0 — disk-backed images and compiled Wasm ↗</a>.</p>
 </section>
-
-<section class="release-install section" id="get-latest" aria-labelledby="release-install-title">
-  <div class="shell">
-    <div class="release-section-heading release-install-heading">
-      <div>
-        <span class="section-kicker mint">Available now</span>
-        <h2 id="release-install-title">Install it from Homebrew, crates.io, or the image.</h2>
-      </div>
-      <p>{{ whatsNew.installIntro }} Published chart {{ release.chart.publishedVersion }} defaults to application {{ release.chart.publishedAppVersion }}.{% if release.chart.sourceVersion != release.chart.publishedVersion %} Source chart {{ release.chart.sourceVersion }} targets {{ release.chart.sourceAppVersion }} but is not yet published. An image-only upgrade with the older chart retains its memory-backed gateway scratch.{% endif %}</p>
-    </div>
-
-    <div class="release-package-grid">
-      {% for package in whatsNew.packages %}
-        {% if package.name == "Homebrew" %}
-          {% set packageCommand = "brew install dekopon-agents/tap/dekopon" %}
-        {% elif package.name == "crates.io" %}
-          {% set packageCommand = "dekopon-provider-sdk = \"=" ~ release.version ~ "\"" %}
-        {% else %}
-          {% set packageCommand = release.installCommand %}
-        {% endif %}
-        <article class="release-package reveal{% if loop.index > 1 %} reveal-delay-{{ loop.index - 1 }}{% endif %}">
-          <div><code>{{ package.name }}</code><span>{{ package.role }}</span></div>
-          <p>{{ package.body }}</p>
-          <div class="release-package-command" data-copy-group>
-            <code>{{ packageCommand }}</code>
-            <button type="button" data-copy="{{ packageCommand }}" aria-label="Copy {{ package.name }} install command"><span class="copy-label">Copy</span></button>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<section class="release-scope section" aria-labelledby="release-scope-title">
-  <div class="shell">
-    <div class="release-section-heading">
-      <div>
-        <span class="section-kicker purple">Where {{ release.tag }} stands</span>
-        <h2 id="release-scope-title">The broker still owns permission.</h2>
-      </div>
-      <p>{{ whatsNew.scopeIntro }}</p>
-    </div>
-
-    <div class="release-scope-grid">
-      <article class="release-scope-card current reveal">
-        <span><i aria-hidden="true"></i> Current in {{ release.tag }}</span>
-        <ul>{% for item in whatsNew.scope.current %}<li>{{ item }}</li>{% endfor %}</ul>
-      </article>
-      <article class="release-scope-card next reveal reveal-delay-1">
-        <span><i aria-hidden="true"></i> Not provided or claimed</span>
-        <ul>{% for item in whatsNew.scope.next %}<li>{{ item }}</li>{% endfor %}</ul>
-      </article>
-    </div>
-
-    <article class="previous-release reveal">
-      <div><span>Previous release</span><strong>{{ whatsNew.previous.version }}</strong></div>
-      <div><h3>{{ whatsNew.previous.title }}</h3><p>{{ whatsNew.previous.body }}</p></div>
-      <a href="{{ whatsNew.previous.url }}" aria-label="View the {{ whatsNew.previous.version }} release">{{ whatsNew.previous.label }} <span aria-hidden="true">↗</span></a>
-    </article>
-  </div>
-</section>
-
-<section class="release-closing">
-  <div class="shell release-closing-inner">
-    <div><span class="section-kicker mint">{{ release.tag }} is available now</span><h2>{{ whatsNew.closing.title }}</h2></div>
-    <div><p>{{ whatsNew.closing.body }}</p><div class="release-actions"><a class="button button-white" href="/deploy/">Deploy {{ release.tag }} <span aria-hidden="true">→</span></a><a class="button button-ghost" href="/almanac/identity/">See how it works <span aria-hidden="true">→</span></a></div></div>
-  </div>
-</section>
+</article>

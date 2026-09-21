@@ -1,23 +1,40 @@
-<section class="home-protocols section" id="protocols" aria-labelledby="home-protocols-title">
-  <div class="shell">
-    <div class="section-heading split-heading">
-      <h2 id="home-protocols-title">{{ home.protocols.title }}</h2>
-      <p>{{ home.protocols.intro }}</p>
-    </div>
-    <div class="protocol-grid">
-      {% for protocol in home.protocols.items %}
-        <article class="protocol-card">
-          <h3>{{ protocol.name }}</h3>
-          <p class="protocol-badge">{{ protocol.badge }}</p>
-          <dl>
-            <div><dt>Conversations</dt><dd>{{ protocol.conversation }}</dd></div>
-            <div><dt>Send to your agent</dt><dd>{{ protocol.inputs }}</dd></div>
-            <div><dt>Get back</dt><dd>{{ protocol.outputs }}</dd></div>
-            <div><dt>Live feedback</dt><dd>{{ protocol.feedback }}</dd></div>
-          </dl>
-        </article>
-      {% endfor %}
-    </div>
-    <p class="protocol-note">{{ home.protocols.note }}</p>
-  </div>
+<section class="home-transports" id="protocols" aria-labelledby="transports-heading">
+<div class="shell">
+<h2 id="transports-heading">Your agent, in your chat.</h2>
+<p>The gateway adapts conversation scope and progress updates to each service.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Chat service comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Chat service</th>
+<th scope="col">Conversation</th>
+<th scope="col">Progress</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Slack</th>
+<td data-label="Conversation">DMs and shared threads</td>
+<td data-label="Progress">Streaming + native status</td>
+</tr>
+<tr>
+<th scope="row">Discord</th>
+<td data-label="Conversation">DMs and server mentions</td>
+<td data-label="Progress">Streamed edits + typing</td>
+</tr>
+<tr>
+<th scope="row">WhatsApp</th>
+<td data-label="Conversation">Individual chats</td>
+<td data-label="Progress">Typing; no streaming</td>
+</tr>
+<tr>
+<th scope="row">Telegram</th>
+<td data-label="Conversation">DMs and addressed groups/topics</td>
+<td data-label="Progress">Streamed edits + typing</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>History stays in memory. Image understanding needs a compatible model; file replies need an asset-capable provider and delivery grant. <a href="/deploy/kubernetes/#gateway">Connect a gateway</a>.</p>
+</div>
 </section>

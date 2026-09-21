@@ -1,99 +1,57 @@
 ---
 layout: layouts/base.njk
-permalink: deploy/index.html
-pageTitle: Deploy Dekopon
-pageDescription: Homebrew, crates.io, attested archives, or the image. Every path keeps the same authority split.
-bodyClass: almanac-page deploy-page deploy-overview-page
-almanacPage: true
+pageTitle: Install Dekopon — Dekopon
+pageDescription: Choose how to obtain the two executables, then configure a broker and gateway for your environment.
+bodyClass: technical-page
+technicalPage: true
 ogType: article
 ---
-{% from "components/deploy.njk" import deployNav %}
-{% from "components/almanac.njk" import status %}
-
-<header class="deploy-hero">
-  <div class="deploy-hero-gridlines" aria-hidden="true"></div>
-  <div class="shell deploy-hero-grid">
-    <div>
-      <p class="almanac-kicker">Deploy {{ release.tag }}</p>
-      <h1>Start on one machine<br><span>with the boundary still visible.</span></h1>
-      <p>Install the two executables directly, or run them together in one pod.</p>
-      <div class="deploy-hero-status">{{ status("current", "Released") }}<span>Linux arm64 + amd64 · macOS arm64</span></div>
-    </div>
-    <div class="deploy-release-box">
-      <span>Current application release</span>
-      <strong>{{ release.tag }}</strong>
-      <dl><div><dt>executables</dt><dd>2</dd></div><div><dt>Linux image platforms</dt><dd>2</dd></div><div><dt>broker TCP control APIs</dt><dd>0</dd></div></dl>
-      <a href="{{ release.url }}">Open the GitHub release <span aria-hidden="true">↗</span></a>
-    </div>
-  </div>
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Install Dekopon</h1>
+<p>Choose how to obtain the two executables, then configure a broker and gateway for your environment.</p>
 </header>
-
-{{ deployNav("overview", deploy.pages) }}
-
-<section class="almanac-section deploy-options">
-  <div class="shell">
-    <div class="almanac-section-heading">
-      <span class="almanac-section-index">01—04</span>
-      <div><p class="almanac-kicker">Choose an install path</p><h2>Same boundary, different operating shape.</h2></div>
-      <p>The chart is versioned independently, and the operator console ships from the sibling repository <a href="https://github.com/dekopon-agents/dekopon-console">dekopon-console</a>.</p>
-    </div>
-
-    <div class="deploy-option-grid">
-      <article class="deploy-option-card">
-        <div><span>01</span>{{ status("current", "macOS + Linux") }}</div>
-        <h2>Homebrew</h2>
-        <p>Install <code>dekopond</code> and <code>dekopon-brokerd</code> from the organization tap.</p>
-        <pre><code>brew install dekopon-agents/tap/dekopon</code></pre>
-        <small>Pinned to the current attested release archives.</small>
-      </article>
-
-      <article class="deploy-option-card">
-        <div><span>02</span>{{ status("current", "pinned Rust install") }}</div>
-        <h2>crates.io</h2>
-        <p>Every public crate ships at the application version.</p>
-        <pre><code>dekopon-provider-sdk = "={{ release.version }}"</code></pre>
-        <small>Attested archives for macOS arm64 and Linux arm64/amd64 are on the GitHub release.</small>
-      </article>
-
-      <article class="deploy-option-card">
-        <div><span>03</span>{{ status("current", "multi-architecture") }}</div>
-        <h2>Container image</h2>
-        <p>Run the exact Linux executable bytes from the release archives in one distroless image with broker provider components.</p>
-        <pre><code>docker pull \
-  {{ release.imageReference }}</code></pre>
-        <small>Runs as numeric UID 65532. No shell, config, policy, or credential is baked in.</small>
-      </article>
-
-      <article class="deploy-option-card deploy-option-featured">
-        <div><span>04</span>{{ status("current", "published chart") }}</div>
-        <h2>Kubernetes</h2>
-        <p>Chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}: one pod, the broker as UID 65532 and the gateway as 65533, a broker-owned socket between them.</p>
-        <a class="button button-primary" href="/deploy/kubernetes/">Understand the pod <span aria-hidden="true">→</span></a>
-        <small>Registry: <code>oci://ghcr.io/dekopon-agents/charts/dekopon</code>, tag <code>dekopon-chart-{{ release.chart.publishedVersion }}</code>.</small>
-      </article>
-    </div>
-  </div>
+<section id="options">
+<h2>Three install paths</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Environment comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Environment</th>
+<th scope="col">Get the application</th>
+<th scope="col">Next step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">macOS arm64 / Linux</th>
+<td data-label="Get the application"><code>brew install dekopon-agents/tap/dekopon</code><br>Or download an <a href="{{ release.url }}">attested release archive</a>.</td>
+<td data-label="Next step">Run <code>dekopond --help</code> and <code>dekopon-brokerd --help</code>, then use the <a href="{{ source }}/crates/dekopon-brokerd/README.md">local configuration example ↗</a>.</td>
+</tr>
+<tr>
+<th scope="row">Linux container host</th>
+<td data-label="Get the application"><code>{{ release.installCommand }}</code>
+</td>
+<td data-label="Next step">Download only. The distroless image has no shell or site configuration; arrange separate daemon identities and a shared Unix socket.</td>
+</tr>
+<tr>
+<th scope="row">Kubernetes ≥1.29</th>
+<td data-label="Get the application">Chart <strong>{{ release.chart.publishedVersion }}</strong>, application <strong>{{ release.chart.publishedAppVersion }}</strong>
+</td>
+<td data-label="Next step"><a href="/deploy/kubernetes/#install">Install and verify the broker probe</a>, then enable the gateway. It is disabled by default.</td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
-
-<section class="almanac-section deploy-invariants">
-  <div class="shell">
-    <div class="almanac-section-heading">
-      <span class="almanac-section-index">∞</span>
-      <div><p class="almanac-kicker">What never changes</p><h2>Packaging doesn’t grant authority.</h2></div>
-      <p>Every deployment supplies its own identities, Cedar policy, constraint sets, credentials, and state.</p>
-    </div>
-    <div class="invariant-notes">
-      <article><span>gateway</span><h3>Hears and reasons</h3><p>Chat and model credentials terminate here. Provider credentials and policy don’t.</p></article>
-      <article><span>broker</span><h3>Decides and executes</h3><p>Trusted identity, Cedar, execution constraints, credentials, and audit stay here.</p></article>
-      <article><span>provider</span><h3>Performs one operation</h3><p>A fresh Wasm instance gets only authorization-bound host services.</p></article>
-      <article><span>operator</span><h3>Owns the files</h3><p>You supply the config, credential, and socket paths — plus the telemetry receiver that keeps the audit.</p></article>
-    </div>
-  </div>
+<section id="configure">
+<h2>Installation is not a configured agent.</h2>
+<p>The gateway needs a chat transport, model endpoint and agent catalog. The broker needs providers plus identity, policy and execution constraints. Supply credentials only to their owning process and configure telemetry collection before giving the agent useful access.</p>
+<p><a class="button button-primary" href="/deploy/kubernetes/">Kubernetes installation →</a>
+</p>
+<p>Application <a href="{{ release.url }}">{{ release.tag }}</a> and the chart are independently versioned. Both Linux arm64 and amd64 images are published; source availability is not evidence of a healthy deployment.</p>
+<p>Writing a provider rather than running an agent? Use the <a href="/guides/provider-sdk/">SDK guide</a>. The <a href="https://github.com/dekopon-agents/dekopon-console">separate console repository</a> is an optional client, not a third daemon.</p>
 </section>
-
-<section class="almanac-closing-band deploy-closing-band">
-  <div class="shell">
-    <h2>See why Kubernetes uses one pod.</h2>
-    <a class="button button-primary" href="/deploy/kubernetes/">Open the Kubernetes guide <span aria-hidden="true">→</span></a>
-  </div>
-</section>
+</article>

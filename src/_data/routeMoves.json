@@ -1,0 +1,97 @@
+{
+  "/almanac/observability/": {
+    "target": "/guides/traces/",
+    "fragments": {
+      "waterfall": "/guides/traces/#waterfall",
+      "correlation": "/guides/traces/#waterfall",
+      "signals": "/guides/traces/#records",
+      "logs": "/guides/traces/#records",
+      "privacy": "/guides/traces/#privacy",
+      "openobserve": "/guides/traces/#collection"
+    }
+  },
+  "/almanac/permissions/": {
+    "target": "/guides/access/",
+    "fragments": {
+      "model": "/guides/access/#policy",
+      "catalog": "/guides/access/#policy",
+      "broker": "/guides/access/#constraints",
+      "policy": "/guides/access/#policy",
+      "decision": "/guides/access/#policy",
+      "limits": "/guides/access/#constraints"
+    }
+  },
+  "/almanac/": {
+    "target": "/how-it-works/",
+    "fragments": {}
+  },
+  "/almanac/providers/": {
+    "target": "/guides/provider-sdk/",
+    "fragments": {
+      "contract": "/guides/provider-sdk/#provider-map",
+      "hosts": "/guides/provider-sdk/#interfaces",
+      "fresh": "/guides/provider-sdk/#lifecycle",
+      "http": "/guides/provider-sdk/#interfaces",
+      "storage": "/guides/provider-sdk/#lifecycle",
+      "credential": "/guides/provider-sdk/#provider-map",
+      "scope": "/guides/provider-sdk/#provider-map"
+    }
+  },
+  "/almanac/one-tool-runtime/": {
+    "target": "/guides/runtime/",
+    "fragments": {
+      "one-tool": "/guides/runtime/#shell",
+      "explore": "/guides/runtime/#workflow",
+      "commenter": "/guides/runtime/#workflow",
+      "not-bash": "/guides/runtime/#shell",
+      "data": "/guides/runtime/#shell",
+      "bounds": "/guides/runtime/#limits"
+    }
+  },
+  "/almanac/assets/": {
+    "target": "/guides/runtime/#assets",
+    "fragments": {
+      "handle": "/guides/runtime/#assets",
+      "hops": "/guides/runtime/#assets",
+      "invariants": "/guides/runtime/#assets",
+      "ceilings": "/guides/runtime/#assets",
+      "one-kernel": "/deploy/kubernetes/#state",
+      "receipts": "/whats-new/#limits"
+    }
+  },
+  "/almanac/run-lifecycle/": {
+    "target": "/guides/access/",
+    "fragments": {}
+  },
+  "/almanac/scheduling/": {
+    "target": "/guides/traces/",
+    "fragments": {}
+  },
+  "/almanac/components/": {
+    "target": "/guides/provider-sdk/",
+    "fragments": {}
+  },
+  "/almanac/identity/": {
+    "target": "/guides/access/",
+    "fragments": {
+      "origin": "/guides/access/#identity",
+      "chain": "/guides/access/#identity",
+      "configuration": "/guides/access/#identity",
+      "cedar": "/guides/access/#policy",
+      "audit": "/guides/traces/#records",
+      "limit": "/guides/access/#identity"
+    }
+  },
+  "/almanac/boundaries/": {
+    "target": "/guides/runtime/",
+    "fragments": {}
+  },
+  "/architecture/": {
+    "target": "/how-it-works/",
+    "fragments": {}
+  },
+  "/deploy/credentials/": {
+    "target": "/deploy/kubernetes/#credentials",
+    "fragments": {}
+  }
+}

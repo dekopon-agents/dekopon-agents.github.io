@@ -14,7 +14,7 @@ ogType: article
   <header class="sdk-intro">
     <p class="sdk-baseline">Rust · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
     <h1>Build a Wasm provider</h1>
-    <p>Add a command the agent can call. Your component parses arguments and implements capabilities; the broker decides whether they may run and constrains their I/O.</p>
+    <p>Add a command to Dekopon’s controlled shell runtime, not a host shell. Your component parses arguments and implements capabilities; the broker decides whether they may run and constrains their I/O.</p>
     <nav class="sdk-jumps" aria-label="Provider guide">
       <a href="#provider-map">The boundary</a>
       <a href="#interfaces">Available I/O</a>
@@ -35,9 +35,12 @@ ogType: article
         <div class="sdk-map-guest" data-sdk-boundary="guest">
           <h3>Your Wasm component</h3>
           <dl>
-            <div><dt><code>manifest()</code></dt><dd>Declares command words and capabilities. Metadata isn’t permission.</dd></div>
-            <div><dt><code>run_command()</code></dt><dd>Parses argv/stdin. Returns help or a capability proposal; no host I/O.</dd></div>
-            <div><dt><code>invoke()</code></dt><dd>Runs after authorization. Validates input and implements the capability.</dd></div>
+            <div><dt><code>manifest()</code></dt><dd>Declares command words and capabilities. Metadata isn’t permission.</dd>
+</div>
+            <div><dt><code>run_command()</code></dt><dd>Parses argv/stdin. Returns help or a capability proposal; no host I/O.</dd>
+</div>
+            <div><dt><code>invoke()</code></dt><dd>Runs after authorization. Validates input and implements the capability.</dd>
+</div>
           </dl>
         </div>
         <div class="sdk-map-policy" data-sdk-boundary="policy">
@@ -47,18 +50,26 @@ ogType: article
         </div>
         <div class="sdk-map-host" data-sdk-boundary="host">
           <h3>Broker host services</h3>
-          <p>↑ Results and handles · ↓ requests from <code>invoke()</code></p>
+          <p>↑ Results and handles · ↓ requests from <code>invoke()</code>
+</p>
           <p>HTTP destinations, methods and byte limits; storage scope; asset operations. Each call uses the invocation’s authority.</p>
         </div>
         <div class="sdk-map-secret" data-sdk-boundary="credential">
           <h3>Broker-held credentials</h3>
-          <p>Only native HTTP reads these.<br>Never passed to your Wasm code</p>
+          <p>Native HTTP injects these.<br>Never passed to your Wasm code</p>
         </div>
       </div>
       <figcaption id="map-caption">HTTP leaves the broker for an allowed endpoint; the native host attaches its credential. Storage and assets stay behind broker-owned handles, not guest-accessible host paths.</figcaption>
     </figure>
-    <p class="sdk-limit"><strong>The boundary has limits.</strong> A permitted endpoint receives its credential; transformed reflection is outside the protection. Wasmtime runs inside the broker, not a separate OS process. Runtime vulnerabilities and a compromised broker host are not covered. <a href="{{ source }}/docs/security-model.md">Security model ↗</a></p>
-    <p class="sdk-note">Cedar evaluates static owner-authored policy, not intent. A strong model can help write that policy; no model approves a call at runtime. A granted capability can still be misused within its constraints.</p>
+    <p class="sdk-limit"><strong>The boundary has limits.</strong> A permitted endpoint receives its credential; transformed reflection is outside the protection. Wasmtime runs inside the broker, not a separate OS process. Runtime vulnerabilities and a compromised broker host are not covered. <a href="{{ source }}/docs/security-model.md">Security model ↗</a>
+</p>
+    <p class="sdk-note">Cedar evaluates static rules, not intent. A granted capability can still be misused within its constraints. <a href="/guides/access/">Configure identity and access</a>.</p>
+  </section>
+
+  <section id="lifecycle" aria-labelledby="lifecycle-heading">
+    <h2 id="lifecycle-heading">Guest memory ends with the call; storage does not.</h2>
+    <p>Compiled components can be reused; each invocation gets a fresh store, instance and memory with fuel, memory and deadline limits. Description and command parsing cannot use host I/O.</p>
+    <p>Storage uses a broker-selected namespace with access, quota and lease limits. Direct writes survive later errors; the host provides no invocation rollback or encryption of stored text. Persisting memory does not automatically replay it into later prompts.</p>
   </section>
 
   <section id="interfaces" aria-labelledby="interfaces-heading">
@@ -66,17 +77,49 @@ ogType: article
     <p>Importing an interface doesn’t grant its effects. Without imports, a component has no ambient host I/O or access to broker credentials.</p>
     <div class="sdk-table-scroll" role="region" aria-label="Provider interfaces" tabindex="0">
       <table class="sdk-table">
-        <thead><tr><th scope="col">Need</th><th scope="col">What the broker supplies</th><th scope="col">Contract / example</th></tr></thead>
+        <thead>
+<tr>
+<th scope="col">Need</th>
+<th scope="col">What the broker supplies</th>
+<th scope="col">Contract / example</th>
+</tr>
+</thead>
         <tbody>
-          <tr><th scope="row">Compute</th><td>No imports. Validate inputs in your provider; the manifest schema is discovery metadata, not full input validation.</td><td><a href="{{ example }}">CLI probe ↗</a></td></tr>
-          <tr><th scope="row">HTTP</th><td>Buffered <code>send</code> or asset-backed <code>stream</code>. Exact destination/method grants and bounded bytes; credentials injected natively. No HTTP + storage in one capability.</td><td><a href="{{ source }}/crates/dekopon-provider-http">HTTP bindings ↗</a></td></tr>
-          <tr><th scope="row">Storage</th><td>Namespace-bound JSONL or durable files, with access and quota constraints. Not arbitrary filesystem access.</td><td><a href="{{ source }}/crates/dekopon-provider-storage">Storage bindings ↗</a></td></tr>
-          <tr><th scope="row">Assets</th><td>Open only references passed to this invocation. Attach, remove and send need their respective grants; attaching does not send.</td><td><a href="{{ source }}/crates/dekopon-provider-sdk#assets-out-of-band">Asset API ↗</a></td></tr>
-          <tr><th scope="row">Time</th><td>Wall clock during <code>invoke</code>, without a separate clock grant. Reads during description or command parsing are refused.</td><td><a href="{{ source }}/examples/providers/clock-probe">Clock probe ↗</a></td></tr>
+          <tr>
+<th scope="row">Compute</th>
+<td data-label="What the broker supplies">No imports. Validate inputs in your provider; the manifest schema is discovery metadata, not full input validation.</td>
+<td data-label="Contract / example"><a href="{{ example }}">CLI probe ↗</a>
+</td>
+</tr>
+          <tr>
+<th scope="row">HTTP</th>
+<td data-label="What the broker supplies">Buffered <code>send</code> or asset-backed <code>stream</code>. Exact destination/method grants and bounded bytes; credentials injected natively. No HTTP + storage in one capability.</td>
+<td data-label="Contract / example"><a href="{{ source }}/crates/dekopon-provider-http">HTTP bindings ↗</a>
+</td>
+</tr>
+          <tr>
+<th scope="row">Storage</th>
+<td data-label="What the broker supplies">Namespace-bound JSONL or durable files, with access and quota constraints. Not arbitrary filesystem access.</td>
+<td data-label="Contract / example"><a href="{{ source }}/crates/dekopon-provider-storage">Storage bindings ↗</a>
+</td>
+</tr>
+          <tr>
+<th scope="row">Assets</th>
+<td data-label="What the broker supplies">Open only references passed to this invocation. Attach, remove and send need their respective grants; attaching does not send. <a href="/guides/runtime/#assets">File flow and ceilings</a>.</td>
+<td data-label="Contract / example"><a href="{{ source }}/crates/dekopon-provider-sdk#assets-out-of-band">Asset API ↗</a>
+</td>
+</tr>
+          <tr>
+<th scope="row">Time</th>
+<td data-label="What the broker supplies">Wall clock during <code>invoke</code>, without a separate clock grant. Reads during description or command parsing are refused.</td>
+<td data-label="Contract / example"><a href="{{ source }}/examples/providers/clock-probe">Clock probe ↗</a>
+</td>
+</tr>
         </tbody>
       </table>
     </div>
-    <p class="sdk-note">No general WASI, process spawning or raw sockets. An unknown import fails at load; a missing effect grant cannot be fixed by changing your WIT world. <a href="{{ source }}/crates/dekopon-provider-sdk#provider-owned-worlds">World composition ↗</a></p>
+    <p class="sdk-note">No general WASI, process spawning or raw sockets. An unknown import fails at load; a missing effect grant cannot be fixed by changing your WIT world. <a href="{{ source }}/crates/dekopon-provider-sdk#provider-owned-worlds">World composition ↗</a>
+</p>
   </section>
 
   <section id="start" aria-labelledby="start-heading">
@@ -98,7 +141,8 @@ cargo build --locked --release --target wasm32-unknown-unknown \
   --manifest-path examples/providers/cli-probe/Cargo.toml
 wasm-tools component new \
   examples/providers/cli-probe/target/wasm32-unknown-unknown/release/dekopon_cli_probe_provider.wasm \
-  -o examples/providers/cli-probe-provider.wasm</code></pre>
+  -o examples/providers/cli-probe-provider.wasm</code>
+</pre>
         <p class="sdk-note">This is a local development build, not a reproducible release artifact. <a href="{{ example }}/build.sh">The release build script ↗</a> owns reproducible generation.</p>
       </div>
       <div>
@@ -106,13 +150,15 @@ wasm-tools component new \
         <pre aria-label="Inspect and test the component" tabindex="0"><code>wasm-tools validate examples/providers/cli-probe-provider.wasm
 wasm-tools component wit examples/providers/cli-probe-provider.wasm
 cargo test --locked -p dekopon-provider-sdk-testkit \
-  --test harness a_command_word_renders_its_help_page_and_proposes</code></pre>
+  --test harness a_command_word_renders_its_help_page_and_proposes</code>
+</pre>
         <ul class="sdk-checks">
           <li><strong>Native tests pass:</strong> help, dispatch, piped input, transforms and invalid inputs.</li>
           <li><strong>Decoded WIT:</strong> exactly <code>describe</code>, <code>invoke</code>, <code>run-command</code>; zero imports.</li>
-          <li><strong>Host test passes:</strong> renders help, proposes from piped input, then invokes through the real Wasmtime host.</li>
+          <li><strong>Host test passes:</strong> renders help, proposes from piped input, then invokes through the real Wasmtime host, returning <code>{"text":"cba"}</code>.</li>
         </ul>
-        <p class="sdk-limit"><strong>Not a policy test.</strong> The testkit mints authorization without Cedar or the constraint catalog. It proves component execution, not that your deployment grants the right effects. The native host build is larger than the guest build. <a href="{{ source }}/crates/dekopon-provider-sdk-testkit/tests/harness.rs">Test source ↗</a></p>
+        <p class="sdk-limit"><strong>Not a policy test.</strong> The testkit mints authorization without Cedar or the constraint catalog. It proves component execution, not that your deployment grants the right effects. The native host build is larger than the guest build. <a href="{{ source }}/crates/dekopon-provider-sdk-testkit/tests/harness.rs">Test source ↗</a>
+</p>
       </div>
     </div>
     <p><strong>Make it yours:</strong> change the manifest, command dispatch and input validation in <a href="{{ example }}/src/lib.rs"><code>src/lib.rs</code> ↗</a>. Keep <code>provider-cli</code> and <code>export_provider_with_cli!</code>; a broker rejects providers without command words or a callable <code>run-command</code>. For an independent repo, replace the example’s workspace-relative SDK dependency with <code>dekopon-provider-sdk = { version = "={{ release.version }}", features = ["clap"] }</code>.</p>
@@ -120,11 +166,14 @@ cargo test --locked -p dekopon-provider-sdk-testkit \
 
   <nav class="sdk-next" aria-label="Provider next steps">
     <h2>From example to deployment</h2>
-    <p>A component alone grants nothing. The operator installs it, configures capability constraints and Cedar policy, and exposes its command words to the agent.</p>
+    <p>The operator installs the component, configures capability constraints and Cedar policy, and exposes its command words to the agent. <a href="/deploy/kubernetes/#gateway">Deployment inputs</a>.</p>
     <ul>
-      <li><a href="{{ source }}/crates/dekopon-provider-sdk#command-line-providers">Command handling and SDK contract ↗</a></li>
-      <li><a href="{{ source }}/examples/providers/http-probe">HTTP and streaming example ↗</a></li>
-      <li><a href="{{ source }}/crates/dekopon-brokerd/README.md">Installation, configuration and host limits ↗</a></li>
+      <li><a href="{{ source }}/crates/dekopon-provider-sdk#command-line-providers">Command handling and SDK contract ↗</a>
+</li>
+      <li><a href="{{ source }}/examples/providers/http-probe">HTTP and streaming example ↗</a>
+</li>
+      <li><a href="{{ source }}/crates/dekopon-brokerd/README.md">Installation, configuration and host limits ↗</a>
+</li>
     </ul>
   </nav>
 </div>

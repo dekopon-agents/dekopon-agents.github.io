@@ -1,0 +1,164 @@
+---
+layout: layouts/base.njk
+pageTitle: Identity and access — Dekopon
+pageDescription: Map an authenticated chat subject to a principal, then grant an agent and its capabilities separately.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Identity and access</h1>
+<p>Map an authenticated chat subject to a principal, then grant an agent and its capabilities separately.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#identity">Caller mapping</a><a href="#policy">Worked decision</a><a href="#constraints">Execution limits</a><a href="#credentials">Credentials</a>
+</nav>
+<section id="identity">
+<h2>The broker maps the sender, not the prompt.</h2>
+<figure class="ownership-map">
+<div class="map-input"><strong>Chat service → gateway UID 65533</strong>
+<p>The gateway verifies service identity and sends a canonical subject, agent and conversation claim.</p>
+</div>
+<div class="map-zone broker-zone">
+<h3>Broker-owned identity configuration</h3>
+<p>Socket peer UID → configured attestor → namespace + conversation grant</p>
+<p>Attested subject → <code>identityMappings</code> → Cedar principal</p>
+<p>Cedar receives principal, action, resource and broker-built context—not a principal selected by the model.</p>
+</div>
+<figcaption>The socket authenticates the local process separately from the chat identity assertion. The chart’s broker probes use UID 65532, not the gateway identity.</figcaption>
+</figure>
+<div class="guide-table" tabindex="0" role="region" aria-label="Service comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Service</th>
+<th scope="col">Canonical subject</th>
+<th scope="col">Trust source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Slack</th>
+<td data-label="Canonical subject"><code>slack.t0123abcd.u0123abcd</code>
+</td>
+<td data-label="Trust source">Workspace + user from the chat service</td>
+</tr>
+<tr>
+<th scope="row">Discord / Telegram</th>
+<td data-label="Canonical subject"><code>discord.123456789</code> / <code>telegram.5551234</code>
+</td>
+<td data-label="Trust source">Service user ID</td>
+</tr>
+<tr>
+<th scope="row">WhatsApp</th>
+<td data-label="Canonical subject"><code>whatsapp.16034700182</code>
+</td>
+<td data-label="Trust source">Verified webhook sender</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>A compromised gateway can speak for its whole attestor lane.</strong> Restrict both namespace and conversation scope. The local development transport accepts a caller-declared supported subject; it does not independently authenticate the sender.</p>
+<h3>Chart-aligned mapping excerpt</h3>
+<p>This is part of <code>broker.yaml</code>, not a complete configuration. The all-conversations selector below is intentionally broad; narrow it for your deployment.</p>
+<pre tabindex="0" aria-label="Illustrative broker identity excerpt"><code>identities:
+  - uid: 65533
+    principal: chat-gateway
+    actor: { type: service, principal: chat-gateway }
+    attestor:
+      namespaces: [slack.t0123abcd]
+      chatScopes:
+        - kind: slack
+          transport: workspace-slack
+          conversation: { kind: any }
+identityMappings:
+  - subject: slack.t0123abcd.u0123abcd
+    principal: alice</code>
+</pre>
+</section>
+<section id="policy">
+<h2>Alice needs two grants.</h2>
+<p>Permission to prompt <code>pr-commenter</code> does not permit a GitHub write. A separate rule permits the comment capability only through that agent and gateway.</p>
+<pre tabindex="0" aria-label="Illustrative Cedar policy excerpt"><code>@id("alice-prompt")
+permit(principal == Dekopon::Principal::"alice",
+       action == Dekopon::Action::"agent.prompt",
+       resource == Dekopon::Agent::"pr-commenter")
+when { context has via &amp;&amp; context.via == "chat-gateway" };
+
+@id("alice-comment")
+permit(principal == Dekopon::Principal::"alice",
+       action == Dekopon::Action::"gh.pull-request.comment",
+       resource == Dekopon::Provider::"gh")
+when { context has agent &amp;&amp; context.agent == "pr-commenter"
+    &amp;&amp; context has via &amp;&amp; context.via == "chat-gateway" };</code>
+</pre>
+<div class="guide-table" tabindex="0" role="region" aria-label="Request comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Request</th>
+<th scope="col">Expected decision with these rules</th>
+<th scope="col">Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Alice prompts pr-commenter via chat-gateway</th>
+<td data-label="Expected decision with these rules">Allow</td>
+<td data-label="Why">Matches alice-prompt</td>
+</tr>
+<tr>
+<th scope="row">Alice comments through pr-commenter</th>
+<td data-label="Expected decision with these rules">Allow, if the capability is loaded and constrained</td>
+<td data-label="Why">Matches alice-comment; HTTP still has separate checks</td>
+</tr>
+<tr>
+<th scope="row">Alice requests merge</th>
+<td data-label="Expected decision with these rules">Deny</td>
+<td data-label="Why">No matching permit; no merge invocation</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These are worked decisions, not a deployed test. Cedar evaluates static rules, not intent; a permitted comment can still contain harmful text. A model can help draft configuration, but runtime decisions use the saved files.</p>
+<p>The provider resource is <code>gh</code>, not an individual repository. This rule does not inspect arbitrary provider input. Restrict the upstream GitHub token’s repository access rather than assuming this policy does so.</p>
+</section>
+<section id="constraints">
+<h2>A Cedar allow does not widen HTTP access.</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Owner-controlled constraint comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Owner-controlled constraint</th>
+<th scope="col">Enforced independently of policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Destination + method</th>
+<td data-label="Enforced independently of policy">For the comment example: api.github.com and GET/POST, not arbitrary hosts or methods.</td>
+</tr>
+<tr>
+<th scope="row">Call / byte / time ceilings</th>
+<td data-label="Enforced independently of policy">The provider may need a pre-read plus a write; every call consumes the invocation budget. Host ceilings still cap configured values.</td>
+</tr>
+<tr>
+<th scope="row">Loaded components</th>
+<td data-label="Enforced independently of policy">Use strict: true to refuse startup on policy actions whose providers are not loaded. Default non-strict mode warns; absent capabilities still cannot execute.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Catalog descriptions tell the model what an agent is for; they do not authorize it. <a href="{{ source }}/charts/dekopon/values-pr-summarizer-linter.yaml">The complete pinned chart configuration ↗</a> shows catalog, mapping, constraints and both policy layers together. It requires operator-specific chat/model inputs and compatible providers; it is not a copy-and-run recipe.</p>
+</section>
+<section id="credentials">
+<h2>The native HTTP sink sends the credential.</h2>
+<p>A fixed credential binding, optionally selected per agent, stays in broker configuration. The guest builds its request without receiving the value; the native HTTP host injects it for the bound destination. That endpoint receives the credential.</p>
+<p>A caller-named public DRN uses an additional <code>secret.use</code> policy and private binding for the exact sink, method and path/query scope. A DRN pasted into ordinary provider input is just text. Resolution is pinned to the invocation, without stale fallback.</p>
+<p><strong>Pick endpoints you trust.</strong> Raw-secret response checks cannot stop an authorized endpoint from encoding or transforming the credential it received. A secret binding restricts where that secret goes; it does not narrow every credential-free request the capability can make.</p>
+<p><a href="/guides/traces/#records">Check decision and execution evidence</a> · <a href="/deploy/kubernetes/#credentials">Deliver credentials to the correct process</a> · <a href="{{ source }}/docs/secrets.md">Read the exact secret contract ↗</a>
+</p>
+</section>
+</article>

@@ -1,0 +1,104 @@
+---
+layout: layouts/base.njk
+pageTitle: Trace a request — Dekopon
+pageDescription: Use a W3C trace ID to follow one message across gateway and broker, then distinguish the permission decision from the execution result.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set source = release.sourceUrl %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Trace a request</h1>
+<p>Use a W3C trace ID to follow one message across gateway and broker, then distinguish the permission decision from the execution result.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#waterfall">Read a run</a><a href="#records">Find evidence</a><a href="#collection">Enable collection</a><a href="#privacy">Visibility and retention</a>
+</nav>
+<section id="waterfall">
+<h2>Each process has its own exporter.</h2>
+<figure class="trace-map">
+<div><strong>Gateway</strong>
+<ol>
+<li>Receive message / session</li>
+<li>Model request</li>
+<li>Tool call → <code>shell.script</code>
+<ul>
+<li><code>shell.command</code> for each command</li>
+</ul>
+</li>
+<li>Model continuation and chat reply</li>
+</ol>
+</div>
+<div><strong>Broker · child of the tool request</strong>
+<p><code>traceParent</code> crosses the Unix socket → authorization → provider invocation → host I/O</p>
+<p><code>broker.decision</code> marks authorization; <code>broker.execution</code> records the result.</p>
+</div>
+<figcaption>Gateway → collector ← broker. Trace propagation correlates work; it grants no authority. This is an illustrative nesting map, not a measured latency chart.</figcaption>
+</figure>
+<p>Start from the chat-message trace, expand the model/tool span, then follow its broker child. Use the same trace ID in the log view to find decisions and results; an allow alone does not prove the remote write succeeded.</p>
+</section>
+<section id="records">
+<h2>Ask the record the question it can answer.</h2>
+<div class="guide-table" tabindex="0" role="region" aria-label="Question comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Question</th>
+<th scope="col">Record</th>
+<th scope="col">Look for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Who was allowed to act?</th>
+<td data-label="Record">broker.decision</td>
+<td data-label="Look for">Subject, principal, via, agent, action/resource and policy IDs.</td>
+</tr>
+<tr>
+<th scope="row">Did the invocation succeed?</th>
+<td data-label="Record">broker.execution + provider / HTTP spans</td>
+<td data-label="Look for">Outcome, error classification and bounded result; distinguish upstream refusal from policy denial.</td>
+</tr>
+<tr>
+<th scope="row">What did the model run?</th>
+<td data-label="Record">shell.script / shell.command</td>
+<td data-label="Look for">Arguments, piped input, output, exit status and duration.</td>
+</tr>
+<tr>
+<th scope="row">Where did time and tokens go?</th>
+<td data-label="Record">Model spans + transcript events</td>
+<td data-label="Look for">Model requests/responses, tool calls and usage when supplied by the model API.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Broker probes only list authorized capabilities; they emit no decision audit. Use a real configured chat request to check decision/execution correlation.</p>
+</section>
+<section id="collection">
+<h2>Configure telemetry in each daemon.</h2>
+<p>Run a collector that accepts both OTLP traces and logs. Merge this block into your existing gateway configuration, then into broker configuration with <code>serviceName: dekopon-brokerd</code>. Replace the endpoint with your collector.</p>
+<pre tabindex="0" aria-label="Telemetry configuration excerpt"><code>telemetry:
+  endpoint: http://127.0.0.1:4318
+  transport: http
+  serviceName: dekopond
+  exportTimeoutMs: 5000</code>
+</pre>
+<p>HTTP appends <code>/v1/traces</code> and <code>/v1/logs</code>; <code>grpc</code> uses the collector’s gRPC authority instead. Merely setting an endpoint environment variable does not enable the daemon’s configured export.</p>
+<ol>
+<li>Supply any collector authentication through <code>OTEL_EXPORTER_OTLP_HEADERS</code> in each daemon’s environment, or a Kubernetes Secret reference. Do not put a token in command arguments or a config URL.</li>
+<li>Restart both daemons with their updated configuration. Send a normal chat message that uses one granted provider command.</li>
+<li>In the collector, find both service names under one trace ID and inspect the corresponding decision and execution logs. Missing broker children suggest propagation or broker export failure; missing logs with visible spans suggest the logs receiver or filtering.</li>
+</ol>
+<p><a href="/deploy/kubernetes/#startup">Deployment checks</a> · <a href="{{ source }}/docs/observability.md#enable-otlp-export">Exact exporter configuration ↗</a>
+</p>
+</section>
+<section id="privacy">
+<h2>The telemetry store contains user data.</h2>
+<p>Prompts, model responses and script payloads are visible to the operator and configured backend. Command-supplied headers and bodies are data too; broker-injected credential values and native credential-bearing wire requests are excluded, not arbitrary sensitive text a user typed.</p>
+<p>Payload attributes are truncated at 4096 bytes with full-length byte counts. Sampling, <code>RUST_LOG</code> filtering and collection failures can leave gaps. Both processes emit stdout records; optional export is not a durable local audit archive.</p>
+<p><strong>Lose collection and you lose the evidence.</strong> Configure backend retention and access controls yourself. Neither trace collection nor a restart undoes a posted comment.</p>
+<p><a href="{{ source }}/docs/observability.md">Read the pinned event and field reference ↗</a>
+</p>
+</section>
+</article>

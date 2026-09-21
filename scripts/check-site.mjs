@@ -70,29 +70,21 @@ for (const file of htmlFiles) {
 }
 
 const homepage = await readFile(path.join(outputDirectory, "index.html"), "utf8");
-for (const id of ["constitution", "protocols", "providers"]) {
-    if (!homepage.includes(`id="${id}"`)) {
-        failures.push(`index.html: missing orientation section #${id}`);
-    }
-}
-for (const goal of ["Credentials are unleakable", "One trace, complete", "Extensible through Wasm providers"]) {
-    if (!homepage.includes(goal)) {
-        failures.push(`index.html: missing constitution goal "${goal}"`);
-    }
-}
-
-for (const removed of ['id="one-request"', 'id="security"', 'pre-production', 'Five providers, five separate repos.']) {
-    if (homepage.includes(removed)) failures.push(`index.html: retired homepage content remains: ${removed}`);
+for (const id of ["protocols", "providers"]) {
+    if (!homepage.includes(`id="${id}"`)) failures.push(`homepage missing #${id}`);
 }
 const protocolSection = homepage.split('id="protocols"')[1]?.split('</section>')[0] ?? '';
 for (const name of ['Slack', 'Discord', 'WhatsApp', 'Telegram']) {
-    if (!protocolSection.includes(`<h3>${name}</h3>`)) failures.push(`index.html: missing chat protocol ${name}`);
+    if (!protocolSection.includes(`<th scope="row">${name}</th>`)) failures.push(`missing transport ${name}`);
 }
 const providerSection = homepage.split('id="providers"')[1]?.split('</section>')[0] ?? '';
-const toolLabels = [...providerSection.matchAll(/<div><span>([^<]+)<\/span>/g)].map(match => match[1]);
-if (toolLabels.join('|') !== 'bash|gh|ripgrep|python|curl|gpt-image|SQL · Turso') {
-    failures.push('index.html: expected maturity-ordered tool lineup');
+for (const name of ['gh', 'ripgrep', 'python', 'curl', 'turso', 'gpt-image']) {
+    if (!providerSection.includes(`>${name}</a>`)) failures.push(`provider comparison missing ${name}`);
 }
+for (const required of ['workbench-flow', '<table>', 'Illustrative script', 'controlled runtime', '/deploy/kubernetes/']) {
+    if (!homepage.includes(required)) failures.push(`homepage missing ${required}`);
+}
+if (homepage.includes('provider-ecosystem-card')) failures.push('homepage retains provider card catalog');
 
 // Check the rendered hero, including containment rather than just page-wide words.
 const heroDiagram = homepage.match(/<figure\b[^>]*aria-labelledby="hero-diagram-caption"[^>]*>([\s\S]*?)<\/figure>/)?.[1] ?? "";
@@ -143,18 +135,13 @@ const heroSteps = [...heroDiagram.matchAll(/data-hero-step="(\d+)"/g)].map((matc
 if (heroSteps.join(",") !== "1,2,3,4,5,6") {
     failures.push("index.html: hero must show six ordered transitions");
 }
-for (const [index, label] of ["Prompt + bash tool", "Requested bash command", "Propose action", "Authorize capability", "Request HTTP", "Inject credential + send"].entries()) {
+for (const [index, label] of ["Prompt + script tool", "Requested bash command", "Request / result", "Authorize capability", "Request HTTP", "Inject credential + send"].entries()) {
     const step = heroDiagram.split(`data-hero-step="${index + 1}"`)[1]?.split("</div>")[0] ?? "";
     if (!step.includes(`>${index + 1}</b>`) || !step.includes(label)) {
         failures.push(`index.html: hero transition ${index + 1} needs its visible number and label`);
     }
 }
 if (!heroDiagram.includes("Unix socket")) failures.push("index.html: hero must name the Unix socket");
-
-const whatsNew = await readFile(path.join(outputDirectory, "whats-new", "index.html"), "utf8");
-if (!whatsNew.includes(release.installCommand)) {
-    failures.push(`whats-new/index.html: missing current install command for ${release.tag}`);
-}
 
 for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {
     const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
@@ -197,6 +184,64 @@ for (const child of ["guest", "policy", "host", "credential"]) {
 for (const child of ["policy", "host", "credential"]) {
     if (guideBoundaries.get("guest")?.includes(`data-sdk-boundary="${child}"`)) failures.push(`provider guide: ${child} must stay outside guest`);
 }
+
+// Consolidated pages keep distinct mechanisms instead of six overlapping chapters.
+const contracts = {
+    'how-it-works/index.html': ['dekopond', 'dekopon-brokerd', 'Unix socket', 'not a multi-tenant'],
+    'guides/access/index.html': ['uid: 65533', 'conversation: { kind: any }', 'agent.prompt', 'gh.pull-request.comment', 'secret.use', 'intent', 'endpoint receives'],
+    'guides/runtime/index.html': ['not complete Bash/POSIX', 'non-yielding jq', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
+    'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopond', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
+    'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
+    'whats-new/index.html': ['providerAttachments', 'chatAssetInputs', 'measurement-only', 'not end-to-end zero-copy']
+};
+for (const [file, strings] of Object.entries(contracts)) {
+    const html = await readFile(path.join(outputDirectory, file), 'utf8');
+    for (const text of strings) if (!html.includes(text)) failures.push(`${file}: missing mechanism/limit ${text}`);
+    for (const retired of ['breadth: transportWide', 'allowDevelopmentSubjects', 'dev.console.', 'The model never sees the bytes']) {
+        if (html.includes(retired)) failures.push(`${file}: retired contract ${retired}`);
+    }
+    if (html.includes('article-rail') || html.includes('<details')) failures.push(`${file}: obsolete essay scaffolding`);
+}
+// Echo stringifies structured values; keep the PR object directly in the jq pipeline.
+// This exact script is checked against the pinned interpreter with a mock PR result.
+const prReadScript = "set -e\nset -o pipefail\ngh pr view 7 -R owner/repo | jq '{title, state}'";
+const runtimeGuide = await readFile(path.join(outputDirectory, 'guides/runtime/index.html'), 'utf8');
+for (const [file, html, label] of [
+    ['index.html', homepage, 'Illustrative read-only GitHub workflow'],
+    ['guides/runtime/index.html', runtimeGuide, 'Illustrative PR read script']
+]) {
+    const script = html.match(new RegExp(`<pre\\b[^>]*aria-label="${label}"[^>]*><code>([\\s\\S]*?)</code>`))?.[1];
+    if (script !== prReadScript) failures.push(`${file}: PR read script must pipe the structured object directly to jq`);
+}
+const workflowSection = runtimeGuide.split('id="workflow"')[1]?.split('</section>')[0] ?? '';
+if (!workflowSection.includes('<code>{"title":"Fix the build","state":"open"}</code>')) {
+    failures.push('runtime guide: missing expected PR projection result');
+}
+const whatsNew = await readFile(path.join(outputDirectory, 'whats-new/index.html'), 'utf8');
+const installSection = whatsNew.match(/<section\b[^>]*id="install"[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? '';
+if (!installSection.includes('id="get-latest"') || !installSection.includes('href="/deploy/"')) {
+    failures.push('whats-new: legacy #get-latest must belong to the installation section with install options');
+}
+
+const moves = JSON.parse(await readFile('src/_data/routeMoves.json', 'utf8'));
+const legacy = JSON.parse(await readFile('scripts/fixtures/legacy-fragments.json', 'utf8'));
+for (const [route, ids] of Object.entries(legacy)) {
+    if (!moves[route]) failures.push(`lost legacy route ${route}`);
+    for (const id of ids) if (!moves[route]?.fragments[id]) failures.push(`lost legacy fragment ${route}#${id}`);
+}
+for (const [old, move] of Object.entries(moves)) {
+    const html = await readFile(path.join(outputDirectory, old, 'index.html'), 'utf8');
+    if (!html.includes(`href="https://dekopon-agents.github.io${move.target.split('#')[0]}"`)) failures.push(`${old}: wrong canonical`);
+    if (!html.includes(`data-move-default href="${move.target}"`)) failures.push(`${old}: missing fallback`);
+    for (const [id, target] of Object.entries(move.fragments)) {
+        if (!html.includes(`id="${id}" data-move-fragment href="${target}"`)) failures.push(`${old}#${id}: missing section mapping`);
+    }
+}
+const sitemap = await readFile(path.join(outputDirectory, 'sitemap.xml'), 'utf8');
+for (const route of ['/how-it-works/', '/guides/access/', '/guides/runtime/', '/guides/traces/']) {
+    if (!sitemap.includes(route)) failures.push(`sitemap missing ${route}`);
+}
+if (sitemap.includes('/almanac/')) failures.push('sitemap contains retired chapter URLs');
 
 for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");
