@@ -194,15 +194,10 @@ const contracts = {
     'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
     'whats-new/index.html': ['scope: private-conversation', 'idle-ttl', 'progressNotes: true', 'liveness.statusText: true']
 };
-// whats-new is exempt from the identityMappings/chatScopes ban below: its migration
-// note names the retired keys on purpose, for someone searching for what replaced them.
-const retiredExemptions = { 'whats-new/index.html': ['identityMappings', 'chatScopes'] };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
     for (const text of strings) if (!html.includes(text)) failures.push(`${file}: missing mechanism/limit ${text}`);
-    const exempt = retiredExemptions[file] ?? [];
-    for (const retired of ['breadth: transportWide', 'allowDevelopmentSubjects', 'dev.console.', 'The model never sees the bytes', 'identityMappings', 'chatScopes']) {
-        if (exempt.includes(retired)) continue;
+    for (const retired of ['breadth: transportWide', 'allowDevelopmentSubjects', 'dev.console.', 'The model never sees the bytes']) {
         if (html.includes(retired)) failures.push(`${file}: retired contract ${retired}`);
     }
     if (html.includes('article-rail') || html.includes('<details')) failures.push(`${file}: obsolete essay scaffolding`);
