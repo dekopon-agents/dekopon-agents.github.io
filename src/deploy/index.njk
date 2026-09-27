@@ -52,6 +52,6 @@ ogType: article
 <p><a class="button button-primary" href="/deploy/kubernetes/">Kubernetes installation →</a>
 </p>
 <p>Application <a href="{{ release.url }}">{{ release.tag }}</a> and the chart are independently versioned. Both Linux arm64 and amd64 images are published; source availability is not evidence of a healthy deployment.</p>
-<p>Writing a provider rather than running an agent? Use the <a href="/guides/provider-sdk/">SDK guide</a>. The <a href="https://github.com/dekopon-agents/dekopon-console">separate console repository</a> is an optional client, not a third daemon.</p>
+<p>Writing a provider rather than running an agent? Use the <a href="/guides/provider-sdk/">SDK guide</a>. The <a href="https://github.com/dekopon-agents/dekopon-console">separate console repository</a> is an optional client, not a third daemon; the chart can also run it as an idle in-pod container for <code>kubectl exec</code>, credential-free. <a href="/deploy/kubernetes/#pod">Console container</a>.</p>
 </section>
 </article>

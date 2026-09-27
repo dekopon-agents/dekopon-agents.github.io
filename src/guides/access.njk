@@ -23,8 +23,8 @@ ogType: article
 </div>
 <div class="map-zone broker-zone">
 <h3>Broker-owned identity configuration</h3>
-<p>Socket peer UID → configured attestor → namespace + conversation grant</p>
-<p>Attested subject → <code>identityMappings</code> → Cedar principal</p>
+<p>Socket peer UID → configured attestor → namespace grant</p>
+<p>Attested subject → <code>principals</code> → Cedar principal</p>
 <p>Cedar receives principal, action, resource and broker-built context—not a principal selected by the model.</p>
 </div>
 <figcaption>The socket authenticates the local process separately from the chat identity assertion. The chart’s broker probes use UID 65532, not the gateway identity.</figcaption>
@@ -60,22 +60,18 @@ ogType: article
 </tbody>
 </table>
 </div>
-<p><strong>A compromised gateway can speak for its whole attestor lane.</strong> Restrict both namespace and conversation scope. The local development transport accepts a caller-declared supported subject; it does not independently authenticate the sender.</p>
+<p><strong>A compromised gateway can speak for its whole attestor lane.</strong> Restrict the namespace grant, then narrow conversation scope in the Cedar policies that grant capabilities. The local development transport accepts a caller-declared supported subject; it does not independently authenticate the sender.</p>
 <h3>Chart-aligned mapping excerpt</h3>
-<p>This is part of <code>broker.yaml</code>, not a complete configuration. The all-conversations selector below is intentionally broad; narrow it for your deployment.</p>
+<p>This is part of <code>broker.yaml</code>, not a complete configuration. An attestor without <code>namespaces</code> speaks for exactly its mapped subjects; the one below is intentionally broad for a whole Slack workspace, so narrow it for your deployment.</p>
 <pre tabindex="0" aria-label="Illustrative broker identity excerpt"><code>identities:
   - uid: 65533
     principal: chat-gateway
     actor: { type: service, principal: chat-gateway }
     attestor:
       namespaces: [slack.t0123abcd]
-      chatScopes:
-        - kind: slack
-          transport: workspace-slack
-          conversation: { kind: any }
-identityMappings:
-  - subject: slack.t0123abcd.u0123abcd
-    principal: alice</code>
+principals:
+  alice:
+    subjects: [slack.t0123abcd.u0123abcd]</code>
 </pre>
 </section>
 <section id="policy">

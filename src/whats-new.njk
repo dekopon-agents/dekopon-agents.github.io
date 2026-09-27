@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: Files cross as descriptors — Dekopon
-pageDescription: The current release moves asset payloads out of broker JSON frames and adds bounded streaming between provider handles and native HTTP.
+pageTitle: Storage scopes and progress notes — Dekopon
+pageDescription: 0.25.0 gives provider storage a scope and an optional idle expiry, and gives a run a bounded way to post its own progress.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,13 +10,13 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>Files cross as descriptors</h1>
-<p>The current release moves asset payloads out of broker JSON frames and adds bounded streaming between provider handles and native HTTP.</p>
+<h1>Storage scopes and progress notes</h1>
+<p>The current release gives provider storage a scope and an optional idle expiry, and gives a run a narrow bounded way to post what it's doing.</p>
 </header>
 <p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ release.sourceUrl }}">{{ release.shortRevision }}</a>
 </p>
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span>
-<h2>Three changes to file handling</h2>
+<h2>Three changes to storage and progress notes</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Change comparison">
 <table>
 <thead>
@@ -27,38 +27,39 @@ ogType: article
 </thead>
 <tbody>
 <tr>
-<th scope="row">Descriptor transport</th>
-<td data-label="Practical consequence">The gateway passes read-only descriptors over the local Unix socket. Wasm receives handles; bounded guest reads still copy bytes.</td>
+<th scope="row">Storage scopes</th>
+<td data-label="Practical consequence"><code>private-conversation</code> keeps today’s per-subject default. <code>shared-conversation</code> and <code>agent</code> give a provider stable storage across authorized callers without sharing gateway conversation history; every caller is still authorized individually.</td>
 </tr>
 <tr>
-<th scope="row">Streamed HTTP bodies</th>
-<td data-label="Practical consequence">Native HTTP encodes and hashes exact-length uploads. Each asset occurrence counts toward decoded-content ceilings.</td>
+<th scope="row">Idle retention</th>
+<td data-label="Practical consequence">Opt a provider/scope into <code>retention: {mode: idle-ttl, idleTtlMs: &lt;ms&gt;}</code> and the broker sweeps expired resources at startup and every 12 hours, skipping active leases. The default stays <code>{mode: keep}</code>, so nothing already stored gains a clock.</td>
 </tr>
 <tr>
-<th scope="row">Separate disk volume</th>
-<td data-label="Practical consequence">Chart {{ release.chart.publishedVersion }} provisions a broker-only 320Mi asset volume; custom broker config must name it explicitly.</td>
+<th scope="row">Progress notes</th>
+<td data-label="Practical consequence">The shell’s <code>progress "text"</code> builtin, a route’s <code>progressNotes: true</code>, and Slack Agent’s <code>liveness.statusText: true</code> let a run post one short status line without that text becoming the answer.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
 <section id="migration"><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>Upgrade core, providers and configuration together.</h2>
-<p>Rebuild asset-producing providers for the current <code>dekopon:asset</code> interfaces before relying on file workflows. Old base64 attachment result envelopes are refused. <code>providerAttachments</code> and <code>chatAssetInputs</code> no longer parse, even when empty.</p>
-<p>References resolve automatically, but delivery requires an <code>asset.send</code> grant. Attach retains a file; it does not send it. <a href="/guides/runtime/#assets">Files and delivery limits</a>.</p>
-<p><code>maxHttpRequestBytes</code> covers request metadata and literal body parts; assets have decoded-content accounting. Disk retention counts stored bytes instead. <a href="/deploy/kubernetes/#state">Configure the asset volume and broker path</a>.</p>
+<h2>Every broker storage constraint needs one edit.</h2>
+<p>Replace <code>namespace: chat</code> with <code>scope: private-conversation</code> before the 0.25.0 broker starts — the old key is refused, not translated. Existing private-conversation data keeps its authority-bound continuity and is found unchanged. <a href="{{ source }}/crates/dekopon-brokerd/README.md#optional-provider-storage-and-chat-memory">Provider storage contract ↗</a>.</p>
+<p>Coming from before 0.22.0? <code>identityMappings</code> is now <code>principals</code>; <code>chatScopes</code> is gone, with conversation narrowing moved into the Cedar policies that grant capabilities; and <code>constraintSets</code>/<code>credentialByAgent</code> are now per-provider <code>capabilities</code> blocks plus <code>agents.&lt;agent&gt;.credentials</code>. Every Cedar statement needs an <code>@id</code>. Run the new offline <code>dekopon-brokerd check</code> and <code>dekopond check</code> against edited files before rolling either daemon. <a href="/guides/access/#identity">Current identity example</a> · <a href="{{ source }}/docs/upgrading.md">Full upgrade steps ↗</a>
+</p>
+<p>Six releases landed between here and v0.18.0. The headline items: per-message steering that interrupts only the running model call (v0.24.0), and an OpenRouter model kind beside the existing OpenAI-compatible and ChatGPT clients (v0.20.0). <a href="{{ source }}/CHANGELOG.md">Full changelog ↗</a>
+</p>
 </section>
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
-<h2>What this release does not change</h2>
-<p>Model image requests still carry image data; this is not end-to-end zero-copy transport. Asset references and queued sends do not survive restart. Check independently versioned providers for compatible asset support rather than treating a core release as their publication.</p>
-<p>Telemetry payload attributes stop at 4096 bytes and retain full-length byte counts. Model request bodies use compact encoding with Content-Length; the model leg still allocates image data. <a href="/guides/traces/#privacy">Telemetry visibility</a>.</p>
-<p>The release’s image-memory experiment used a measurement-only provider build, not the published gpt-image component. It is not a reproducible shipping-workflow benchmark or a per-request memory guarantee.</p>
+<h2>Retention deletes; it doesn’t back anything up.</h2>
+<p>An idle-TTL sweep only removes storage nobody has touched inside the window you set — there is no export, no encryption at rest, and JSONL dedup stays permanent until its own record/byte cap.</p>
+<p>A progress note is presentation, not authority: the model supplies no coordinate, emoji, or cadence, and every line is assembled from operator templates and the run’s own counters. Liveness failures carry only low-cardinality categories and never touch the answer. <a href="/guides/traces/#privacy">Telemetry visibility</a>.</p>
 </section>
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
 <h2>Get the application or chart.</h2>
 <p>Application <strong>{{ release.tag }}</strong> and chart <strong>{{ release.chart.publishedVersion }}</strong> are separate packages. The published chart deploys application <strong>{{ release.chart.publishedAppVersion }}</strong>.</p>
 <p><a class="button button-primary" href="/deploy/">Install options →</a> <a href="/guides/provider-sdk/#start">Provider build and test steps</a>
 </p>
-<p>Previous: <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.17.0">v0.17.0 — disk-backed images and compiled Wasm ↗</a>.</p>
+<p>Previous: <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.24.0">v0.24.0 — same-sender steering interrupts a running turn ↗</a>.</p>
 </section>
 </article>
