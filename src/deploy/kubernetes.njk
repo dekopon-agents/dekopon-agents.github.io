@@ -71,6 +71,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 <figcaption id="pod-caption">Both daemons → stdout / optional OTLP collector. Inbound routing and TLS are operator-owned; no Service or Ingress is created by default. The gateway is off in the smoke installation above.</figcaption>
 </figure>
 <p>The same kernel and shared socket are required for peer authentication and descriptor passing. Do not split this into remote broker/gateway Deployments or scale replicas against the same state. Daemons have read-only roots, no added capabilities and RuntimeDefault seccomp; this is not a production-hardening claim.</p>
+<p><code>console.enabled: true</code> (chart {{ release.chart.publishedVersion }}) adds one more idle container to the same pod: UID 65535, IPC group only, no credentials, for <code>kubectl exec -it … -c console -- dekopon-console</code>. It needs <code>gateway.enabled</code>, a pinned <code>console.image</code>, and its own broker attestor grant for <code>console.subject</code>.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Resource default comparison">
 <table>
 <thead>

@@ -47,6 +47,10 @@ ogType: article
 <th scope="row">Rejected operations</th>
 <td data-label="Dekopon behavior">Process substitution, subshells and job control are rejected, as are eval, exec, source and export.</td>
 </tr>
+<tr>
+<th scope="row">Progress notes</th>
+<td data-label="Dekopon behavior"><code>progress "text" [--eta S]</code> is a reserved builtin: a no-op unless the route sets <code>progressNotes: true</code>, and refused at provider load if a component tries to declare the same word.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -170,7 +174,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tbody>
 </table>
 </div>
-<p>Asset-producing providers must implement the current asset interfaces; old base64 result envelopes are refused. Do not treat the published image provider’s older data-URL examples as a working descriptor recipe. <a href="/whats-new/#migration">Release migration</a>.</p>
+<p>Asset-producing providers must implement the current asset interfaces; old base64 result envelopes are refused. Do not treat the published image provider’s older data-URL examples as a working descriptor recipe. <a href="{{ source }}/docs/upgrading.md#asset-handles-0180">Provider migration notes ↗</a>.</p>
 <p><a href="/guides/provider-sdk/#interfaces">Implement asset I/O</a> · <a href="/deploy/kubernetes/#state">Size temporary volumes</a> · <a href="{{ source }}/crates/dekopon-shell/README.md">Read the shell contract ↗</a> · <a href="{{ source }}/crates/dekopon-provider-sdk/src/asset.rs">Asset API ↗</a>
 </p>
 </section>

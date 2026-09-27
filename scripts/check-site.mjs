@@ -188,11 +188,11 @@ for (const child of ["policy", "host", "credential"]) {
 // Consolidated pages keep distinct mechanisms instead of six overlapping chapters.
 const contracts = {
     'how-it-works/index.html': ['dekopond', 'dekopon-brokerd', 'Unix socket', 'not a multi-tenant'],
-    'guides/access/index.html': ['uid: 65533', 'conversation: { kind: any }', 'agent.prompt', 'gh.pull-request.comment', 'secret.use', 'intent', 'endpoint receives'],
+    'guides/access/index.html': ['uid: 65533', 'principals:', 'subjects: [slack.t0123abcd.u0123abcd]', 'agent.prompt', 'gh.pull-request.comment', 'secret.use', 'intent', 'endpoint receives'],
     'guides/runtime/index.html': ['not complete Bash/POSIX', 'non-yielding jq', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
     'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopond', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
     'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
-    'whats-new/index.html': ['providerAttachments', 'chatAssetInputs', 'measurement-only', 'not end-to-end zero-copy']
+    'whats-new/index.html': ['scope: private-conversation', 'idle-ttl', 'progressNotes: true', 'liveness.statusText: true']
 };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
