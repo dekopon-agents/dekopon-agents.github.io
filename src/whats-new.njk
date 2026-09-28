@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: Storage scopes and progress notes — Dekopon
-pageDescription: 0.25.0 gives provider storage a scope and an optional idle expiry, and gives a run a bounded way to post its own progress.
+pageTitle: Provider --help, builtin --help, and a sturdier journal — Dekopon
+pageDescription: 0.26.0 bakes provider and builtin --help into the prompt, adds an efficiency suggestion category, and hardens the journal behind WhatsApp recall.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,13 +10,13 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>Storage scopes and progress notes</h1>
-<p>The current release gives provider storage a scope and an optional idle expiry, and gives a run a narrow bounded way to post what it's doing.</p>
+<h1>Provider <code>--help</code>, builtin <code>--help</code>, and a sturdier journal</h1>
+<p>The model can read a provider's <code>--help</code> and a builtin's <code>--help</code> before it runs either, and the journal behind WhatsApp's conversation recall survives a restart without losing attachments.</p>
 </header>
 <p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ release.sourceUrl }}">{{ release.shortRevision }}</a>
 </p>
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span>
-<h2>Three changes to storage and progress notes</h2>
+<h2>Five changes to providers, builtins, and the journal</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Change comparison">
 <table>
 <thead>
@@ -27,39 +27,45 @@ ogType: article
 </thead>
 <tbody>
 <tr>
-<th scope="row">Storage scopes</th>
-<td data-label="Practical consequence"><code>private-conversation</code> keeps today’s per-subject default. <code>shared-conversation</code> and <code>agent</code> give a provider stable storage across authorized callers without sharing gateway conversation history; every caller is still authorized individually.</td>
+<th scope="row">Provider <code>--help</code> in the prompt</th>
+<td data-label="Practical consequence">Every reachable provider command word's <code>--help</code> page renders once at broker load and rides the <code>bash</code> tool description as a new <code>command_word_help</code> field on the <code>Capabilities</code> frame — no per-session round trip, no liveness flash, capped around 2 KiB per word. Roll <code>dekopon-brokerd</code> and <code>dekopond</code> together; an old gateway refuses the frame outright.</td>
 </tr>
 <tr>
-<th scope="row">Idle retention</th>
-<td data-label="Practical consequence">Opt a provider/scope into <code>retention: {mode: idle-ttl, idleTtlMs: &lt;ms&gt;}</code> and the broker sweeps expired resources at startup and every 12 hours, skipping active leases. The default stays <code>{mode: keep}</code>, so nothing already stored gains a clock.</td>
+<th scope="row">Builtin <code>--help</code></th>
+<td data-label="Practical consequence">Any shell builtin answers <code>--help</code> when it's the script's literal, unexpanded only argument, naming the flags it accepts — the same accepted subset an <code>unsupported_flag</code> refusal already lists.</td>
 </tr>
 <tr>
-<th scope="row">Progress notes</th>
-<td data-label="Practical consequence">The shell’s <code>progress "text"</code> builtin, a route’s <code>progressNotes: true</code>, and Slack Agent’s <code>liveness.statusText: true</code> let a run post one short status line without that text becoming the answer.</td>
+<th scope="row"><code>efficiency</code> suggestions</th>
+<td data-label="Practical consequence"><code>suggest_improvement</code>'s <code>category</code> gains <code>efficiency</code>: a note about a workaround, a retry loop, or a multi-step dance one capability would have collapsed — the awkward path a session took even after succeeding, not just its failures.</td>
+</tr>
+<tr>
+<th scope="row">A journal that survives restarts</th>
+<td data-label="Practical consequence"><code>sessions.journal.maxBytes</code> is gone; a journal file now expires only after sitting unwritten longer than its longest route's <code>forgetAfterMs</code>. Lines carry the whole attachment inventory and drop the old 64 KiB text cap. This is WhatsApp's only recall path — it has no platform history to fall back on.</td>
+</tr>
+<tr>
+<th scope="row">The chart owns provider sync</th>
+<td data-label="Practical consequence">Optional <code>broker.providerSync</code> hook Job runs <code>dekopon-brokerd provider sync</code> from a ConfigMap's <code>providers.yaml</code> into <code>broker.providerSet</code>, using the Deployment's own image. On Argo CD it needs a <code>Sync</code> wave, not Helm's pre-install/pre-upgrade hook.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
 <section id="migration"><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>Every broker storage constraint needs one edit.</h2>
-<p>Replace <code>namespace: chat</code> with <code>scope: private-conversation</code> before the 0.25.0 broker starts — the old key is refused, not translated. Existing private-conversation data keeps its authority-bound continuity and is found unchanged. <a href="{{ source }}/crates/dekopon-brokerd/README.md#optional-provider-storage-and-chat-memory">Provider storage contract ↗</a>.</p>
-<p>Coming from before 0.22.0? <code>identityMappings</code> is now <code>principals</code>; <code>chatScopes</code> is gone, with conversation narrowing moved into the Cedar policies that grant capabilities; and <code>constraintSets</code>/<code>credentialByAgent</code> are now per-provider <code>capabilities</code> blocks plus <code>agents.&lt;agent&gt;.credentials</code>. Every Cedar statement needs an <code>@id</code>. Run the new offline <code>dekopon-brokerd check</code> and <code>dekopond check</code> against edited files before rolling either daemon. <a href="/guides/access/#identity">Current identity example</a> · <a href="{{ source }}/docs/upgrading.md">Full upgrade steps ↗</a>
-</p>
-<p>Six releases landed between here and v0.18.0. The headline items: per-message steering that interrupts only the running model call (v0.24.0), and an OpenRouter model kind beside the existing OpenAI-compatible and ChatGPT clients (v0.20.0). <a href="{{ source }}/CHANGELOG.md">Full changelog ↗</a>
+<h2>Six config keys break on upgrade.</h2>
+<p>Delete these before the 0.26.0 daemons will start: <code>sessions.journal.maxBytes</code>, <code>chatMemory.maxDedupRecords</code>, <code>chatMemory.maxDedupBytes</code>, <code>improvementSuggestions</code>, and Slack's <code>liveness.stream: true</code> (only <code>false</code> is accepted now). Rename <code>storage.maxPendingTransactions</code> to <code>storage.maxActiveInvocations</code>; the value keeps its default of 64. Every one of these is refused as an unknown or invalid field, not silently ignored.</p>
+<p>Order matters. Roll <code>dekopon-brokerd</code> and <code>dekopond</code> together for the new <code>command_word_help</code> frame. Upgrade <code>turso-sql</code> to 0.5.0 <strong>before</strong> the broker — the removed durable-files lock ladder refuses any component still importing it, taking the whole provider set down with it. Pin <code>memory-chat</code> to 0.5.0 in the same restart as the broker, or every <code>memory.chat.record</code> call fails until you do. <a href="{{ source }}/docs/upgrading.md">Full upgrade steps ↗</a> · <a href="{{ source }}/CHANGELOG.md">Full changelog ↗</a>
 </p>
 </section>
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
-<h2>Retention deletes; it doesn’t back anything up.</h2>
-<p>An idle-TTL sweep only removes storage nobody has touched inside the window you set — there is no export, no encryption at rest, and JSONL dedup stays permanent until its own record/byte cap.</p>
-<p>A progress note is presentation, not authority: the model supplies no coordinate, emoji, or cadence, and every line is assembled from operator templates and the run’s own counters. Liveness failures carry only low-cardinality categories and never touch the answer. <a href="/guides/traces/#privacy">Telemetry visibility</a>.</p>
+<h2>Redelivery isn't deduplicated anymore.</h2>
+<p>WhatsApp's <code>ClaimedIds</code> ring and Discord's <code>SeenIds</code> ring are both gone. A WhatsApp retry that lands while the original turn is still running joins it as a steer; one that lands after the turn finished starts a fresh turn and answers twice — an accepted cost, not a bug. Discord's own gateway resume already caught that duplicate, so nothing changes there. Chat-memory's <code>record</code> no longer dedups either: a redelivered message is a second stored turn.</p>
+<p>Slack stopped streaming the answer. Wait on live tokens over <code>slackSocketMode</code> and you'll get the progress message instead, or on Agent installations, <code>liveness.statusText</code>. Discord, Telegram, and the local transport still stream. And a pre-0.26 journal file isn't upgraded — the first recall after this release deletes it and starts empty, with nothing prior merged in.</p>
 </section>
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
 <h2>Get the application or chart.</h2>
 <p>Application <strong>{{ release.tag }}</strong> and chart <strong>{{ release.chart.publishedVersion }}</strong> are separate packages. The published chart deploys application <strong>{{ release.chart.publishedAppVersion }}</strong>.</p>
 <p><a class="button button-primary" href="/deploy/">Install options →</a> <a href="/guides/provider-sdk/#start">Provider build and test steps</a>
 </p>
-<p>Previous: <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.24.0">v0.24.0 — same-sender steering interrupts a running turn ↗</a>.</p>
+<p>Previous: <a href="https://github.com/dekopon-agents/dekopon/releases/tag/v0.25.0">v0.25.0 — storage scopes and progress notes ↗</a>.</p>
 </section>
 </article>

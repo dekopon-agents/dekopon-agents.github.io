@@ -192,7 +192,7 @@ const contracts = {
     'guides/runtime/index.html': ['not complete Bash/POSIX', 'non-yielding jq', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
     'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopond', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
     'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
-    'whats-new/index.html': ['scope: private-conversation', 'idle-ttl', 'progressNotes: true', 'liveness.statusText: true']
+    'whats-new/index.html': ['command_word_help', 'sessions.journal.maxBytes', 'maxActiveInvocations', 'broker.providerSync', 'ClaimedIds']
 };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
