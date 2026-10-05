@@ -156,10 +156,15 @@ const guideMain = providerGuide.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ??
 for (const id of ["provider-map", "interfaces", "start"]) {
     if (!guideMain.includes(`id="${id}"`)) failures.push(`provider guide: missing #${id}`);
 }
-for (const retired of ["article-rail", "almanac-article-number", 'id="coding-agent-prompt"', "export_provider!", "export_provider_with_bindings!", "resolve-command", "<details"]) {
+for (const retired of ["article-rail", "almanac-article-number", 'id="coding-agent-prompt"', "<details"]) {
     if (guideMain.includes(retired)) failures.push(`provider guide: retired tutorial structure/API ${retired}`);
 }
-for (const required of ["run_command()", "invoke()", "export_provider_with_cli!", "stream", "attaching does not send", "Not a policy test", "transformed reflection", "a_command_word_renders_its_help_page_and_proposes"]) {
+// Historical API names may explain a migration; runnable examples must stay current.
+const guideExamples = [...guideMain.matchAll(/<pre\b[^>]*>([\s\S]*?)<\/pre>/g)].map((match) => match[1]).join("\n");
+for (const retired of ["export_provider!", "export_provider_with_bindings!", "export_provider_with_cli!", "resolve-command"]) {
+    if (guideExamples.includes(retired)) failures.push(`provider guide: runnable example uses retired API ${retired}`);
+}
+for (const required of ["run_command()", "invoke()", "export!(CliProbe)", "stream", "attaching does not send", "Not a policy test", "transformed reflection", "conformance_accepts_checked_cli_probe", "real_component_captures_piped_bytes_and_status", "closed_real_stdout_reader_terminates_producer_early", "141"]) {
     if (!guideMain.includes(required)) failures.push(`provider guide: missing contract/check ${required}`);
 }
 if (!guideMain.includes(`--branch ${release.tag}`) || !guideMain.includes(`${release.sourceUrl}/examples/providers/cli-probe`)) {
@@ -187,12 +192,13 @@ for (const child of ["policy", "host", "credential"]) {
 
 // Consolidated pages keep distinct mechanisms instead of six overlapping chapters.
 const contracts = {
-    'how-it-works/index.html': ['dekopond', 'dekopon-brokerd', 'Unix socket', 'not a multi-tenant'],
+    'how-it-works/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', 'Unix socket', 'not a multi-tenant'],
     'guides/access/index.html': ['uid: 65533', 'principals:', 'subjects: [slack.t0123abcd.u0123abcd]', 'agent.prompt', 'gh.pull-request.comment', 'secret.use', 'intent', 'endpoint receives'],
-    'guides/runtime/index.html': ['not complete Bash/POSIX', 'non-yielding jq', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
-    'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopond', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
+    'guides/runtime/index.html': ['not complete Bash/POSIX', 'Pipeline stages exchange bytes', 'isolated scope snapshots', 'worker subprocess', 'limits.jobTimeoutMs', 'metering.budgets', 'dekopon:spawn/run@0.1.0', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
+    'inference/index.html': ['modelClass', 'metering.budgets', 'metering.restore', 'guest proxy', 'not a dollar cap'],
+    'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopon-gatewayd', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
     'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
-    'whats-new/index.html': ['command_word_help', 'sessions.journal.maxBytes', 'maxActiveInvocations', 'broker.providerSync', 'ClaimedIds']
+    'whats-new/index.html': ['dekopon-gatewayd', 'provider@0.4.0', 'dekopon:spawn', 'limits.jobTimeoutMs', 'provider precompile', 'dekopon.dev/gatewayd/v1alpha1']
 };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
@@ -202,8 +208,8 @@ for (const [file, strings] of Object.entries(contracts)) {
     }
     if (html.includes('article-rail') || html.includes('<details')) failures.push(`${file}: obsolete essay scaffolding`);
 }
-// Echo stringifies structured values; keep the PR object directly in the jq pipeline.
-// This exact script is checked against the pinned interpreter with a mock PR result.
+// Keep the documented PR workflow aligned on the homepage and runtime guide.
+// Providers write JSON bytes; jq consumes the pipeline and emits the projection.
 const prReadScript = "set -e\nset -o pipefail\ngh pr view 7 -R owner/repo | jq '{title, state}'";
 const runtimeGuide = await readFile(path.join(outputDirectory, 'guides/runtime/index.html'), 'utf8');
 for (const [file, html, label] of [
@@ -238,7 +244,7 @@ for (const [old, move] of Object.entries(moves)) {
     }
 }
 const sitemap = await readFile(path.join(outputDirectory, 'sitemap.xml'), 'utf8');
-for (const route of ['/how-it-works/', '/guides/access/', '/guides/runtime/', '/guides/traces/']) {
+for (const route of ['/how-it-works/', '/guides/access/', '/guides/runtime/', '/inference/', '/guides/traces/']) {
     if (!sitemap.includes(route)) failures.push(`sitemap missing ${route}`);
 }
 if (sitemap.includes('/almanac/')) failures.push('sitemap contains retired chapter URLs');

@@ -22,7 +22,7 @@ ogType: article
 <p>Messages and replies · prompts and tool results</p>
 </div>
 <div class="map-zone">
-<h3>Gateway · dekopond</h3>
+<h3>Gateway · dekopon-gatewayd</h3>
 <p>Conversation history, attachment spool and controlled shell interpreter</p>
 <p><code>bash({ script })</code> dispatches builtins locally and provider commands over the socket.</p>
 </div>
@@ -30,10 +30,10 @@ ogType: article
 <div class="map-zone broker-zone">
 <h3>Broker · dekopon-brokerd</h3>
 <p>Peer/subject mapping → Cedar decision → fresh Wasm invocation</p>
-<p>Native HTTP, storage and asset services enforce separate execution constraints.</p>
+<p>Native HTTP, storage and asset services enforce separate execution constraints. Providers can also request bounded child scripts; those return to the gateway on the caller’s existing budget and trace.</p>
 <p>Provider credential → native HTTP → allowed remote endpoint</p>
 </div>
-<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway. Both processes send telemetry to your collection backend.</figcaption>
+<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway; an optional guest model proxy meters authorized guest calls there. Both processes send telemetry to your collection backend.</figcaption>
 </figure>
 <p>These are local processes joined by a protected Unix socket, not a multi-tenant network service. Wasmtime runs inside the broker process; a runtime vulnerability or compromised broker host defeats that boundary.</p>
 </section>

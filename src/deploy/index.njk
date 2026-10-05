@@ -28,7 +28,7 @@ ogType: article
 <tr>
 <th scope="row">macOS arm64 / Linux</th>
 <td data-label="Get the application"><code>brew install dekopon-agents/tap/dekopon</code><br>Or download an <a href="{{ release.url }}">attested release archive</a>.</td>
-<td data-label="Next step">Run <code>dekopond --help</code> and <code>dekopon-brokerd --help</code>, then use the <a href="{{ source }}/crates/dekopon-brokerd/README.md">local configuration example ↗</a>.</td>
+<td data-label="Next step">Run <code>dekopon-gatewayd --help</code> and <code>dekopon-brokerd --help</code>, then use the <a href="{{ source }}/crates/dekopon-brokerd/README.md">local configuration example ↗</a>.</td>
 </tr>
 <tr>
 <th scope="row">Linux container host</th>
@@ -46,9 +46,14 @@ ogType: article
 </table>
 </div>
 </section>
+<section id="upgrade">
+<h2>The gateway executable is now <code>dekopon-gatewayd</code>.</h2>
+<p>Upgrade both daemons together. The old <code>dekopond</code> name has no alias; gateway configuration, environment names and the chart’s mount paths also changed. <a href="/deploy/kubernetes/#upgrade">Use the migration checklist</a> before restarting an existing installation.</p>
+</section>
 <section id="configure">
 <h2>Installation is not a configured agent.</h2>
-<p>The gateway needs a chat transport, model endpoint and agent catalog. The broker needs providers plus identity, policy and execution constraints. Supply credentials only to their owning process and configure telemetry collection before giving the agent useful access.</p>
+<p>The gateway needs a chat transport, model endpoint and agent catalog. The broker needs explicitly installed providers plus identity, policy and execution constraints. The container includes only the in-tree <code>cli-probe</code> and <code>http-probe</code> components; install reviewed out-of-tree providers yourself. Supply credentials only to their owning process and configure telemetry collection before giving the agent useful access.</p>
+<p>Validate authored files with <code>dekopon-gatewayd check gatewayd.yaml --catalog agents.d</code> and <code>dekopon-brokerd check broker.yaml</code> before deployment. A managed broker check also needs <code>--provider-set</code> and a private <code>--store</code>; it may fetch its pinned components. Checks stop before opening the socket or loading runtime credentials, so they do not prove that credentials or external services work. Managed deployment sets also need <a href="/deploy/kubernetes/#providers">sync and precompile</a>.</p>
 <p><a class="button button-primary" href="/deploy/kubernetes/">Kubernetes installation →</a>
 </p>
 <p>Application <a href="{{ release.url }}">{{ release.tag }}</a> and the chart are independently versioned. Both Linux arm64 and amd64 images are published; source availability is not evidence of a healthy deployment.</p>

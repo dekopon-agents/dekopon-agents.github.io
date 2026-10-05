@@ -2,5 +2,10 @@
   "versions": {
     "rust": "1.98.1",
     "wasmTools": "1.259.0"
+  },
+  "interfaces": {
+    "provider": "dekopon:provider/provider-cli@0.4.0",
+    "stdio": "dekopon:stdio/streams@0.1.0",
+    "http": "dekopon:http/client@1.1.0"
   }
 }

@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 pageTitle: Shell workflows and files — Dekopon
-pageDescription: Reuse familiar shell patterns inside Dekopon’s interpreter; pass structured values and file references rather than host paths.
+pageDescription: Run byte pipelines in Dekopon’s controlled interpreter, with bounded jobs and invocation-scoped file handles.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -11,13 +11,13 @@ ogType: article
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
 <h1>Shell workflows and files</h1>
-<p>Reuse familiar shell patterns inside Dekopon’s interpreter; pass structured values and file references rather than host paths.</p>
+<p>Run byte pipelines in Dekopon’s controlled interpreter, with bounded jobs and invocation-scoped file handles.</p>
 </header>
-<nav class="guide-jumps" aria-label="On this page"><a href="#shell">Shell differences</a><a href="#workflow">PR read example</a><a href="#limits">Runtime limits</a><a href="#assets">Files and delivery</a>
+<nav class="guide-jumps" aria-label="On this page"><a href="#shell">Shell differences</a><a href="#workflow">PR read example</a><a href="#jobs">Jobs and child scripts</a><a href="#limits">Runtime limits</a><a href="#agents">Skills and models</a><a href="#assets">Files and delivery</a>
 </nav>
 <section id="shell">
 <h2>Provider commands share a scripting tool.</h2>
-<p>The model submits <code>bash({ script })</code>. Builtins run in the gateway; installed provider command words dispatch to broker-hosted Wasm. Other model tools may also be configured—the whole interface is not limited to one tool.</p>
+<p>The model submits <code>bash({ script })</code>. The gateway interprets the script; installed provider command words dispatch to broker-hosted Wasm. Other model tools may also be configured—the whole interface is not limited to one tool.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Shell habit comparison">
 <table>
 <thead>
@@ -29,15 +29,23 @@ ogType: article
 <tbody>
 <tr>
 <th scope="row">Variables and pipes</th>
-<td data-label="Dekopon behavior">Values are JSON: arrays and objects survive assignment and pipelines. Provider stdin renders strings verbatim and other values as compact JSON.</td>
+<td data-label="Dekopon behavior">Pipeline stages exchange bytes through bounded pipes, including trailing newlines. <code>echo hi | wc -c</code> returns <code>3</code>. Providers read and write byte streams; a downstream close stops a provider producer with status <code>141</code>.</td>
 </tr>
 <tr>
 <th scope="row">Loops, functions and conditionals</th>
-<td data-label="Dekopon behavior">Supported, along with command substitution and set -e / -u / -o pipefail. Pipeline stages share scope; this is not complete Bash/POSIX compatibility.</td>
+<td data-label="Dekopon behavior">Supported, along with <code>set -e</code>, <code>-u</code> and <code>-o pipefail</code>. The last pipeline stage keeps its assignments; non-final stages run from isolated scope snapshots. This is not complete Bash/POSIX compatibility.</td>
 </tr>
 <tr>
 <th scope="row">Redirection</th>
-<td data-label="Dekopon behavior">Named in-memory buffers, not host files. cat reads those buffers. No inherited process environment or arbitrary executables.</td>
+<td data-label="Dekopon behavior">Named in-memory buffers preserve exact bytes, including binary data; <code>cat</code> copies them. Piped input is consumed once: <code>echo x | { cat; cat; }</code> prints <code>x</code> once. No host paths or inherited process environment.</td>
+</tr>
+<tr>
+<th scope="row">JSON and text</th>
+<td data-label="Dekopon behavior"><code>jq</code> reads JSON bytes and emits one compact JSON result per line; <code>-r</code> emits strings without quotes, <code>-n</code> ignores stdin, and <code>-s</code> collects inputs within the value budget. <code>xargs</code> reads one item per line, not a JSON array.</td>
+</tr>
+<tr>
+<th scope="row">Assignment</th>
+<td data-label="Dekopon behavior"><code>x=$(...)</code> strips trailing LF bytes and preserves an object or array when the trimmed capture starts with <code>{</code> or <code>[</code>. Scalars stay text; unquoted substitutions split on newlines, never spaces. Text expansion requires valid UTF-8.</td>
 </tr>
 <tr>
 <th scope="row">Expansion</th>
@@ -45,7 +53,7 @@ ogType: article
 </tr>
 <tr>
 <th scope="row">Rejected operations</th>
-<td data-label="Dekopon behavior">Process substitution, subshells and job control are rejected, as are eval, exec, source and export.</td>
+<td data-label="Dekopon behavior">Process substitution, subshells, <code>eval</code>, <code>exec</code>, <code>source</code> and <code>export</code> are rejected. Background jobs need an explicit route opt-in.</td>
 </tr>
 <tr>
 <th scope="row">Progress notes</th>
@@ -54,16 +62,16 @@ ogType: article
 </tbody>
 </table>
 </div>
-<p>Start with <code>cap --list</code> to see session grants, <code>cap --describe &lt;id&gt;</code> for a capability, and an installed word’s <code>--help</code> for syntax. Provider <code>gh</code> is not the installed GitHub CLI.</p>
+<p>Start with <code>cap --list</code> to see session grants, <code>cap --describe &lt;id&gt;</code> for a capability, and an installed word’s <code>--help</code> for syntax. Provider <code>gh</code> is not the installed GitHub CLI. A provider command reads its own pipe or here-doc, never an enclosing compound’s input.</p>
 </section>
 <section id="workflow">
-<h2>Read a PR and filter its structured result.</h2>
-<p><strong>Illustrative, read-only workflow.</strong> In an agent session, ask the model to submit this script through the <code>bash</code> tool. Replace <code>owner/repo</code> and <code>7</code>. It needs a compatible GitHub component, the <code>gh.pull-request.read</code> session/Cedar grant, and broker-bound GET access to <code>api.github.com</code> with a credential allowed to read the repository.</p>
+<h2>Read a PR and filter its JSON output.</h2>
+<p><strong>Illustrative, read-only workflow.</strong> In an agent session, ask the model to submit this script through the <code>bash</code> tool. Replace <code>owner/repo</code> and <code>7</code>. It needs a current <a href="https://github.com/dekopon-agents/dekopon-provider-gh/releases/tag/v0.7.0">GitHub component ↗</a> implementing <code>provider@0.4.0</code>, the <code>gh.pull-request.read</code> session/Cedar grant, and broker-bound GET access to <code>api.github.com</code> with a credential allowed to read the repository.</p>
 <pre tabindex="0" aria-label="Illustrative PR read script"><code>set -e
 set -o pipefail
 gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </pre>
-<p>Expected shape: <code>{"title":"Fix the build","state":"open"}</code>, with values from your PR. The pipe passes the PR object directly to <code>jq</code>, without converting it to text. This performs one remote read and no write; the example was source-checked, not run against GitHub.</p>
+<p>Expected shape: <code>{"title":"Fix the build","state":"open"}</code>, with values from your PR. The provider writes JSON bytes to stdout; <code>jq</code> parses those bytes and writes the projection with a newline. This performs one remote read and no write; the example was source-checked, not run against GitHub.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Failure comparison">
 <table>
 <thead>
@@ -86,19 +94,33 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tr>
 <tr>
 <th scope="row">Provider / host execution error</th>
-<td data-label="Shell status">1</td>
-<td data-label="Meaning">Execution failed; an earlier external effect may already have happened.</td>
+<td data-label="Shell status">Nonzero</td>
+<td data-label="Meaning">Provider failures keep their typed exit status; generic host failures use 1. Earlier effects may already have happened.</td>
 </tr>
 <tr>
 <th scope="row">Invalid provider arguments</th>
 <td data-label="Shell status">2</td>
 <td data-label="Meaning">Read the installed command’s help.</td>
 </tr>
+<tr>
+<th scope="row">Downstream reader closed</th>
+<td data-label="Shell status">141</td>
+<td data-label="Meaning">The provider’s consumer stopped reading, as a bounded <code>head</code> may do; this can end a producer early.</td>
+</tr>
 </tbody>
 </table>
 </div>
-<p><code>pipefail</code> keeps a failed read from becoming a successful empty filter. Re-running a write is not deduplication or rollback. <a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/5916c6d/src/commands.rs">Verified command parser ↗</a> · <a href="/guides/access/#policy">Separate write grants</a>
+<p><code>pipefail</code> keeps a failed read from becoming a successful empty filter. It can also report <code>141</code> after an intentional downstream close. Re-running a write is not deduplication or rollback. <a href="https://github.com/dekopon-agents/dekopon-provider-gh/tree/v0.7.0">GitHub provider source ↗</a> · <a href="/guides/access/#policy">Separate write grants</a>
 </p>
+</section>
+<section id="jobs">
+<h2>Background jobs require <code>limits.jobTimeoutMs</code>.</h2>
+<p>A route opts in by setting that deadline. Then <code>cmd &amp;</code> starts a job that can outlive its script and turn, prints its job number and sets <code>$!</code>. Use <code>jobs</code>, <code>wait %N</code> or <code>kill %N</code> to inspect, await or stop it. Without the opt-in, these operations fail with status 1.</p>
+<p><code>sessions.maxJobs</code> defaults to 2 across the gateway and also bounds retained job rows. Jobs inherit a scope snapshot; their variables and buffers don’t return to the parent. Unawaited completion sends bounded text to the originating conversation, but a busy gateway may drop that notice: <code>jobs</code> is the fallback. Jobs disappear on restart and cannot receive chat assets or send attachments.</p>
+<p>A completion notice can start another turn and another job. The route opt-in therefore permits continued work after the original turn; the person’s stop word cancels their running jobs in that conversation. A job started by a read-only probe stays read-only.</p>
+<h3>Providers can request child scripts.</h3>
+<p><code>dekopon:spawn/run@0.1.0</code> asks the gateway to run a nested script under the same person, agent and broker leg. Every child capability still passes Cedar and the same tree budgets; nesting grants no extra authority. One child may be live per provider invocation, and cancellation stops descendants.</p>
+<p>Child stdout is bounded script text delivered at exit, not a live pass-through pipe. Waiting pauses the provider’s work clock, but the shared tree deadline keeps running. Inherited stdin shares the parent’s remaining bytes, so the parent must stop reading it after the spawn. <a href="/guides/provider-sdk/#interfaces">SDK child-script contract</a> · <a href="{{ source }}/docs/gatewayd.md#detached-jobs">Job configuration ↗</a>.</p>
 </section>
 <section id="limits">
 <h2>Limits apply at different layers.</h2>
@@ -108,29 +130,37 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 <tr>
 <th scope="col">Layer</th>
 <th scope="col">What stops work</th>
-<th scope="col">What remains</th>
+<th scope="col">Boundary / caveat</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <th scope="row">Interpreter</th>
-<td data-label="What stops work">Step, recursion, value/output and capability-call budgets; script deadline.</td>
-<td data-label="What remains">A non-yielding jq filter can outlive the deadline on a worker thread until process exit. Abandoned-worker limits cap further workers, not that CPU use.</td>
+<td data-label="What stops work">Step, recursion, retained-value/output and capability-call budgets; a shared tree deadline. Nested interpreters share the tree’s step and retained-value accounting.</td>
+<td data-label="Boundary / caveat">Every <code>jq</code> stage uses a worker subprocess, killed and waited on at deadline or cancellation. Linux bounds its address space to startup size plus 256 MiB; a crash fails that stage.</td>
 </tr>
 <tr>
 <th scope="row">Wasm invocation</th>
-<td data-label="What stops work">Fresh store and instance with fuel, memory and deadline bounds.</td>
-<td data-label="What remains">Compiled code may be reused. Wasmtime is in-process, not an OS isolation boundary.</td>
+<td data-label="What stops work">Fresh store and instance with fuel, memory and work-time bounds. Stdio backpressure and child waits park work time, not the tree deadline.</td>
+<td data-label="Boundary / caveat">Compiled code may be reused. Wasmtime is in-process, not an OS isolation boundary.</td>
 </tr>
 <tr>
 <th scope="row">Host effects</th>
 <td data-label="What stops work">HTTP and storage constraints are checked by native services.</td>
-<td data-label="What remains">Completed external writes and direct storage writes are not rolled back by a later trap or timeout.</td>
+<td data-label="Boundary / caveat">Completed external writes and direct storage writes are not rolled back by a later trap or timeout.</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>Command arguments, stdin and output enter size-bounded telemetry. Do not type secret values into scripts expecting redaction. <a href="/guides/traces/#privacy">What operators can see</a>.</p>
+<p>Recorded command arguments and text payloads are size-bounded, not redacted. Streaming stages also record byte counts and close reasons. Do not type secret values into scripts expecting them to be hidden. <a href="/guides/traces/#privacy">What operators can see</a>.</p>
+</section>
+<section id="agents">
+<h2>Skills guide the model; budgets bound its calls.</h2>
+<p>An agent’s <code>spec.skills</code> mounts reviewed directories containing <code>SKILL.md</code> and optional resource files. The model sees names and descriptions, then uses <code>read_skill</code> to load instructions on demand. The gateway reads the files at catalog load; a session doesn’t open the host filesystem. Keep secrets out of skills: the model can read all of them, and <code>allowed-tools</code> is metadata, not an enforced grant.</p>
+<p>The route can name a model explicitly. Otherwise, the agent’s <code>modelClass</code> selects the first matching configured model; no match fails startup. Gateway model credentials are separate from broker-held provider credentials.</p>
+<p>Optional <code>metering.budgets</code> applies per-agent token limits using fixed, rolling, session or refilling-credit meters. Every meter must admit a call before it is sent. The gateway reserves an estimate and settles actual usage afterward; a larger final charge can leave debt that blocks later calls. These are token limits, not a hard currency spending cap.</p>
+<p>Budgets live in gateway memory. Optional <code>metering.restore</code> reads OpenObserve or Quickwit once at boot, best effort; missing telemetry can undercount earlier spend. Without a configured budget, token spend is recorded but unbounded. An optional guest model proxy shares these budgets and uses gateway model credentials; it doesn’t grant broker capabilities.</p>
+<p><a href="{{ source }}/docs/catalog.md#skills-are-directories-the-model-reads-on-demand">Skill format ↗</a> · <a href="{{ source }}/docs/gatewayd.md#token-budgets">Model budget configuration ↗</a> · <a href="{{ source }}/docs/gatewayd.md#guest-model-proxy">Guest model proxy ↗</a>.</p>
 </section>
 <section id="assets">
 <h2>References select files; handles bound access.</h2>
@@ -149,7 +179,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </div>
 <figcaption>Asset payloads stay out of broker JSON frames. Guest reads still copy bytes; model image requests still carry image data. This is not end-to-end zero-copy transport.</figcaption>
 </figure>
-<p><strong>Attach is not send.</strong> Attach retains an output for the conversation; a separately granted <code>asset.send</code> operation delivers it. Failed invocations admit no asset effects. References and queued deliveries do not survive restart, and closing the last descriptor releases an unlinked file.</p>
+<p><strong>Attach is not send.</strong> Attach retains an output for the conversation; a separately granted <code>asset.send</code> operation delivers it. Failed invocations admit no asset effects. Queued deliveries and retained scratch bytes don’t survive restart. A configured conversation journal can restore attachment metadata and numbering, but expired source files may be unavailable. Closing the last descriptor releases an unlinked file.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Asset budget comparison">
 <table>
 <thead>
@@ -165,7 +195,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tr>
 <tr>
 <th scope="row">Host copy / descriptor count</th>
-<td data-label="Limit / accounting">64 KiB per host call; at most five input descriptors per invocation.</td>
+<td data-label="Limit / accounting">64 KiB per host call; at most five distinct input references and five attached outputs per invocation.</td>
 </tr>
 <tr>
 <th scope="row">Conversation / delivery</th>
@@ -174,8 +204,8 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tbody>
 </table>
 </div>
-<p>Asset-producing providers must implement the current asset interfaces; old base64 result envelopes are refused. Do not treat the published image provider’s older data-URL examples as a working descriptor recipe. <a href="{{ source }}/docs/upgrading.md#asset-handles-0180">Provider migration notes ↗</a>.</p>
-<p><a href="/guides/provider-sdk/#interfaces">Implement asset I/O</a> · <a href="/deploy/kubernetes/#state">Size temporary volumes</a> · <a href="{{ source }}/crates/dekopon-shell/README.md">Read the shell contract ↗</a> · <a href="{{ source }}/crates/dekopon-provider-sdk/src/asset.rs">Asset API ↗</a>
+<p>Asset-producing providers must implement the current asset and <code>provider@0.4.0</code> interfaces. Old base64 result envelopes are refused; rebuilding a provider against the current SDK does not make an old data-URL recipe a descriptor workflow. <a href="{{ source }}/docs/upgrading.md#asset-handles-0180">Provider migration notes ↗</a>.</p>
+<p><a href="/guides/provider-sdk/#interfaces">Implement asset I/O</a> · <a href="/deploy/kubernetes/#state">Size temporary volumes</a> · <a href="{{ source }}/crates/dekopon-shell/README.md">Read the latest in the Dekopon shell docs ↗</a> · <a href="{{ source }}/crates/dekopon-provider-sdk/src/asset.rs">Asset API ↗</a>
 </p>
 </section>
 </article>

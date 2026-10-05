@@ -46,7 +46,7 @@ rhythm became the personality.
 
 ```
 Small enough for home. Explicit enough to inspect.
-  → The gateway and broker share one 0600 socket.
+  → The gateway and broker share one 0660 socket.
 Capable now. Honest about the boundary.
   → What works now, and what doesn’t.
 Reuse compiled code. Reset the dangerous state.
@@ -164,15 +164,16 @@ defended, don't reach for "I."
 ## What is already good — do not "fix" it
 
 - **The receipts.** `1 pod · 2 daemon containers · 0 default Services ·
-  0660 socket`. 2 executables. 19 GitHub capabilities. 2 HTTP calls. 27.5 MiB.
-  These are the best thing on the site.
+  0660 socket`. Two executables. Two HTTP calls for the PR-comment example.
+  Release-specific archive measurements belong in `release.json`; don’t copy
+  an old size or provider count into a new release’s prose.
 - **Real names.** `api.github.com`, Cedar, `gh.pull-request.comment`,
   `slack.example.u123`, RustPython, `dekopon-provider-sdk-testkit`. Never
   translate one of these into a category noun.
 - **The Alice PR-commenter through-line.** One concrete story carried across
   the homepage, the Cedar guide, and the broker YAML.
 - **The honest limit passages** in `guides/provider-sdk` and
-  `almanac/providers`. They were already in the right register.
+  `guides/access`. They were already in the right register.
 - **"The room is intentionally dark but not deceptive."** A metaphor that
   earns its place because it explains a real design decision. The ban is on
   decorative metaphor, not all metaphor.
@@ -269,7 +270,12 @@ to justify weakening one of these.
   transport, no automatic durable-memory replay, and no production-hardening
   claim.
 - Audit records belong to the W3C trace; there is no durable local audit archive.
-  Only `dekopond` and `dekopon-brokerd` ship as executables; the console is separate.
+  Only `dekopon-gatewayd` and `dekopon-brokerd` ship as core executables; the console is separate.
+  Use `dekopond` only when explaining the historical rename. The current gateway
+  config API is `dekopon.dev/gatewayd/v1alpha1`.
+- Providers implement the pinned `provider@0.4.0` byte-stream contract; old
+  `provider@0.3.0` components are refused. Describe bounded byte pipelines,
+  not the earlier JSON-value pipes. Keep historical migration text when useful.
 - The latest application version lives only in `src/_data/release.json`. Derive
   headers, install commands, source links, and release CTAs from it rather than
   copying a version into page data. This is why the hero proof chips say "two
@@ -289,7 +295,9 @@ to justify weakening one of these.
 
 ## Source of truth and checks
 
-The canonical implementation lives in `../dekopon`. "How it works" copy is
+The canonical implementation is [dekopon-agents/dekopon](https://github.com/dekopon-agents/dekopon).
+Use an available local checkout of that repository for inspection; do not assume
+its directory name. "How it works" copy is
 pinned to the revision in `src/_data/release.json`; do not move that snapshot
 without rechecking the tagged code and docs.
 
@@ -303,11 +311,15 @@ Before publishing copy changes, run:
 ```console
 npm test
 npm audit --audit-level=high
+npm run check:release -- --remote
 ```
 
-`npm test` includes `scripts/check-voice.mjs`, which enforces rules 1, 3, 5,
+`npm test` includes release-validator regression tests, an isolated watch/rebuild
+smoke test, HTML and local-link checks, and `scripts/check-voice.mjs`, which enforces rules 1, 3, 5,
 and 7 and the banned-construction list. It cannot see rules 2, 4, 6, 8, or 9 —
-those are on you.
+those are on you. Remote checks also verify the tag’s commit, source and published
+chart metadata, and the SDK toolchain/interface pins. A historical API name in
+a clearly labeled migration explanation is not evidence of a stale current claim.
 
 This repository uses a direct-to-`main` publishing workflow. Do not open a pull
 request for website changes unless the user explicitly asks for one. Validate

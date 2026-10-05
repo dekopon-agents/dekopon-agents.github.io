@@ -13,6 +13,10 @@
       "label": "Shell and files"
     },
     {
+      "href": "/inference/",
+      "label": "Models and budgets"
+    },
+    {
       "href": "/guides/traces/",
       "label": "Trace a request"
     }

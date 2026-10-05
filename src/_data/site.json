@@ -2,7 +2,7 @@
   "name": "Dekopon",
   "wordmark": "dekopon",
   "url": "https://dekopon-agents.github.io",
-  "title": "Dekopon \u2014 Agents forced to play nice",
+  "title": "Dekopon — Agents forced to play nice",
   "description": "Self-hosted AI agents with familiar shell workflows in a controlled runtime, Wasm providers and explicit service access.",
   "themeColor": "#635bff",
   "repository": "https://github.com/dekopon-agents/dekopon",
@@ -23,7 +23,7 @@
       "href": "/deploy/"
     },
     {
-      "label": "What\u2019s new",
+      "label": "What’s new",
       "href": "/whats-new/"
     }
   ],
@@ -36,7 +36,7 @@
           "href": "https://github.com/dekopon-agents/dekopon"
         },
         {
-          "label": "What\u2019s new",
+          "label": "What’s new",
           "href": "/whats-new/"
         },
         {
@@ -63,6 +63,10 @@
         {
           "label": "Shell and files",
           "href": "/guides/runtime/"
+        },
+        {
+          "label": "Models and budgets",
+          "href": "/inference/"
         },
         {
           "label": "Build a provider",
@@ -96,6 +100,6 @@
       ]
     }
   ],
-  "copyright": "\u00a9 2026 Dekopon contributors.",
-  "footerNote": "Rust + Wasm \u00b7 Apache-2.0 / MIT"
+  "copyright": "© 2026 Dekopon contributors.",
+  "footerNote": "Rust + Wasm · Apache-2.0 / MIT"
 }

@@ -65,8 +65,8 @@ ogType: article
 <p>This is part of <code>broker.yaml</code>, not a complete configuration. An attestor without <code>namespaces</code> speaks for exactly its mapped subjects; the one below is intentionally broad for a whole Slack workspace, so narrow it for your deployment.</p>
 <pre tabindex="0" aria-label="Illustrative broker identity excerpt"><code>identities:
   - uid: 65533
-    principal: chat-gateway
-    actor: { type: service, principal: chat-gateway }
+    principal: dekopon-gatewayd
+    actor: { type: service, principal: dekopon-gatewayd }
     attestor:
       namespaces: [slack.t0123abcd]
 principals:
@@ -81,14 +81,14 @@ principals:
 permit(principal == Dekopon::Principal::"alice",
        action == Dekopon::Action::"agent.prompt",
        resource == Dekopon::Agent::"pr-commenter")
-when { context has via &amp;&amp; context.via == "chat-gateway" };
+when { context has via &amp;&amp; context.via == "dekopon-gatewayd" };
 
 @id("alice-comment")
 permit(principal == Dekopon::Principal::"alice",
        action == Dekopon::Action::"gh.pull-request.comment",
        resource == Dekopon::Provider::"gh")
 when { context has agent &amp;&amp; context.agent == "pr-commenter"
-    &amp;&amp; context has via &amp;&amp; context.via == "chat-gateway" };</code>
+    &amp;&amp; context has via &amp;&amp; context.via == "dekopon-gatewayd" };</code>
 </pre>
 <div class="guide-table" tabindex="0" role="region" aria-label="Request comparison">
 <table>
@@ -101,7 +101,7 @@ when { context has agent &amp;&amp; context.agent == "pr-commenter"
 </thead>
 <tbody>
 <tr>
-<th scope="row">Alice prompts pr-commenter via chat-gateway</th>
+<th scope="row">Alice prompts pr-commenter via dekopon-gatewayd</th>
 <td data-label="Expected decision with these rules">Allow</td>
 <td data-label="Why">Matches alice-prompt</td>
 </tr>
@@ -147,12 +147,22 @@ when { context has agent &amp;&amp; context.agent == "pr-commenter"
 </tbody>
 </table>
 </div>
-<p>Catalog descriptions tell the model what an agent is for; they do not authorize it. <a href="{{ source }}/charts/dekopon/values-pr-summarizer-linter.yaml">The complete pinned chart configuration ↗</a> shows catalog, mapping, constraints and both policy layers together. It requires operator-specific chat/model inputs and compatible providers; it is not a copy-and-run recipe.</p>
+<p>Catalog descriptions tell the model what an agent is for; they do not authorize it. <a href="{{ source }}/charts/dekopon/values-pr-summarizer-linter.yaml">The pinned chart values example ↗</a> shows catalog, mapping, constraints and both policy layers together. Add compatible provider paths or a managed provider set, plus your chat/model inputs; the example does not install its GitHub component.</p>
 </section>
 <section id="credentials">
 <h2>The native HTTP sink sends the credential.</h2>
-<p>A fixed credential binding, optionally selected per agent, stays in broker configuration. The guest builds its request without receiving the value; the native HTTP host injects it for the bound destination. That endpoint receives the credential.</p>
+<p>Existing named credential bindings, optionally selected per agent, stay in broker configuration. The guest builds its request without receiving the value; the native HTTP host injects it for the bound destination. That endpoint receives the credential.</p>
 <p>A caller-named public DRN uses an additional <code>secret.use</code> policy and private binding for the exact sink, method and path/query scope. A DRN pasted into ordinary provider input is just text. Resolution is pinned to the invocation, without stale fallback.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Refreshing secret sources">
+<table>
+<thead><tr><th scope="col">Private source</th><th scope="col">What the broker does</th><th scope="col">Operator responsibility</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>kubernetesTokenRequest</code></th><td data-label="What the broker does">Mints a token once per authorized invocation for a fixed namespace, ServiceAccount and audience. No cached token or stale fallback.</td><td data-label="Operator responsibility">Mount a live API-audience bootstrap token and CA only in the broker. Restrict <code>serviceaccounts/token</code> RBAC to the target account; configure the destination’s issuer, audience, subject and expiry checks.</td></tr>
+<tr><th scope="row"><code>oauth2Refresh</code></th><td data-label="What the broker does">Locks and rereads a broker-owned credential record, refreshes near expiry, and atomically saves a rotated token. The guest receives neither token.</td><td data-label="Operator responsibility">Use a regular single-link <code>0600</code> record in a writable persistent directory. Stop the broker before enrollment or reset; a retired token family needs reauthorization.</td></tr>
+</tbody>
+</table>
+</div>
+<p>These private-map sources still need both the capability grant and the exact DRN’s <code>secret.use</code> grant. They do not replace the separate legacy ChatGPT credential binding or its account header; that migration has not shipped.</p>
 <p><strong>Pick endpoints you trust.</strong> Raw-secret response checks cannot stop an authorized endpoint from encoding or transforming the credential it received. A secret binding restricts where that secret goes; it does not narrow every credential-free request the capability can make.</p>
 <p><a href="/guides/traces/#records">Check decision and execution evidence</a> · <a href="/deploy/kubernetes/#credentials">Deliver credentials to the correct process</a> · <a href="{{ source }}/docs/secrets.md">Read the exact secret contract ↗</a>
 </p>

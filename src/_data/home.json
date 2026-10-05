@@ -1,9 +1,9 @@
 {
   "hero": {
-    "eyebrow": "Self-hosted AI agents \u00b7 Rust + Wasm",
+    "eyebrow": "Self-hosted AI agents · Rust + Wasm",
     "title": "Agents forced",
     "titleAccent": "to play nice",
-    "lede": "Models already know shell workflows. Dekopon runs them in a controlled runtime on your hardware, with explicit access to services\u2014not a host shell.",
+    "lede": "Models already know shell workflows. Dekopon runs them in a controlled runtime on your hardware, with explicit access to services—not a host shell.",
     "primaryCta": {
       "label": "Deploy on Kubernetes",
       "href": "/deploy/kubernetes/"
@@ -19,10 +19,10 @@
   },
   "useCases": {
     "title": "Shell workflows, without a host shell.",
-    "intro": "Compose structured data with builtins, then call installed providers for specific jobs. These command words are not the host\u2019s executables."
+    "intro": "Compose structured data with builtins, then call installed providers for specific jobs. These command words are not the host’s executables."
   },
   "closing": {
-    "kicker": "Open source \u00b7 Self-hosted",
+    "kicker": "Open source · Self-hosted",
     "title": "Run it on your hardware.",
     "titleAccent": "",
     "body": "Start with the broker probe, then connect a chat service and model. Dekopon is pre-production software.",
@@ -38,7 +38,7 @@
   "protocols": {
     "title": "Your agent, in your chat.",
     "intro": "Slack leads with its native Agent experience. The same runtime also connects to Discord, WhatsApp, and Telegram.",
-    "note": "History is configurable and held in memory. Image understanding needs a compatible model; generated PNG replies require an enabled provider route.",
+    "note": "Live sessions stay in memory; configured journals restore conversation history. Image understanding needs a compatible model; file replies need a provider and delivery grant.",
     "items": [
       {
         "name": "Slack",
@@ -46,7 +46,7 @@
         "conversation": "DMs + shared threads",
         "inputs": "Images + documents",
         "outputs": "Text + generated PNGs",
-        "feedback": "Streaming + native status"
+        "feedback": "Progress message + native status"
       },
       {
         "name": "Discord",
@@ -62,7 +62,7 @@
         "conversation": "Individual chats",
         "inputs": "Images",
         "outputs": "Text + generated PNGs",
-        "feedback": "Typing \u00b7 no streaming"
+        "feedback": "Typing · no streaming"
       },
       {
         "name": "Telegram",

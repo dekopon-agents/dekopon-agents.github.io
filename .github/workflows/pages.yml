@@ -36,7 +36,7 @@ jobs:
       - name: Audit build dependencies
         run: npm audit --audit-level=high
 
-      - name: Verify the site names the latest published release
+      - name: Verify release, chart, and SDK publication pins
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: npm run check:release -- --remote
