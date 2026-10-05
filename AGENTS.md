@@ -269,7 +269,7 @@ to justify weakening one of these.
   transport, no automatic durable-memory replay, and no production-hardening
   claim.
 - Audit records belong to the W3C trace; there is no durable local audit archive.
-  Only `dekopond` and `dekopon-brokerd` ship as executables; the console is separate.
+  Only `dekopon-gatewayd` and `dekopon-brokerd` ship as executables; the console is separate.
 - The latest application version lives only in `src/_data/release.json`. Derive
   headers, install commands, source links, and release CTAs from it rather than
   copying a version into page data. This is why the hero proof chips say "two
