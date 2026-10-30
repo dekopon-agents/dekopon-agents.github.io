@@ -11,7 +11,7 @@ ogType: article
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
 <h1>Install Dekopon</h1>
-<p>On an Apple Silicon Mac, start with the <a href="/deploy/mac/">native Mac path</a>. Linux archives and a Kubernetes chart provide the same broker and gateway for server deployments.</p>
+<p>On an Apple Silicon Mac, start with the <a href="/deploy/mac/">native Mac path</a>: a Slack Agent for one GitHub review channel, read-only access for an owner and colleague, and a budgeted OpenRouter key. Linux archives and a Kubernetes chart provide the same broker and gateway for server deployments.</p>
 </header>
 <section id="options">
 <h2>Mac, Linux and Kubernetes install paths</h2>
@@ -28,7 +28,7 @@ ogType: article
 <tr>
 <th scope="row">Apple Silicon Mac</th>
 <td data-label="Get the application">Native executables from the <a href="https://github.com/dekopon-agents/homebrew-tap">Homebrew tap ↗</a> or a verified release archive.</td>
-<td data-label="Next step"><a href="/deploy/mac/">Slack, an OpenRouter budget and launchd</a>. The tap follows current releases; use matching configuration.</td>
+<td data-label="Next step"><a href="/deploy/mac/">Slack Agent setup, GitHub access and launchd</a>. The tap follows current releases; use matching configuration.</td>
 </tr>
 <tr>
 <th scope="row">Linux</th>
@@ -58,6 +58,7 @@ ogType: article
 <section id="configure">
 <h2>The broker needs a provider and an explicit grant</h2>
 <p>The gateway needs a chat transport, model endpoint and agent catalog. The broker needs explicitly installed providers plus identity, policy and execution constraints. The container includes only the in-tree <code>cli-probe</code> and <code>http-probe</code> components; install reviewed out-of-tree providers yourself. Supply credentials only to their owning process and configure telemetry collection before giving the agent useful access.</p>
+<p>The <a href="{{ site.repository }}/blob/main/examples/slack-github/README.md">Slack GitHub reviewer recipe ↗</a> provides a pinned provider and complete read-only configuration for two people in one channel. Start with the Agent manifest; classic is an optional workspace fallback. The <a href="/deploy/mac/#pat">Mac PAT instructions</a> explain the broker's private credential file: launchd does not load <code>.env</code> automatically.</p>
 <p>Validate authored files with <code>dekopon-gatewayd check gatewayd.yaml --catalog agents.d</code> and <code>dekopon-brokerd check broker.yaml</code> before deployment. A managed broker check also needs <code>--provider-set</code> and a private <code>--store</code>; it may fetch its pinned components. Ordinary checks don't prove that the socket, credentials or external services work. The gateway's explicit <code>check --probe</code> can make a paid OpenRouter canary request. Managed deployment sets also need <a href="/deploy/kubernetes/#providers">sync and precompile</a>.</p>
 <p><a class="button button-primary" href="/deploy/mac/">Run on a Mac →</a> <a href="/deploy/kubernetes/">Kubernetes installation</a>
 </p>
