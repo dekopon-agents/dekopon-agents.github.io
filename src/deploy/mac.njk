@@ -217,15 +217,17 @@ credentials:
 <ul><li>The gateway loads <code>credentials.env</code> with <a href="{{ docs }}/gatewayd.md#environment-file"><code>--env-file</code> ↗</a>, refuses it unless it is a <code>0600</code> file owned by <code>_dekopon_gateway</code>, and never prints a value.</li>
 <li><code>--env-file</code> needs dekopon 0.74.0 or later; an older gateway refuses the option.</li></ul>
 <h3>Moving a shell-sourced file to --env-file</h3>
-<p>The gateway reads <code>credentials.env</code> as literal data, so a file that a shell used to source may not work as it is. Resolve each <code>$VAR</code> expansion, escape, <code>$(…)</code> command and <code>export</code> line that expands something into the value it produces, and write that value in single quotes. Never source the old file to generate the new one; that puts the shell's output back in charge. Delete any line that only set a helper variable.</p>
+<p>The gateway reads <code>credentials.env</code> as literal data, so a file that a shell used to source may not work as it is. Resolve each <code>$VAR</code> expansion, escape, <code>$(…)</code> command and <code>export</code> line that expands something into the value it produces, and write that value as the file's literal text. Quote it with a character the value doesn't contain: leave it bare if it has no whitespace or quotes, use double quotes if it has an apostrophe, and single quotes otherwise. There is no escape, so a value holding both quote characters can't be written in the file. Never source the old file to generate the new one; that puts the shell's output back in charge. Delete any line that only set a helper variable.</p>
 <pre aria-label="env convert" tabindex="0"><code># before: a shell sourced this
 STAGE=example
 export OPENROUTER_API_KEY="sk-or-$STAGE-0000"
 export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN="$(cat /tmp/example-bot-token)"
+export EXAMPLE_NOTE="it's $STAGE"
 
 # after: literal values only
 export OPENROUTER_API_KEY='sk-or-example-0000'
-export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-0000-example'</code></pre>
+export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-0000-example'
+export EXAMPLE_NOTE="it's example"</code></pre>
 </section>
 
 <section id="config">
