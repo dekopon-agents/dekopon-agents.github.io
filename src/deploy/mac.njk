@@ -12,14 +12,14 @@ ogType: article
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
 <h1>Run Dekopon on a Mac</h1>
-<p>This tutorial ends with Dekopon running on an always-on Apple Silicon Mac:</p>
+<p>Twelve steps end with Dekopon on an always-on Apple Silicon Mac:</p>
 <ul>
-<li>You and one colleague mention <code>@dekopon</code> in a private Slack channel and get a review of a GitHub pull request in the thread.</li>
-<li>It reads GitHub with a fine-grained token that only the broker holds, and it can't write to GitHub.</li>
-<li>It bills one OpenRouter key with a spending limit you set.</li>
-<li>Two launchd services run it under separate accounts and start it at boot.</li>
+<li>You and a colleague mention <code>@dekopon</code> in a private Slack channel and get a PR review in the thread.</li>
+<li>It reads GitHub with a fine-grained token only the broker holds, and can't write to GitHub.</li>
+<li>It bills one OpenRouter key under a spending limit you set.</li>
+<li>Two launchd services run it at boot under separate accounts.</li>
 </ul>
-<p>Every file below comes from the <a href="{{ starter }}">Slack GitHub recipe ↗</a> and the <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a>. If this page and GitHub disagree, GitHub is current.</p>
+<p>The files come from the <a href="{{ starter }}">Slack GitHub recipe ↗</a> and the <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a>. If this page and GitHub disagree, GitHub is current.</p>
 </header>
 <nav aria-label="Steps">
 <ol>
@@ -39,14 +39,14 @@ ogType: article
 </nav>
 
 <section id="before">
-<h2>1. Before you start</h2>
+<h2>1. What you need: a Mac, Slack, GitHub and OpenRouter</h2>
 <ul>
-<li>An Apple Silicon Mac on macOS 15 or later, and an administrator account.</li>
-<li>A Slack workspace on a paid plan, where you can create apps, and a private channel with you and your colleague in it.</li>
-<li>A GitHub account that can read the repositories you want reviewed.</li>
+<li>An Apple Silicon Mac on macOS 15 or later, with <a href="https://brew.sh">Homebrew</a> and an administrator account.</li>
+<li>A paid Slack workspace where you can create apps, and a private channel with you and your colleague.</li>
+<li>A GitHub account that can read the repositories to review.</li>
 <li>An OpenRouter account with prepaid credit.</li>
-<li><a href="https://brew.sh">Homebrew</a>, for the GitHub CLI. Run every command on this page in the setup folder:</li>
 </ul>
+<p>Install <code>gh</code> and create the setup folder; run every later command in it:</p>
 <pre aria-label="setup" tabindex="0"><code>brew install gh
 gh auth login
 mkdir ~/dekopon-setup
@@ -54,7 +54,8 @@ cd ~/dekopon-setup</code></pre>
 </section>
 
 <section id="install">
-<h2>2. Install dekopon-brokerd and dekopon-gatewayd {{ release.version }}</h2>
+<h2>2. dekopon-brokerd and dekopon-gatewayd {{ release.version }}</h2>
+<p>Verify the archive and install both daemons:</p>
 <pre aria-label="install" tabindex="0"><code>v={{ release.version }}
 gh release download v$v -R dekopon-agents/dekopon -p "dekopon-$v-aarch64-apple-darwin.tar.gz*"
 shasum -a 256 -c dekopon-$v-aarch64-apple-darwin.tar.gz.sha256
@@ -65,18 +66,15 @@ sudo install -m 0755 dekopon-$v-aarch64-apple-darwin/dekopon-brokerd \
   dekopon-$v-aarch64-apple-darwin/dekopon-gatewayd /usr/local/lib/dekopon/$v/
 sudo ln -sfh /usr/local/lib/dekopon/$v /usr/local/lib/dekopon/current
 /usr/local/lib/dekopon/current/dekopon-gatewayd --version</code></pre>
-<ul>
-<li>The last command prints <code>dekopon-gatewayd {{ release.version }}</code>.</li>
-<li>Both daemons live under <code>/usr/local/lib/dekopon/current</code>, which every later command uses.</li>
-</ul>
+<ul><li>The last line prints <code>dekopon-gatewayd {{ release.version }}</code>.</li></ul>
 </section>
 
 <section id="accounts">
 <h2>3. Two hidden accounts and one group: _dekopon_broker, _dekopon_gateway, dekopon-ipc</h2>
-<p>Check that IDs 460–462 are free. Both commands print nothing when they are:</p>
+<p>Check that IDs 460–462 are free; both commands print nothing:</p>
 <pre aria-label="ids" tabindex="0"><code>dscl . -list /Users UniqueID | awk '$2 &gt;= 460 &amp;&amp; $2 &lt;= 462'
 dscl . -list /Groups PrimaryGroupID | awk '$2 &gt;= 460 &amp;&amp; $2 &lt;= 462'</code></pre>
-<p>If either prints a line, choose three other unused numbers below 500 and use them in the next block. Create the group and accounts:</p>
+<p>If either prints a line, use three other free IDs below 500 in this block:</p>
 <pre aria-label="accounts" tabindex="0"><code>sudo dseditgroup -o create -i 460 -r 'Dekopon IPC' dekopon-ipc
 for pair in broker:461 gateway:462; do
   user=_dekopon_${pair%:*}
@@ -92,7 +90,7 @@ done
 id _dekopon_broker
 id _dekopon_gateway</code></pre>
 <ul><li>Both <code>id</code> lines list <code>dekopon-ipc</code>.</li></ul>
-<p>Create the configuration, socket and log directories:</p>
+<p>Create the configuration, socket and log paths:</p>
 <pre aria-label="dirs" tabindex="0"><code>sudo install -d -m 0755 /usr/local/etc/dekopon \
   /usr/local/var/log/dekopon-broker /usr/local/var/log/dekopon-gateway
 sudo install -d -o _dekopon_broker -g dekopon-ipc -m 0700 /usr/local/etc/dekopon/broker
@@ -102,22 +100,22 @@ for d in broker gateway; do for f in stdout stderr; do
   sudo install -o _dekopon_$d -g dekopon-ipc -m 0600 /dev/null /usr/local/var/log/dekopon-$d/$f.log
 done; done
 ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /usr/local/var/run</code></pre>
-<ul><li>Every line of the <code>ls</code> output shows <code>root</code> as owner and no <code>w</code> for group or others. The daemons refuse to start under a directory your login owns or a group can write.</li></ul>
+<ul><li>Every <code>ls</code> line shows owner <code>root</code> and no group or other <code>w</code>. The daemons refuse to start under a directory your login owns or a group can write.</li></ul>
 </section>
 
 <section id="provider">
-<h2>4. Download GitHub provider 0.11.1</h2>
+<h2>4. GitHub provider 0.11.1</h2>
+<p>Download and verify the provider; step 8 installs it:</p>
 <pre aria-label="provider" tabindex="0"><code>gh release download v0.11.1 -R dekopon-agents/dekopon-provider-gh -p 'gh-provider.wasm*'
 shasum -a 256 -c gh-provider.wasm.sha256
 gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
   --signer-repo dekopon-agents/provider-workflows gh-provider.wasm</code></pre>
-<ul><li>Both checks pass. Step 8 installs the file.</li></ul>
 </section>
 
 <section id="slack">
 <h2>5. One Slack app with two tokens</h2>
 <ol>
-<li>Open <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick your workspace and paste this manifest (<a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml">on GitHub ↗</a>):</li>
+<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste this manifest (<a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml">on GitHub ↗</a>):</li>
 </ol>
 <pre aria-label="manifest" tabindex="0"><code>display_information:
   name: dekopon
@@ -171,44 +169,44 @@ settings:
   socket_mode_enabled: true
   token_rotation_enabled: false</code></pre>
 <ol start="2">
-<li>On <strong>Basic Information</strong>, under <strong>App-Level Tokens</strong>, choose <strong>Generate Token and Scopes</strong>. Name it <code>dekopon</code>, add the scope <code>connections:write</code>, generate it and copy the <code>xapp-…</code> token.</li>
-<li>Choose <strong>Install App → Install to Workspace → Allow</strong>, then copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-…</code>) from <strong>OAuth &amp; Permissions</strong>.</li>
+<li>Under <strong>Basic Information → App-Level Tokens → Generate Token and Scopes</strong>, name it <code>dekopon</code> with scope <code>connections:write</code>. Copy the <code>xapp-…</code> token.</li>
+<li>Choose <strong>Install App → Install to Workspace → Allow</strong>. Copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-…</code>) from <strong>OAuth &amp; Permissions</strong>.</li>
 <li>In the review channel, send <code>/invite @dekopon</code>.</li>
-<li>Note four IDs. Open the channel in a web browser: its address is <code>app.slack.com/client/T…/C…</code>, the workspace ID and then the channel ID. For your member ID and your colleague's, open each profile and choose <strong>Copy member ID</strong> (<code>U…</code>).</li>
+<li>Note four IDs: workspace <code>T…</code> and channel <code>C…</code> from the channel's browser address, <code>app.slack.com/client/T…/C…</code>, and the two member IDs <code>U…</code> from each profile's <strong>Copy member ID</strong>.</li>
 </ol>
 </section>
 
 <section id="keys"><span class="compat-anchor" id="slack-model" aria-hidden="true"></span>
 <h2>6. A fine-grained GitHub token and a capped OpenRouter key</h2>
-<p>Create the GitHub token at <strong>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token</strong>:</p>
+<p>Create the token at <strong>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token</strong>:</p>
 <ul>
 <li>Repository access: <strong>Only select repositories</strong>, the ones to review.</li>
 <li>Repository permissions, each <strong>Read-only</strong>: Pull requests, Contents, Actions, Commit statuses.</li>
 <li>Set an expiration date. Copy the <code>github_pat_…</code> token.</li>
-<li>Fine-grained tokens can't read check runs, so check results on a private repository come back as an error.</li>
+<li>A fine-grained token can't read check runs, so check results on a private repository return an error.</li>
 </ul>
-<p>Create the OpenRouter key under <strong>OpenRouter → Keys → Create</strong>:</p>
+<p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
-<li>Give it a credit limit and a reset period, and leave automatic top-ups off.</li>
-<li>Pick one exact model ID that supports tool calling from <a href="https://openrouter.ai/models">openrouter.ai/models</a>. Copy the <code>sk-or-…</code> key.</li>
+<li>Set a credit limit and a reset period; leave automatic top-ups off. Copy the <code>sk-or-…</code> key.</li>
+<li>Pick one exact model ID with tool calling from <a href="https://openrouter.ai/models">openrouter.ai/models</a>.</li>
 </ul>
 </section>
 
 <section id="secrets"><span class="compat-anchor" id="pat" aria-hidden="true"></span>
 <h2>7. Two private secret files</h2>
-<p>The gateway holds the Slack and OpenRouter secrets; the broker holds the GitHub token. Create the gateway's file and open it in your editor:</p>
+<p>The gateway holds the Slack and OpenRouter secrets; the broker holds the GitHub token. Create the gateway's file and open it as its owner (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
 <pre aria-label="env create" tabindex="0"><code>sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/gateway/credentials.env
 sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
-<p>Enter these three lines with your values, keeping the single quotes:</p>
+<p>Enter these lines with your values:</p>
 <pre aria-label="env body" tabindex="0"><code>export DEKOPON_GATEWAYD_SLACK_APP_TOKEN='xapp-…'
 export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-…'
 export OPENROUTER_API_KEY='sk-or-…'</code></pre>
-<p>Create the broker's file:</p>
+<p>Create the broker's file the same way:</p>
 <pre aria-label="pat create" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/broker/broker-credentials.yaml
 sudo -u _dekopon_broker -e /usr/local/etc/dekopon/broker/broker-credentials.yaml</code></pre>
-<p>Enter this, with your GitHub token in place of the placeholder:</p>
+<p>Enter this, with your token in place of the placeholder:</p>
 <pre aria-label="pat body" tabindex="0"><code>apiVersion: dekopon.dev/broker-credentials/v1alpha1
 credentials:
   - name: github-pat
@@ -216,15 +214,12 @@ credentials:
     scheme: Bearer
     destinations: [api.github.com]
     secret: REPLACE_WITH_FINE_GRAINED_PAT</code></pre>
-<ul>
-<li><code>sudo -e</code> opens a copy in your editor (<code>vi</code> unless <code>EDITOR</code> is set) and saves it back with the file's owner and mode.</li>
-<li>The gateway loads <code>credentials.env</code> with <a href="{{ docs }}/gatewayd.md#environment-file"><code>--env-file</code> ↗</a>. It refuses the file unless it is a <code>0600</code> file owned by <code>_dekopon_gateway</code>, and it never prints a value.</li>
-</ul>
+<ul><li>The gateway loads <code>credentials.env</code> with <a href="{{ docs }}/gatewayd.md#environment-file"><code>--env-file</code> ↗</a>, refuses it unless it is a <code>0600</code> file owned by <code>_dekopon_gateway</code>, and never prints a value.</li></ul>
 </section>
 
 <section id="config">
 <h2>8. Four configuration files</h2>
-<p>Paste each block into the setup folder's terminal to create its file.</p>
+<p>Write the four files, fill in your values, then install and check them.</p>
 <h3>broker.yaml</h3>
 <pre aria-label="broker yaml" tabindex="0"><code>cat &gt; broker.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/brokerd/v1alpha1
@@ -383,13 +378,13 @@ metering:
         - {kind: rolling, limit: 100000, period: 1d}
 shutdownGraceMs: 120000
 EOF</code></pre>
-<p>Type your values after each <code>=</code>: the workspace ID, the channel ID, your member ID, your colleague's member ID and the OpenRouter model ID.</p>
+<p>Set the four Slack IDs from step 5 and the model ID from step 6:</p>
 <pre aria-label="vars" tabindex="0"><code>TEAM=
 CHANNEL=
 OWNER=
 COLLEAGUE=
 MODEL=</code></pre>
-<p>Fill them into the files. The <code>grep</code> prints nothing once every placeholder is replaced:</p>
+<p>Substitute them; the <code>grep</code> prints nothing when no placeholder is left:</p>
 <pre aria-label="fill" tabindex="0"><code>: ${TEAM:?} ${CHANNEL:?} ${OWNER:?} ${COLLEAGUE:?} ${MODEL:?} &amp;&amp; sed -i '' \
   -e "s/BROKER_UID/$(id -u _dekopon_broker)/" \
   -e "s/GATEWAY_UID/$(id -u _dekopon_gateway)/" \
@@ -408,23 +403,23 @@ sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 \
   agents.yaml gateway.yaml /usr/local/etc/dekopon/gateway/</code></pre>
 <pre aria-label="check" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd check /usr/local/etc/dekopon/broker/broker.yaml
 sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /usr/local/etc/dekopon/gateway/gateway.yaml</code></pre>
-<ul><li>Each check ends with <code>ok</code>. Its warnings about <code>github-pat</code>, the journal and the three environment variables are expected.</li></ul>
-<p>Make one small paid request to confirm the model ID and OpenRouter key:</p>
+<ul><li>Each check ends with <code>ok</code>; its warnings about <code>github-pat</code>, the journal and the three environment variables are expected.</li></ul>
+<p>Confirm the model ID and key with one paid request:</p>
 <pre aria-label="probe" tabindex="0"><code>sudo -u _dekopon_gateway /bin/sh -c '. /usr/local/etc/dekopon/gateway/credentials.env &amp;&amp;
   exec /usr/local/lib/dekopon/current/dekopon-gatewayd check --probe /usr/local/etc/dekopon/gateway/gateway.yaml'</code></pre>
 </section>
 
 <section id="foreground">
 <h2>9. One test run in two terminals</h2>
-<p>In one terminal, start the broker:</p>
+<p>Start the broker in one terminal:</p>
 <pre aria-label="fg broker" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd \
   --config /usr/local/etc/dekopon/broker/broker.yaml</code></pre>
-<p>In a second terminal, start the gateway:</p>
+<p>Start the gateway in a second:</p>
 <pre aria-label="fg gateway" tabindex="0"><code>sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd \
   --config /usr/local/etc/dekopon/gateway/gateway.yaml \
   --env-file /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
 <ul>
-<li>In the review channel, send <code>@dekopon review OWNER/REPO#7</code> with a real repository and PR number. A review arrives in the thread.</li>
+<li>In the review channel, send <code>@dekopon review OWNER/REPO#7</code> with a real repository and PR number; a review arrives in the thread.</li>
 <li>Stop the gateway with <kbd>Ctrl</kbd>-<kbd>C</kbd>, then the broker.</li>
 </ul>
 </section>
@@ -481,19 +476,22 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.broker.plist
 until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
   --socket /usr/local/var/run/dekopon/broker.sock; do sleep 2; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
-<ul><li>In <strong>System Settings → Energy</strong>, turn on <strong>Prevent automatic sleeping when the display is off</strong> and <strong>Start up automatically after a power failure</strong>. With FileVault on, a restart after a power cut waits for your password before Dekopon starts.</li></ul>
+<ul>
+<li>In <strong>System Settings → Energy</strong>, turn on <strong>Prevent automatic sleeping when the display is off</strong> and <strong>Start up automatically after a power failure</strong>.</li>
+<li>With FileVault on, a restart after a power cut waits for your password before Dekopon starts.</li>
+</ul>
 </section>
 
 <section id="verify">
 <h2>11. Five checks before you rely on it</h2>
 <ul>
 <li>You and your colleague each mention <code>@dekopon</code> with a PR and get a review in the thread.</li>
-<li>A follow-up in your own thread gets an answer without another mention.</li>
-<li>A channel member who isn't in <code>broker.yaml</code> gets a fixed refusal, and OpenRouter shows no request for it.</li>
-<li>Asking it to approve, merge or comment changes nothing on GitHub.</li>
-<li>After a restart of the Mac, a new mention gets a review.</li>
+<li>A follow-up in your thread gets an answer without a new mention.</li>
+<li>A channel member missing from <code>broker.yaml</code> gets a fixed refusal, and OpenRouter shows no request for it.</li>
+<li>A request to approve, merge or comment changes nothing on GitHub.</li>
+<li>After the Mac restarts, a new mention gets a review.</li>
 </ul>
-<p>Direct messages get no answer: this setup serves the one channel only.</p>
+<p>Direct messages get no answer: the only route is the review channel.</p>
 </section>
 
 <section id="operate">
@@ -503,7 +501,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootout system/dev.dekopon.broker
 while pgrep -U "$(id -u _dekopon_broker)" &gt;/dev/null; do sleep 1; done</code></pre>
-<p>Start them again, broker first:</p>
+<p>Start them, broker first:</p>
 <pre aria-label="start" tabindex="0"><code>sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.broker.plist
 until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
   --socket /usr/local/var/run/dekopon/broker.sock; do sleep 2; done
@@ -513,10 +511,10 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
-<li>A new GitHub token needs no restart: edit <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code> and the broker loads it within seconds.</li>
-<li>Logs live in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>. The gateway records why it stopped in <code>stdout.log</code>; the broker, in <code>stderr.log</code>. Keep them private: they contain prompts and replies.</li>
-<li>When OpenRouter refuses a request, for example at the key's limit, Slack shows "The agent could not complete this request." Raise the limit or wait for the reset.</li>
-<li>Upgrade both daemons together with the runbook's <a href="{{ docs }}/run-on-mac.md#sleep-logs-updates-and-recovery">update steps ↗</a>.</li>
+<li>Rotate the GitHub token without a restart: edit <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. The broker's <code>stdout.log</code> shows <code>broker_reload_applied</code>, or <code>broker_reload_refused</code> if it kept the old token.</li>
+<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>. The gateway records why it stopped in <code>stdout.log</code>; the broker, in <code>stderr.log</code>. They hold prompts and replies: keep them private.</li>
+<li>An OpenRouter refusal, such as the key's limit, shows "The agent could not complete this request." in Slack and <code>gateway_session_failed</code> in the gateway's <code>stdout.log</code>. Raise the limit or wait for the reset.</li>
+<li>Upgrade or roll back both daemons together with the runbook's <a href="{{ docs }}/run-on-mac.md#sleep-logs-updates-and-recovery">update steps ↗</a>.</li>
 </ul>
 <p><a class="button button-primary" href="{{ starter }}">Open the Slack GitHub recipe ↗</a> <a href="{{ docs }}/run-on-mac.md">Read the full Mac runbook ↗</a></p>
 </section>
