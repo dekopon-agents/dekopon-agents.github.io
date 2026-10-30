@@ -1,0 +1,103 @@
+---
+layout: layouts/base.njk
+pageTitle: Run Dekopon on a Mac — Dekopon
+pageDescription: Native Apple Silicon binaries, a Slack Agent for GitHub reviews, a budgeted OpenRouter key, and launchd for a Mac that stays on.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set docs = site.repository ~ '/blob/main/docs' %}
+{% set starter = site.repository ~ '/blob/main/examples/slack-github/README.md' %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
+<h1>Run Dekopon on a Mac</h1>
+<p>Run a Slack Agent in one review channel, with GitHub PR reads for an owner and colleague and a dedicated OpenRouter API key. Use native binaries and two macOS <code>launchd</code> services under separate accounts.</p>
+<p><a class="button button-primary" href="{{ starter }}">Set up the Slack GitHub reviewer ↗</a></p>
+<p>The <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a> owns the installation and service templates. Match its configuration contracts to the release you install; the Homebrew tap can move ahead of this page.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#install">Binaries</a><a href="#slack-model">Slack and budget</a><a href="#github-profiles">Review access</a><a href="#pat">PAT and launchd</a><a href="#service">Service manager</a><a href="#verify">Before switching</a></nav>
+
+<section id="install">
+<h2>Homebrew installs two native executables</h2>
+<p>The <a href="https://github.com/dekopon-agents/homebrew-tap/blob/main/Formula/dekopon.rb">Dekopon tap ↗</a> uses the published Apple Silicon archive. With Homebrew installed:</p>
+<pre aria-label="Install and inspect Dekopon" tabindex="0"><code>brew update
+brew tap dekopon-agents/tap
+brew trust dekopon-agents/tap
+brew install dekopon-agents/tap/dekopon
+dekopon-brokerd --version
+dekopon-gatewayd --version</code></pre>
+<p><code>brew trust</code> is required by Homebrew 6 for a non-official tap. Both daemons must report the same version; this page describes <code>{{ release.version }}</code>. For a fixed release or rollback, the runbook gives checksum and attestation checks for the <a href="{{ release.url }}">release archives ↗</a>. They also contain the optional console, which the main Homebrew formula does not install. Current archives support Apple Silicon; Intel Macs need a source build outside the release build matrix.</p>
+<p>The formula installs no provider or configuration and starts no service. The <a href="{{ starter }}">GitHub reviewer recipe ↗</a> supplies the provider pin, catalog and read-only policy. You still need Slack identity mapping and service accounts. The recipe has not been exercised with real Slack and OpenRouter on macOS; complete its acceptance checks on your Mac before switching.</p>
+<p>The <a href="{{ docs }}/run-on-mac.md#manual-homebrew-compatibility-check">manual Mac compatibility check ↗</a> installs from the real tap on an ARM64 GitHub runner and exercises both daemons with local model/API fixtures. It needs no live credentials. A passing run checks the installed processes; launchd, separate-user permissions, sleep/reboot recovery and real Slack/OpenRouter/GitHub still need the acceptance checks below.</p>
+</section>
+
+<section id="slack-model">
+<h2>Slack receives messages; OpenRouter bills inference</h2>
+<p>Start with the <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml">Slack Agent manifest ↗</a> from the same release as your binaries and set <code>experience: agent</code>. Socket Mode opens an outbound connection, so you don't need a public webhook, port forwarding or a local web server.</p>
+<ol>
+<li>Create the app from the Agent manifest and install it. Generate an app-level <code>xapp-…</code> token with <code>connections:write</code>, then copy the installed app's <code>xoxb-…</code> bot token. The <a href="{{ release.sourceUrl }}/examples/slack/README.md#create-the-app-and-credentials">Slack setup guide ↗</a> gives the exact steps.</li>
+<li>Invite the app to one review channel. Record that workspace and channel plus both member IDs; use the recipe's exact channel route and broker mappings. Each person starts by mentioning the app. DMs and other channels are outside this route.</li>
+<li>Configure <code>kind: openrouter</code> with a dedicated inference key. The gateway wrapper loads Slack and OpenRouter credentials from a private file; keep them out of the catalog, manifest and launchd plist.</li>
+</ol>
+<p>For private repositories, use a private Slack channel whose members may see the reviewed code and results. Invocation grants don't hide posted replies, and the selected model receives the reviewed content.</p>
+<p>Slack's native Working/Stop UI depends on workspace plan and admin settings. Configure <code>indicators.reaction.working: auto</code> for the reaction fallback; final replies still work when status APIs are unavailable. Leave <code>cancelButton</code> out of an Agent configuration: Slack supplies Stop. The <a href="{{ release.sourceUrl }}/examples/slack/manifest.yaml">classic manifest ↗</a> with <code>experience: classic</code> is an optional fallback for free workspaces or installations without Agent features.</p>
+<p>Set the key's dollar limit and reset period in OpenRouter, with a finite prepaid account balance and automatic top-ups disabled. Avoid BYOK for this first setup: it introduces a separate provider bill. Confirm the key's remaining limit in <a href="https://openrouter.ai/docs/api/api-reference/api-keys/create-a-new-api-key">OpenRouter's key settings ↗</a>; don't give Dekopon a management key.</p>
+<p>The key limit covers only requests billed through that key. Additional provider tools can have separate API or subscription charges; <code>gpt-image</code>, for example, needs a ChatGPT subscription.</p>
+<p>Dekopon's optional token meter is a second control, not a dollar cap. It resets on restart unless a supported telemetry restore source is configured, and restore is best effort. Bound model output, steps and concurrency as well. Journal summaries make additional model calls outside that local budget; leave summaries off for the starter. Provider-side limits don't guarantee zero overshoot for requests already in flight; monitor actual OpenRouter usage.</p>
+</section>
+
+<section id="github-profiles">
+<h2>Owner and colleague start with the same PR reads</h2>
+<p>The <a href="{{ starter }}#broker-identities-and-read-only-grants">reviewer recipe ↗</a> maps two Slack users into the <code>pr-reviewers</code> group and maps the channel to <code>review-room</code>. These profiles are broker principal groups and Cedar rules; there is no <code>profiles</code> configuration key.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="GitHub reviewer profiles">
+<table>
+<thead><tr><th scope="col">Profile</th><th scope="col">Default access</th><th scope="col">Publishing</th></tr></thead>
+<tbody>
+<tr><th scope="row">Owner</th><td data-label="Default access">Prompt <code>pr-reviewer</code>; list, read and diff PRs, inspect status and read repository content.</td><td data-label="Publishing">Disabled. An optional owner-only <code>pr-publishers</code> grant can add a review comment.</td></tr>
+<tr><th scope="row">Colleague</th><td data-label="Default access">The same read and analysis tools.</td><td data-label="Publishing">Disabled, including when the owner later opts in.</td></tr>
+<tr><th scope="row">Review channel</th><td data-label="Default access">The broker requires both the sender and this channel to permit each request.</td><td data-label="Publishing">The channel must also permit the optional comment capability.</td></tr>
+</tbody>
+</table>
+</div>
+<p>The default grants no GitHub writes. The <a href="{{ starter }}#optional-owner-review-comments">separate opt-in ↗</a> permits a <code>COMMENT</code> review only; it doesn't grant approval, request-changes, push or merge. Once enabled, owner publishing has continuing permission without a per-write human approval gate. Use <a href="/guides/access/#profiles">the access guide</a> to understand the sender/channel intersection before extending it.</p>
+<p>Both people use the broker's PAT: this is owner-delegated repository access, without a separate GitHub login check for each Slack user. Dekopon's trace can attribute the Slack sender; GitHub sees the PAT account. A fine-grained PAT limited to selected private repositories still has public-repository read access, and <code>allowedHosts: [api.github.com]</code> does not restrict repository names.</p>
+</section>
+
+<section id="pat">
+<h2>The broker loads its PAT from a private file</h2>
+<p>launchd doesn't source <code>.env</code> files. The gateway wrapper explicitly loads its Slack and OpenRouter environment variables; the broker has no dotenv parser or <code>GITHUB_TOKEN</code> substitution. Its plist starts <code>dekopon-brokerd</code> directly with the broker configuration path.</p>
+<pre aria-label="Broker credential file reference" tabindex="0"><code># /usr/local/etc/dekopon/broker/broker.yaml — excerpt
+credentialsPath: broker-credentials.yaml</code></pre>
+<p>Save the PAT as the literal <code>secret</code> in a <code>bearerToken</code> entry in <code>/usr/local/etc/dekopon/broker/broker-credentials.yaml</code>, with <code>scheme: Bearer</code> and <code>destinations: [api.github.com]</code>. The file must be owned by the broker service user, mode <code>0600</code>, inside its private directory. The provider's capability constraints select it by name.</p>
+<p>The broker's native HTTP code injects the PAT for the bound GitHub destination; the model and Wasm provider don't receive the value. Keep it out of the gateway environment, plist and repository. Follow <a href="{{ docs }}/run-on-mac.md#github-pat-under-launchd">the PAT and launchd procedure ↗</a> for the full credential file, ownership checks and rotation.</p>
+</section>
+
+<section id="service">
+<h2>launchd can run both daemons before login</h2>
+<p>For an always-on Mac, use two system LaunchDaemons with distinct, unprivileged users. That preserves the broker's credential boundary and lets the service run while nobody is logged in. An administrator must provision the accounts, owned directories and shared socket group.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Mac process managers">
+<table>
+<thead><tr><th scope="col">Process manager</th><th scope="col">Use on this Mac</th><th scope="col">Limit</th></tr></thead>
+<tbody>
+<tr><th scope="row">System LaunchDaemons</th><td data-label="Use on this Mac">Recommended for unattended service; start the broker before the gateway.</td><td data-label="Limit">Manual setup. Run each daemon as its own service user, with absolute paths and private credentials.</td></tr>
+<tr><th scope="row">User LaunchAgents</th><td data-label="Use on this Mac">A read-only trial while logged in.</td><td data-label="Limit">Stop at logout. Two processes under one user don't isolate broker files; external provider writes require separate UIDs.</td></tr>
+<tr><th scope="row">Homebrew services</th><td data-label="Use on this Mac">No packaged Dekopon service.</td><td data-label="Limit">The formula has no service definition; <code>brew services start dekopon</code> is not an installation step.</td></tr>
+<tr><th scope="row">Docker Desktop</th><td data-label="Use on this Mac">An option for an existing container setup.</td><td data-label="Limit">Adds a Linux VM and another lifecycle to manage. Slack and OpenRouter don't require it.</td></tr>
+</tbody>
+</table>
+</div>
+<p><a href="https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html">Apple's launchd guide ↗</a> distinguishes system daemons from login agents. Prevent automatic system sleep while the display is off in <a href="https://support.apple.com/guide/mac-help/set-sleep-and-wake-settings-mchle41a6ccd/mac">Energy settings ↗</a>; the service cannot answer while the Mac sleeps. FileVault can require an unlock after a restart before services become available.</p>
+<p>Capture each process's stdout and stderr to private files and rotate them. Logs can contain prompts and replies; launchd does not provide retention for those files. Keep configuration, provider locks and persistent state in backed-up directories outside the Homebrew Cellar. A native installation avoids a VM, but this guide makes no measured Mac memory or idle-power claim.</p>
+</section>
+
+<section id="verify">
+<h2>Both reviewers need an allowed and a denied check</h2>
+<p>Run both configuration checks as their service users, start the broker, probe the socket as the broker user, then start the gateway. The probe checks the broker under its own UID; the real gateway and channel request check the separate-user path. A passing offline check doesn't prove credentials, network access or provider execution.</p>
+<p>Follow the recipe's <a href="{{ starter }}#validate-and-accept">acceptance checks ↗</a>: both people can request a PR review in the configured channel, neither can publish under the default policy, and an unapproved member cannot start inference. Confirm that DMs and other channels don't route to this agent, and inspect actual OpenRouter usage.</p>
+<p>Then exercise restart, logout and reboot recovery, including any disk-unlock step. Check logs and request another review after each. Stop the gateway before the broker for maintenance. Preserve the previous matching binaries, configuration and provider set before upgrading both daemons; a Homebrew upgrade neither migrates configuration nor restarts the running processes.</p>
+<p>When replacing another assistant, test Dekopon with a separate Slack app first. Switch traffic only after these checks pass, and keep the prior configuration available for rollback. Dekopon doesn't import another assistant's memory, plugins or credentials automatically.</p>
+<p><a class="button button-primary" href="{{ docs }}/run-on-mac.md">Read the Mac runbook ↗</a></p>
+<p><a href="{{ docs }}/run-on-mac.md">Read the latest in the Dekopon docs ↗</a> for release selection, configuration, launchd templates and recovery steps.</p>
+</section>
+</article>

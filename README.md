@@ -36,6 +36,8 @@ Public concept pages must stand on their own. Repository Markdown is supplementa
 
 The concept pages cover the implementation snapshot recorded in `src/_data/release.json`. Update it only after rechecking the tagged code, publication receipts, and linked source targets. Keep historical migration notes clearly labeled and preserve the distinction between current and unshipped work. `almanac.json` contains navigation only; the old `/almanac/` URLs redirect to mapped sections in the current guides.
 
+`src/deploy/mac.njk` is the operator entry point to the repository Mac runbook. It derives its release baseline from the shared metadata and leaves exact configuration and service templates in the canonical runbook. Homebrew follows the current tap, so the page tells readers to match configuration to their installed release. Keep the runbook link on `main` for operator procedures added after the tagged release; link release-specific contracts to the pinned source.
+
 ## Local development
 
 Node.js 24.8 or newer is required.

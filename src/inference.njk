@@ -31,7 +31,7 @@ ogType: article
 <p>Put key variable names in <code>gatewayd.yaml</code>, never the key values. Give the gateway and broker separate ChatGPT credential families. The subscription adapter uses an undocumented ChatGPT backend; public OpenAI API limits and retention promises do not describe that endpoint. <a href="/deploy/kubernetes/#credentials">Credential delivery</a>.</p>
 </section>
 <section id="budgets">
-<h2>A token budget checks every model call.</h2>
+<h2>Token budgets admit chat and guest model calls.</h2>
 <p>Add <code>metering.budgets</code> to gateway configuration for agents that need a spend limit. This excerpt assumes <code>pr-commenter</code> already exists and is served by a route; absent budgets leave model spend unbounded.</p>
 <pre tabindex="0" aria-label="Agent token budget excerpt"><code>metering:
   budgets:
@@ -41,7 +41,8 @@ ogType: article
         - { kind: fixed, limit: 1000000, period: 1d }</code></pre>
 <p>All meters must allow the call. Fixed windows start at UTC multiples of their period; rolling windows count recent spend. Session windows start on the first charge, and credit buckets refill over time. Optional <code>models</code> narrows which configured models the budget covers.</p>
 <p>The gateway reserves estimated input and output before sending, so concurrent calls cannot spend the same reservation. It then settles against reported usage, or an estimate when the provider reports none. A call can finish above its estimate and leave debt that delays the next call.</p>
-<p><strong>This is a raw-token budget, not a dollar cap.</strong> Input plus output counts at full weight, including cached input. A refusal stops further inference; it does not undo provider effects that already ran. Every call records <code>meter</code> usage even without a budget. <a href="/guides/traces/#records">Inspect charged usage and refusals</a>.</p>
+<p><strong>This is a raw-token budget, not a dollar cap.</strong> Input plus output counts at full weight, including cached input. A budget refusal stops that turn; it does not undo provider effects that already ran. Every model call records <code>meter</code> usage even without a budget. <a href="/guides/traces/#records">Inspect charged usage and refusals</a>.</p>
+<p>Background journal summaries make additional model calls, but their <code>meter.via = summary</code> records bypass budget admission and boot restore. Use <code>memory.summaries: off</code> when that extra inference is unwanted. Paid provider effects use separate broker-owned credentials and are outside this model token meter. For OpenRouter, configure a dedicated key’s dollar limit at the provider as well; see the <a href="/deploy/mac/#slack-model">Mac setup’s budget guidance</a>.</p>
 </section>
 <section id="restore">
 <h2>Boot restore is best effort.</h2>
@@ -51,9 +52,9 @@ ogType: article
 </section>
 <section id="proxy">
 <h2>The guest proxy uses gateway model credentials.</h2>
-<p>An optional <code>proxy</code> listener lets clients inside Firecracker guests call configured models without receiving an upstream key. Calls count against the owning agent’s token budget; this path grants no broker provider authority.</p>
+<p>An optional <code>proxy</code> listener lets clients inside Firecracker guests call configured models without receiving an upstream key. Inference calls count against the owning agent’s token budget; Anthropic <code>count_tokens</code> does not. This path grants no broker provider authority.</p>
 <p>The listener requires mTLS and an exact jail certificate identity. That trusted jail supplies <code>x-dekopon-vm-subject</code>; the gateway maps it to an agent and allowed model names, rewrites the upstream model, and injects its own credential. The gateway trusts the jail to name the VM correctly.</p>
-<p>Expose it only through the jail’s egress route, with no public ingress. Configure the guest client’s base URL explicitly. The proxy serves Anthropic Messages, ChatGPT Responses and OpenRouter chat completions; it refuses ungranted models and unsupported dialects.</p>
+<p>This is a Linux Firecracker deployment option, not a requirement for native Mac chat. Expose it only through the jail’s egress route, with no public ingress. Configure the guest client’s base URL explicitly. The proxy serves Anthropic Messages, ChatGPT Responses and OpenRouter chat completions; it refuses ungranted models and unsupported dialects.</p>
 <p>Requests are bounded to 8 MiB, with 16 simultaneous connections by default. The body reader can briefly hold two copies per connection, up to 256 MiB at those defaults; size the gateway’s memory accordingly. Cached coding prompts still consume full input-token budget. <a href="{{ source }}/docs/gatewayd.md#guest-model-proxy">Exact listener, grant and client configuration ↗</a>.</p>
 </section>
 <section id="memory">
@@ -62,12 +63,15 @@ ogType: article
 <table>
 <thead><tr><th scope="col">Mechanism</th><th scope="col">What survives</th><th scope="col">Limit</th></tr></thead>
 <tbody>
-<tr><th scope="row">Gateway conversation history</th><td data-label="What survives">A bounded question/final-answer window, private per subject by default; optional journal or platform recall</td><td data-label="Limit">Tool calls and outputs do not join the compacted history. Shared-conversation scope must be explicit.</td></tr>
+<tr><th scope="row">Gateway memory without journal recall</th><td data-label="What survives">A bounded question/final-answer window in the running process; optional platform recall reads chat messages</td><td data-label="Limit">The live window dies at restart. Private per subject by default; sharing one conversation must be explicit.</td></tr>
+<tr><th scope="row">Gateway journal recall</th><td data-label="What survives">Original user and assistant text, consumed steers and tool exchanges; recent turns replay verbatim, older turns may use generated summaries</td><td data-label="Limit">Separate prompt-window and disk-retention bounds apply. Background summaries cost model calls; failed summaries remain failed.</td></tr>
 <tr><th scope="row">Provider prompt-prefix cache</th><td data-label="What survives">The provider may reuse identical leading prompt computation; the gateway sends dialect-specific hints</td><td data-label="Limit">No completed-answer cache, cache lease or guaranteed hit. Measure the provider’s reported cached-input usage.</td></tr>
 <tr><th scope="row">Broker-backed durable chat turns</th><td data-label="What survives">Explicitly installed memory provider’s scoped stored turns</td><td data-label="Limit">Retrieval is a separately authorized call; stored turns never enter a prompt automatically.</td></tr>
 </tbody>
 </table>
 </div>
+<p>With <code>sessions.journal</code>, the gateway requires a separate <code>sessions.assets.path</code>. Eligible journal records and already-downloaded inbound attachment bytes can survive restart. Generated attachments remain session-only. Earlier or malformed journal formats are reset, not migrated; preserve needed history before changing releases.</p>
+<p>Journal records are private files under the gateway user. Memory retention defaults to seven days and 64 MiB per agent, independently of the prompt’s turn and byte window. Turn summaries run after the reply through a bounded queue; no reply waits for them. Optional memory reads and pins refer to this same scoped journal.</p>
 <p>History is untrusted prompt text. Every capability request still goes to the broker for a fresh decision. A capability-ID change drops the gateway’s remembered window; tightening constraints or changing a credential under the same ID does not necessarily clear it.</p>
 <p><a href="{{ source }}/docs/inference.md">Read the pinned inference and caching reference ↗</a> · <a href="{{ source }}/docs/gatewayd.md#conversations">Conversation scope, recall and bounds ↗</a> · <a href="/deploy/kubernetes/#gateway">Configure a gateway</a></p>
 </section>

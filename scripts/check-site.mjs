@@ -197,7 +197,7 @@ const contracts = {
     'guides/runtime/index.html': ['not complete Bash/POSIX', 'Pipeline stages exchange bytes', 'isolated scope snapshots', 'worker subprocess', 'limits.jobTimeoutMs', 'metering.budgets', 'dekopon:spawn/run@0.1.0', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
     'inference/index.html': ['modelClass', 'metering.budgets', 'metering.restore', 'guest proxy', 'not a dollar cap'],
     'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopon-gatewayd', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
-    'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '320Mi', 'gateway.enabled: true', 'helm upgrade --install'],
+    'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '1152Mi', 'gateway.enabled: true', 'helm upgrade --install'],
     'whats-new/index.html': ['dekopon-gatewayd', 'provider@0.4.0', 'dekopon:spawn', 'limits.jobTimeoutMs', 'provider precompile', 'dekopon.dev/gatewayd/v1alpha1']
 };
 for (const [file, strings] of Object.entries(contracts)) {
@@ -210,7 +210,7 @@ for (const [file, strings] of Object.entries(contracts)) {
 }
 // Keep the documented PR workflow aligned on the homepage and runtime guide.
 // Providers write JSON bytes; jq consumes the pipeline and emits the projection.
-const prReadScript = "set -e\nset -o pipefail\ngh pr view 7 -R owner/repo | jq '{title, state}'";
+const prReadScript = "set -e\nset -o pipefail\ngh pr view 7 -R owner/repo --json title,state | jq '{title, state}'";
 const runtimeGuide = await readFile(path.join(outputDirectory, 'guides/runtime/index.html'), 'utf8');
 for (const [file, html, label] of [
     ['index.html', homepage, 'Illustrative read-only GitHub workflow'],
@@ -220,7 +220,7 @@ for (const [file, html, label] of [
     if (script !== prReadScript) failures.push(`${file}: PR read script must pipe the structured object directly to jq`);
 }
 const workflowSection = runtimeGuide.split('id="workflow"')[1]?.split('</section>')[0] ?? '';
-if (!workflowSection.includes('<code>{"title":"Fix the build","state":"open"}</code>')) {
+if (!workflowSection.includes('<code>{"title":"Fix the build","state":"OPEN"}</code>')) {
     failures.push('runtime guide: missing expected PR projection result');
 }
 const whatsNew = await readFile(path.join(outputDirectory, 'whats-new/index.html'), 'utf8');

@@ -44,6 +44,10 @@
           "href": "/deploy/"
         },
         {
+          "label": "Run on a Mac",
+          "href": "/deploy/mac/"
+        },
+        {
           "label": "Kubernetes",
           "href": "/deploy/kubernetes/"
         }

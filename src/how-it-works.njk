@@ -33,12 +33,12 @@ ogType: article
 <p>Native HTTP, storage and asset services enforce separate execution constraints. Providers can also request bounded child scripts; those return to the gateway on the caller’s existing budget and trace.</p>
 <p>Provider credential → native HTTP → allowed remote endpoint</p>
 </div>
-<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway; an optional guest model proxy meters authorized guest calls there. Both processes send telemetry to your collection backend.</figcaption>
+<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway. A separately configured Linux guest deployment can also use the gateway's model proxy; the native Mac path needs no VM. Both processes can export telemetry to your collection backend.</figcaption>
 </figure>
 <p>These are local processes joined by a protected Unix socket, not a multi-tenant network service. Wasmtime runs inside the broker process; a runtime vulnerability or compromised broker host defeats that boundary.</p>
 </section>
 <section id="configure">
-<h2>Four inputs turn the runtime into your agent.</h2>
+<h2>Three inputs define the agent.</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Input comparison">
 <table>
 <thead>
@@ -52,7 +52,7 @@ ogType: article
 <tr>
 <th scope="row">Gateway config + catalog</th>
 <td data-label="Controls">Transport, model endpoint and agent behavior; catalog entries do not grant effects.</td>
-<td data-label="Next task"><a href="/deploy/kubernetes/#gateway">Connect chat and a model</a>
+<td data-label="Next task"><a href="/deploy/">Choose an installation path</a>
 </td>
 </tr>
 <tr>
@@ -67,25 +67,20 @@ ogType: article
 <td data-label="Next task"><a href="/guides/provider-sdk/">Build a component</a>
 </td>
 </tr>
-<tr>
-<th scope="row">Telemetry collection</th>
-<td data-label="Controls">Where prompts, decisions and results are retained.</td>
-<td data-label="Next task"><a href="/guides/traces/">Trace a request</a>
-</td>
-</tr>
 </tbody>
 </table>
 </div>
+<p>You can start without a telemetry collector, but need retained stdout or an external receiver to investigate past decisions. Logs can include prompts and results. <a href="/guides/traces/">Choose what stores the trace</a> before relying on it for operations.</p>
 </section>
 <section id="follow">
 <h2>One PR read crosses both processes.</h2>
 <ol>
-<li>The gateway receives a chat sender identifier and builds a canonical subject. It asks the model for a response using that agent’s configured tools.</li>
+<li>The gateway receives a chat sender identifier and builds a canonical subject. Before asking a model, it obtains the sender's allowed capabilities from the broker; the broker first checks permission to prompt that agent. The gateway makes no model call after a refusal or empty grant.</li>
 <li>The model can use a script to read a PR and filter its structured result. The interpreter is not Bash and cannot spawn the host’s <code>gh</code> executable.</li>
 <li>The broker checks the peer and subject mapping, evaluates static rules, then invokes the provider inside its configured HTTP limits. The result returns to the script and model.</li>
 </ol>
 <p>Rules do not judge intent: an allowed action can still be harmful. <a href="/guides/access/#policy">The PR-commenter decision</a> shows how separate grants and constraints fit together; <a href="/guides/runtime/#workflow">the shell example</a> shows what the model can compose.</p>
-<p><a href="/deploy/kubernetes/">Install on Kubernetes</a> · <a href="{{ source }}/docs/security-model.md">Read the pinned security model ↗</a>
+<p><a href="/deploy/mac/">Run on a Mac</a> · <a href="/deploy/kubernetes/">Install on Kubernetes</a> · <a href="{{ source }}/docs/security-model.md">Read the pinned security model ↗</a>
 </p>
 </section>
 </article>
