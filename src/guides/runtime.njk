@@ -125,7 +125,7 @@ gh pr view 7 -R owner/repo --json title,state | jq '{title, state}'</code>
 <section id="wakes">
 <h2>Wakes can schedule one turn or watch a read-only condition.</h2>
 <p>A route with <code>wakes: true</code> and gateway wake storage offers <code>wake</code>. A scheduled wake returns once after a delay; a watch runs a bounded probe script at its configured interval without a model in the polling loop. The initial probe establishes a baseline without waking. On later checks, exit 0 wakes the agent, exit 1 keeps watching, and an error wakes it with the failure and retires the watch.</p>
-<p>Each probe gets a fresh broker leg that refuses writes. A woken turn gets fresh authorization for the original authenticated person and conversation; the model cannot choose a different recipient. Pending rows can survive restart, but a row removed just before dispatch can be lost. Saturated ticks are skipped rather than queued. This is not durable job delivery.</p>
+<p>Each probe gets a fresh broker leg that refuses writes. A woken turn gets fresh authorization for the original conversation, and the model cannot choose a different recipient. A wake created in a mapped channel runs as that channel's space alone, without its creator's personal grants; elsewhere it runs as the person who scheduled it. Pending rows can survive restart, but a row removed just before dispatch can be lost. Saturated ticks are skipped rather than queued. This is not durable job delivery.</p>
 <p><a href="{{ source }}/docs/gatewayd.md#wakes">Wake limits and storage ↗</a>. Native Mac chat needs neither wakes nor a guest VM.</p>
 </section>
 <section id="limits">
