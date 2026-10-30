@@ -40,8 +40,9 @@ means no violation is left (maximum 50). Score before and after editing, and cit
 every score below 5.
 
 1. **Purpose first.** The intro says what the reader ends with, then the step order or table of
-   contents. On `/deploy/`, the two install buttons come first, directly under the `<h1>`. The body follows that plan. ("State your purpose or
-   objective clearly and follow it with a concise description of the method you will use")
+   contents; on `/deploy/` the two install buttons come first, directly under the `<h1>`. The body
+   follows that plan. ("State your purpose or objective clearly and follow it with a concise
+   description of the method you will use")
 2. **Get to the point.** Every sentence is a step or a contract. Asides go, or become a link. Keep
    one sentence of reason where a restriction looks arbitrary. ("Technical reports are not mystery
    novels")
