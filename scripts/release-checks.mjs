@@ -2,6 +2,7 @@ const repository = "dekopon-agents/dekopon";
 const github = `https://api.github.com/repos/${repository}`;
 const source = `https://raw.githubusercontent.com/${repository}`;
 const registryRepository = "dekopon-agents/charts/dekopon";
+const tapFormula = "https://raw.githubusercontent.com/dekopon-agents/homebrew-tap/main/Formula/dekopon.rb";
 const semver = /^\d+\.\d+\.\d+$/;
 
 export function checkRelease(release) {
@@ -87,6 +88,10 @@ export async function checkRemoteRelease(release, sdk, { request = fetch, token 
             expect(chart.name === "dekopon", "published chart name must be dekopon");
             expect(chart.version === release.chart.publishedVersion, `published chart version ${chart.version} differs from ${release.chart.publishedVersion}`);
             expect(chart.appVersion === release.chart.publishedAppVersion, `published chart appVersion ${chart.appVersion} differs from ${release.chart.publishedAppVersion}`);
+        }),
+        run("Homebrew tap", async () => {
+            const archive = `https://github.com/${repository}/releases/download/${release.tag}/dekopon-${release.version}-aarch64-apple-darwin.tar.gz`;
+            expect((await get(tapFormula, {}, "text")).includes(`url "${archive}"`), `Homebrew tap formula does not install ${archive}`);
         }),
         run("SDK toolchain", async () => {
             const [rust, tools] = await Promise.all([raw("rust-toolchain.toml"), raw("ci/toolchain.env")]);

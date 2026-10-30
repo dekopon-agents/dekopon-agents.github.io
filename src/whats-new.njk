@@ -39,7 +39,7 @@ ogType: article
 <li><strong>Expect a memory reset when crossing old formats.</strong> Journal v3 resets older-format records at startup. This is not an automatic history migration; reverting a binary cannot restore discarded state. Back up the matching state and review the release-specific instructions before upgrading.</li>
 </ol>
 <p>Earlier installations also need the <code>dekopond</code> rename and <code>dekopon.dev/gatewayd/v1alpha1</code> configuration API. Brokers accept the <code>provider@0.4.0</code> stream contract and refuse older <code>provider@0.3.0</code> components. By default, managed sets load from a compatible compiled cache: sync populates it, and <code>dekopon-brokerd provider precompile</code> fills or repairs it after an engine change.</p>
-<p>The <a href="{{ source }}/docs/upgrading.md">release-pinned upgrade guide ↗</a> gives each breaking change and its rollback limits. Use the <a href="/deploy/mac/">Mac runbook</a> or <a href="/deploy/kubernetes/#upgrade">Kubernetes checklist</a> for the process and storage layout.</p>
+<p>The <a href="{{ source }}/docs/upgrading.md">release-pinned upgrade guide ↗</a> gives each breaking change and its rollback limits. Use the <a href="/deploy/mac/">Mac guide</a> or <a href="/deploy/kubernetes/#upgrade">Kubernetes checklist</a> for the process and storage layout.</p>
 </section>
 
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
