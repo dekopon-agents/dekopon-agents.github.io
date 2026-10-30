@@ -57,7 +57,7 @@ npm run check:release -- --remote
 
 `npm test` runs release-check regression tests and an isolated Eleventy watch test, then checks release-data consistency, performs a clean production build, validates generated HTML and browser JavaScript syntax, verifies local files and legacy fragment links, and enforces the site’s content and voice rules. The watch test covers data and include edits, new templates, and asset creation and updates.
 
-The remote release check verifies GitHub’s latest application release and publication date, the tag’s resolved commit, chart metadata at that commit, the published GHCR Helm chart’s version and appVersion, and the SDK’s Rust, wasm-tools, and WIT pins. It allows a published chart to lag the source chart when their separately recorded versions are accurate. CI runs this check on each build and daily; network or registry failures stop publication rather than silently accepting stale claims.
+The remote release check verifies GitHub’s latest application release and publication date, the tag’s resolved commit, chart metadata at that commit, the published GHCR Helm chart’s version and appVersion, that the Homebrew tap formula installs the release’s Apple Silicon archive, and the SDK’s Rust, wasm-tools, and WIT pins. It allows a published chart to lag the source chart when their separately recorded versions are accurate. CI runs this check on each build and daily; network or registry failures stop publication rather than silently accepting stale claims.
 
 ### Build dependency policy
 

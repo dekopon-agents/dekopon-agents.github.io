@@ -22,5 +22,5 @@ if (failures.length > 0) {
     failures.forEach((failure) => console.error(`  - ${failure}`));
     process.exitCode = 1;
 } else {
-    console.log(`Release metadata is internally consistent at ${release.tag}${remote ? "; release, commit, source chart, published OCI chart, and SDK toolchain verified remotely" : ""}.`);
+    console.log(`Release metadata is internally consistent at ${release.tag}${remote ? "; release, commit, source chart, published OCI chart, Homebrew tap, and SDK toolchain verified remotely" : ""}.`);
 }

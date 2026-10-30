@@ -14,6 +14,7 @@ const release = {
 };
 const sdk = { versions: { rust: "1.98.1", wasmTools: "1.259.0" }, interfaces: { provider: "dekopon:provider/provider-cli@0.4.0", stdio: "dekopon:stdio/streams@0.1.0", http: "dekopon:http/client@1.1.0" } };
 const digest = `sha256:${"b".repeat(64)}`;
+const formula = (tag, version) => `class Dekopon < Formula\n  on_macos do\n    on_arm do\n      url "https://github.com/dekopon-agents/dekopon/releases/download/${tag}/dekopon-${version}-aarch64-apple-darwin.tar.gz"\n    end\n  end\nend\n`;
 const fixture = (changes = {}) => async (url) => {
     const responses = {
         "releases/latest": { tag_name: release.tag, published_at: "2026-09-28T10:30:00Z" },
@@ -28,6 +29,7 @@ const fixture = (changes = {}) => async (url) => {
         "crates/dekopon-provider-sdk/wit/provider.wit": "package dekopon:provider@0.4.0;\nworld provider-cli {\n}",
         "wit/stdio/stdio.wit": "package dekopon:stdio@0.1.0;\ninterface streams {\n}",
         "wit/http/http.wit": "package dekopon:http@1.1.0;\ninterface client {\n}",
+        "Formula/dekopon.rb": formula("v1.2.3", "1.2.3"),
         ...changes
     };
     const key = Object.keys(responses).find((path) => url.includes(path));
@@ -43,7 +45,7 @@ test("release metadata rejects wrong hosts, revisions, dates, and chart pins", (
     }
 });
 test("chart fields handle quotes and comments without confusing apiVersion", () => assert.deepEqual(chartMetadata('apiVersion: v2\nversion: 0.5.0 # chart\nappVersion: "1.2.3"\n'), { version: "0.5.0", appVersion: "1.2.3" }));
-test("remote checks verify annotated release tags, source chart, OCI metadata, and SDK pins", async () => assert.deepEqual(await checkRemoteRelease(release, sdk, { request: fixture(), token: undefined }), []));
+test("remote checks verify annotated release tags, source chart, OCI metadata, Homebrew tap, and SDK pins", async () => assert.deepEqual(await checkRemoteRelease(release, sdk, { request: fixture(), token: undefined }), []));
 test("remote checks support lightweight tags", async () => assert.deepEqual(await checkRemoteRelease(release, sdk, { request: fixture({ "git/ref/tags/v1.2.3": { object: { type: "commit", sha: revision } } }) }), []));
 test("remote checks report a stale release, commit, chart, and toolchain", async () => {
     const failures = await checkRemoteRelease(release, sdk, { request: fixture({
@@ -54,6 +56,11 @@ test("remote checks report a stale release, commit, chart, and toolchain", async
         "ci/toolchain.env": "WASM_TOOLS_VERSION=1.260.0\n"
     }) });
     assert.equal(failures.length, 7);
+});
+test("remote checks report a Homebrew tap that still installs the previous release", async () => {
+    const failures = await checkRemoteRelease(release, sdk, { request: fixture({ "Formula/dekopon.rb": formula("v1.2.2", "1.2.2") }) });
+    assert.equal(failures.length, 1);
+    assert.match(failures[0], /Homebrew tap formula does not install .*\/v1\.2\.3\/dekopon-1\.2\.3-aarch64-apple-darwin\.tar\.gz/);
 });
 test("remote network failures fail closed with the failing source identified", async () => {
     const failures = await checkRemoteRelease(release, sdk, { request: fixture({ "charts/dekopon/Chart.yaml": null }) });

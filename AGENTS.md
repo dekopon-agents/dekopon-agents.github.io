@@ -320,7 +320,8 @@ npm run check:release -- --remote
 smoke test, HTML and local-link checks, and `scripts/check-voice.mjs`, which enforces rules 1, 3, 5,
 and 7 and the banned-construction list. It cannot see rules 2, 4, 6, 8, or 9 —
 those are on you. Remote checks also verify the tag’s commit, source and published
-chart metadata, and the SDK toolchain/interface pins. A historical API name in
+chart metadata, the Homebrew tap formula’s Apple Silicon archive URL, and the SDK
+toolchain/interface pins. A historical API name in
 a clearly labeled migration explanation is not evidence of a stale current claim.
 
 This repository uses a direct-to-`main` publishing workflow. Do not open a pull
