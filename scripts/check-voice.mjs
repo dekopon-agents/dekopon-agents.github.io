@@ -35,6 +35,18 @@ const BANNED = [
     "cutting-edge",
 ];
 
+// Docs describe the pinned release only and carry no run evidence (AGENTS.md,
+// "Documentation hard rules"). These shapes are unambiguous, so they fail.
+const RUN_EVIDENCE = [
+    [/actions\/runs\/\d+/i, "CI run link"],
+    [/\b\d+\.\d+\.\d+ or (later|newer)\b/i, "version minimum"],
+    [/\bHomebrew \d+\.\d+/i, "Homebrew version"],
+];
+
+// History words are sometimes current terms (a migration that has not shipped
+// yet is Committed direction), so they are listed for review rather than failed.
+const HISTORY = /\b(previously|migrat\w*|no longer|deprecat\w*|used to|dekopond)\b/gi;
+
 const THROAT_CLEARING_KICKER = [
     /^(now|next|first|introducing)\b/i,
     /\bdeep dives?$/i,
@@ -100,6 +112,14 @@ for (const file of (await walk(outputDirectory)).filter((f) => f.endsWith(".html
         if (value) kickers.set(value, page);
     }
 
+    for (const [pattern, label] of RUN_EVIDENCE) {
+        const match = raw.match(pattern) ?? strip(raw).match(pattern);
+        if (match) failures.push(`${page}: ${label} "${match[0]}"`);
+    }
+
+    const history = [...new Set(strip(html).match(HISTORY) ?? [])];
+    if (history.length > 0) reviewable.push(`${page}: history words ${history.map((w) => `"${w}"`).join(", ")}`);
+
     for (const phrase of BANNED) {
         if (strip(html).toLowerCase().includes(phrase.toLowerCase())) {
             failures.push(`${page}: banned construction "${phrase}"`);
@@ -130,9 +150,12 @@ for (const [text, page] of kickers) {
     }
 }
 
-if (reviewable.length > 0) {
-    console.log(`Voice check: ${reviewable.length} long enumerations on reference pages (not gated).`);
+const enumerations = reviewable.filter((r) => r.includes("-item enumeration")).length;
+const historyPages = reviewable.filter((r) => r.includes("history words"));
+if (enumerations > 0) {
+    console.log(`Voice check: ${enumerations} long enumerations on reference pages (not gated).`);
 }
+for (const line of historyPages) console.log(`Voice check (review): ${line}`);
 
 if (failures.length > 0) {
     console.error("Voice check failed:");
