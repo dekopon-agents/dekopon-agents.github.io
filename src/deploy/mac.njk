@@ -16,7 +16,7 @@ ogType: article
 <ul>
 <li>You and a colleague mention <code>@dekopon</code> in a private Slack channel and get a PR review in the thread.</li>
 <li>It reads GitHub with a fine-grained token only the broker holds, and can't write to GitHub.</li>
-<li>It bills one OpenRouter key under a spending cap you set.</li>
+<li>It bills one OpenRouter key under a spending limit you set.</li>
 <li>Two launchd services run it at boot under separate accounts.</li>
 </ul>
 <p>The files come from the <a href="{{ starter }}">Slack GitHub recipe ↗</a> and the <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a>. If this page and GitHub disagree, GitHub is current.</p>
@@ -194,11 +194,11 @@ settings:
 
 <section id="secrets"><span class="compat-anchor" id="pat" aria-hidden="true"></span>
 <h2>7. Two private secret files</h2>
-<p>The gateway holds the Slack and OpenRouter secrets; the broker holds the GitHub token. Create and edit the gateway's file as its owner:</p>
+<p>The gateway holds the Slack and OpenRouter secrets; the broker holds the GitHub token. Create the gateway's file and open it as its owner (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
 <pre aria-label="env create" tabindex="0"><code>sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/gateway/credentials.env
 sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
-<p>Fill in the quoted values:</p>
+<p>Enter these lines with your values:</p>
 <pre aria-label="env body" tabindex="0"><code>export DEKOPON_GATEWAYD_SLACK_APP_TOKEN='xapp-…'
 export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-…'
 export OPENROUTER_API_KEY='sk-or-…'</code></pre>
@@ -206,7 +206,7 @@ export OPENROUTER_API_KEY='sk-or-…'</code></pre>
 <pre aria-label="pat create" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/broker/broker-credentials.yaml
 sudo -u _dekopon_broker -e /usr/local/etc/dekopon/broker/broker-credentials.yaml</code></pre>
-<p>Replace the placeholder with your token:</p>
+<p>Enter this, with your token in place of the placeholder:</p>
 <pre aria-label="pat body" tabindex="0"><code>apiVersion: dekopon.dev/broker-credentials/v1alpha1
 credentials:
   - name: github-pat
