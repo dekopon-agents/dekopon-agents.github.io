@@ -1,6 +1,7 @@
 {
   "pages": [
     { "key": "overview", "label": "Choose a path", "href": "/deploy/" },
+    { "key": "mac", "label": "Mac", "href": "/deploy/mac/" },
     { "key": "kubernetes", "label": "Kubernetes", "href": "/deploy/kubernetes/" }
   ]
 }

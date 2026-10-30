@@ -1,0 +1,70 @@
+---
+layout: layouts/base.njk
+pageTitle: Run Dekopon on a Mac — Dekopon
+pageDescription: Native Apple Silicon binaries, Slack Socket Mode, a budgeted OpenRouter key, and launchd for a Mac that stays on.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set docs = site.repository ~ '/blob/main/docs' %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/deploy/">Install options</a> · Apple Silicon · pre-production</p>
+<h1>Run Dekopon on a Mac</h1>
+<p>Use the native broker and gateway with Slack Socket Mode and a dedicated OpenRouter API key. For an unattended Mac, manage the two processes with macOS <code>launchd</code> under separate service accounts.</p>
+<p>This Mac path was reviewed on 30 October 2026. The site's other technical pages describe the older <a href="{{ release.url }}">{{ release.tag }}</a> snapshot; use the <a href="{{ docs }}/run-on-mac.md">current Mac runbook ↗</a> and the configuration contracts for your installed release.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#install">Binaries</a><a href="#slack-model">Slack and budget</a><a href="#service">Service manager</a><a href="#verify">Before switching</a></nav>
+
+<section id="install">
+<h2>Homebrew installs two native executables</h2>
+<p>The <a href="https://github.com/dekopon-agents/homebrew-tap/blob/main/Formula/dekopon.rb">Dekopon tap ↗</a> uses the published Apple Silicon archive. With Homebrew installed:</p>
+<pre aria-label="Install and inspect Dekopon" tabindex="0"><code>brew update
+brew tap dekopon-agents/tap
+brew trust dekopon-agents/tap
+brew install dekopon-agents/tap/dekopon
+dekopon-brokerd --version
+dekopon-gatewayd --version</code></pre>
+<p><code>brew trust</code> is required by Homebrew 6 for a non-official tap. Both daemons must report the same version. For a fixed release or rollback, the runbook gives checksum and attestation checks for the <a href="{{ site.releases }}/latest">release archives ↗</a>. Current archives support Apple Silicon; Intel Macs need a source build outside the release build matrix.</p>
+<p>The formula installs no provider or configuration and starts no service. The runbook's starter supplies an example catalog and policy, but you still need a compatible provider, Slack identity mapping and service accounts. The starter has not been exercised with real Slack and OpenRouter on macOS; complete the acceptance checks on your Mac before switching.</p>
+</section>
+
+<section id="slack-model">
+<h2>Slack receives messages; OpenRouter bills inference</h2>
+<p>Start with the <a href="{{ site.repository }}/blob/main/examples/slack/README.md">classic Slack app profile ↗</a>, which works on free and paid workspaces. Use the manifest from the same release as your binaries. Socket Mode opens an outbound connection, so you don't need a public webhook, port forwarding or a local web server.</p>
+<ol>
+<li>Create the Slack app from its manifest, install it, and create the separate app-level token with <code>connections:write</code>. Supply the <code>xapp-…</code> and <code>xoxb-…</code> tokens to the gateway using the environment-variable names in its configuration.</li>
+<li>Map the intended Slack member and workspace in the broker and grant the agent only the reviewed provider capabilities. Begin with DMs; unmentioned channel following needs additional configuration.</li>
+<li>Use the current gateway's <code>kind: openrouter</code> model with a dedicated inference key. Keep all three secrets out of the catalog, manifests and launchd plist. The runbook covers private per-process credential loading.</li>
+</ol>
+<p>Set the key's dollar limit and reset period in OpenRouter, with a finite prepaid account balance and automatic top-ups disabled. Avoid BYOK for this first setup: it introduces a separate provider bill. Confirm the key's remaining limit in <a href="https://openrouter.ai/docs/api/api-reference/api-keys/create-a-new-api-key">OpenRouter's key settings ↗</a>; don't give Dekopon a management key.</p>
+<p>Dekopon's optional token meter is a second control, not a dollar cap. It resets on restart unless a supported telemetry restore source is configured. Bound model output, steps and concurrency as well. Provider-side limits don't guarantee zero overshoot for requests already in flight; monitor actual OpenRouter usage.</p>
+</section>
+
+<section id="service">
+<h2>launchd can run both daemons before login</h2>
+<p>For an always-on Mac, use two system LaunchDaemons with distinct, unprivileged users. That preserves the broker's credential boundary and lets the service run while nobody is logged in. An administrator must provision the accounts, owned directories and shared socket group.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Mac process managers">
+<table>
+<thead><tr><th scope="col">Process manager</th><th scope="col">Use on this Mac</th><th scope="col">Limit</th></tr></thead>
+<tbody>
+<tr><th scope="row">System LaunchDaemons</th><td data-label="Use on this Mac">Recommended for unattended service; start the broker before the gateway.</td><td data-label="Limit">Manual setup. Run each daemon as its own service user, with absolute paths and private credentials.</td></tr>
+<tr><th scope="row">User LaunchAgents</th><td data-label="Use on this Mac">A read-only trial while logged in.</td><td data-label="Limit">Stop at logout. Two processes under one user don't isolate broker files; external provider writes require separate UIDs.</td></tr>
+<tr><th scope="row">Homebrew services</th><td data-label="Use on this Mac">No packaged Dekopon service.</td><td data-label="Limit">The formula has no service definition; <code>brew services start dekopon</code> is not an installation step.</td></tr>
+<tr><th scope="row">Docker Desktop</th><td data-label="Use on this Mac">An option for an existing container setup.</td><td data-label="Limit">Adds a Linux VM and another lifecycle to manage. Slack and OpenRouter don't require it.</td></tr>
+</tbody>
+</table>
+</div>
+<p><a href="https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html">Apple's launchd guide ↗</a> distinguishes system daemons from login agents. Prevent automatic system sleep while the display is off in <a href="https://support.apple.com/guide/mac-help/set-sleep-and-wake-settings-mchle41a6ccd/mac">Energy settings ↗</a>; the service cannot answer while the Mac sleeps. FileVault can require an unlock after a restart before services become available.</p>
+<p>Capture each process's stdout and stderr to private files and rotate them. Logs can contain prompts and replies; launchd does not provide retention for those files. Keep configuration, provider locks and persistent state in backed-up directories outside the Homebrew Cellar. A native installation avoids a VM, but this guide makes no measured Mac memory or idle-power claim.</p>
+</section>
+
+<section id="verify">
+<h2>A Slack reply is the first acceptance check</h2>
+<p>Run both configuration checks as their service users, start the broker, probe the socket as the broker user, then start the gateway. The probe checks the broker under its own UID; the real gateway and DM check the separate-user path. A passing offline check doesn't prove credentials, network access or provider execution. Send a DM from the allowed member and confirm the reply and OpenRouter usage; confirm an unapproved member cannot start inference.</p>
+<p>Then exercise restart, logout and reboot recovery, including any disk-unlock step. Check logs and send another DM after each. Stop the gateway before the broker for maintenance. Preserve the previous matching binaries, configuration and provider set before upgrading both daemons; a Homebrew upgrade neither migrates configuration nor restarts the running processes.</p>
+<p>When replacing another assistant, test Dekopon with a separate Slack app first. Switch traffic only after these checks pass, and keep the prior configuration available for rollback. Dekopon doesn't import another assistant's memory, plugins or credentials automatically.</p>
+<p><a class="button button-primary" href="{{ docs }}/run-on-mac.md">Read the Mac runbook ↗</a></p>
+<p><a href="{{ docs }}/run-on-mac.md">Read the latest in the Dekopon docs ↗</a> for release selection, configuration, launchd templates and recovery steps.</p>
+</section>
+</article>

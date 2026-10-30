@@ -5,8 +5,8 @@
     "titleAccent": "to play nice",
     "lede": "Models already know shell workflows. Dekopon runs them in a controlled runtime on your hardware, with explicit access to services—not a host shell.",
     "primaryCta": {
-      "label": "Deploy on Kubernetes",
-      "href": "/deploy/kubernetes/"
+      "label": "Choose an install path",
+      "href": "/deploy/"
     },
     "secondaryCta": {
       "label": "Explore tools and providers",
