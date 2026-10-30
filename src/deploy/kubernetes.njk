@@ -17,7 +17,7 @@ ogType: article
 </nav>
 <section id="install"><span class="compat-anchor" id="status" aria-hidden="true"></span>
 <h2>Chart {{ release.chart.publishedVersion }} · application {{ release.chart.publishedAppVersion }}</h2>
-<p>Requires Helm, Kubernetes ≥1.29 with native sidecars enabled, and a writable ReadWriteOnce StorageClass. Admission must allow a root init container with only <code>CHOWN</code> and <code>FOWNER</code>. The default <code>local-path</code> class is cluster-specific; select your own below.</p>
+<p>Requires Helm ≥3.8, Kubernetes ≥1.29 with native sidecars enabled, and a writable ReadWriteOnce StorageClass. Admission must allow a root init container with only <code>CHOWN</code> and <code>FOWNER</code>. The default <code>local-path</code> class is cluster-specific; select your own below.</p>
 <p>This complete smoke installation starts only the broker with its built-in read-only CLI probe. It requires no chat/model/provider credentials and does not run an AI agent. Commands are for your selected cluster; inspect the render before installing.</p>
 <pre tabindex="0" aria-label="Install the default broker and check its socket"><code># Set these two values for your cluster.
 export KUBE_CONTEXT=your-context
@@ -38,32 +38,32 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon \
 kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
   -c broker -- dekopon-brokerd probe --socket /run/dekopon/broker.sock</code>
 </pre>
-<p>The commands pin both the application tag and its verified multi-architecture image digest. A nonempty <code>image.digest</code> takes precedence over <code>image.tag</code>. The published chart’s digest selects this release even though its tag field still names the preceding version; check the rendered image rather than relying on that label.</p>
-<p><strong>Expected:</strong> a ready broker container and probe exit 0, without output, after an authenticated capability-list exchange. The default config loads <code>cli-probe</code> but grants no executable capability; an empty authorized listing is healthy. The probe invokes nothing and emits no audit record. The website checks chart rendering, not a live cluster installation.</p>
+<p>The commands pin both the application tag and its multi-architecture image digest. A nonempty <code>image.digest</code> takes precedence over <code>image.tag</code>; with both empty, the chart uses its application version. Check the rendered image before installing.</p>
+<p><strong>Expected:</strong> a ready broker container and probe exit 0, without output, after an authenticated capability-list exchange. The default config loads <code>cli-probe</code> but grants no executable capability; an empty authorized listing is healthy. The probe invokes nothing and emits no audit record. The site checks published chart metadata; it does not test a live cluster installation. Inspect the rendered resources before installing.</p>
 </section>
 <section id="upgrade">
-<h2>Upgrade the gateway name and configuration together.</h2>
-<p>Existing installations need a coordinated broker/gateway rollout. The old <code>dekopond</code> executable has no alias, and the new strict decoder rejects the old gateway resource.</p>
+<h2>Binaries, providers and saved state upgrade together.</h2>
+<p>The application and chart have separate versions. Keep the gateway and broker binaries on one application release, check provider imports, and read the <a href="{{ source }}/docs/upgrading.md">pinned upgrade guide ↗</a> before replacing either.</p>
 <ol>
-<li>Replace the command with <code>dekopon-gatewayd</code>, rename <code>dekopond.yaml</code> / <code>dekopond.d</code> to <code>gatewayd.yaml</code> / <code>gatewayd.d</code>, and use <code>apiVersion: dekopon.dev/gatewayd/v1alpha1</code>. Rename <code>DEKOPOND_*</code> environment references and matching Secret keys to <code>DEKOPON_GATEWAYD_*</code>; set <code>gateway.config.existingSecretKey: gatewayd.yaml</code> where applicable.</li>
-<li>Update the gateway’s broker identity and matching Cedar <code>context.via</code> grants to <code>dekopon-gatewayd</code>, plus its telemetry <code>serviceName</code>. Keep the gateway and broker on separate UIDs. Use the chart’s separate config mount paths: <code>/etc/dekopon-gateway</code> for the gateway and <code>/etc/dekopon</code> for the broker.</li>
-<li>Move configured journal/wake paths under <code>/var/lib/dekopon-gatewayd</code>, matching <code>gateway.journal.mountPath</code> and <code>gateway.wakes.mountPath</code>. Keep the existing PVC and <code>gateway-journal</code> / <code>gateway-wakes</code> subdirectories so their bytes survive. Validate all fragments, then roll the chart and application pins together.</li>
+<li>Save the current chart values, image digest, provider lock and configuration. Back up live rotating credentials and persistent state with the daemons stopped; an old login seed is not a usable credential backup.</li>
+<li>Check the candidate broker configuration and gateway catalog against the candidate binaries. The optional <code>configCheck</code> hook runs those checks before rollout; its gateway <code>--probe</code> stage makes small paid requests to changed OpenRouter models. Supply candidate ConfigMaps and the referenced model-key environment variables explicitly.</li>
+<li>Sync and precompile the selected managed providers, then roll the image and configuration together. Keep existing PVCs and their daemon-private subdirectories. Repeat the broker probe and a real chat/tool turn; restoring an older image alone does not restore compatible configuration or state.</li>
 </ol>
-<p>When upgrading from earlier releases, also check provider imports and managed-cache requirements below. <a href="{{ source }}/docs/upgrading.md">The pinned upgrade guide ↗</a> lists the intervening breaking changes; a binary swap does not migrate saved configuration.</p>
+<p>For installations predating the gateway rename, replace <code>dekopond</code> with <code>dekopon-gatewayd</code> and use <code>apiVersion: dekopon.dev/gatewayd/v1alpha1</code>. Update matching environment references, mount paths and the broker’s <code>dekopon-gatewayd</code> peer principal; there is no old-name executable alias.</p>
 </section>
 <section id="pod"><span class="compat-anchor" id="security" aria-hidden="true"></span><span class="compat-anchor" id="one-pod" aria-hidden="true"></span>
 <h2>Gateway-enabled pod and its mounts</h2>
 <figure class="pod-map" aria-labelledby="pod-caption">
 <div class="pod-inputs"><strong>Operator inputs</strong>
-<p>Secret / ConfigMap projections → <code>prepare-files</code> (root, CHOWN + FOWNER)</p>
-<p>Copies ordinary files into <strong>separate</strong> daemon-owned config tmpfs volumes.</p>
+<p>Broker Secret / ConfigMap projections → <code>prepare-files</code> (root, CHOWN + FOWNER)</p>
+<p>Copies broker inputs into broker-owned config tmpfs. Gateway config mounts separately as a read-only projection.</p>
 </div>
 <div class="pod-boundary">
 <h3>One pod · one replica · Recreate deployment</h3>
 <div class="pod-processes">
 <div class="map-zone">
 <h4>Gateway · UID 65533</h4>
-<p><code>/etc/dekopon-gateway</code> ← gateway-config only</p>
+<p><code>/etc/dekopon-gateway</code> ← read-only gateway-config projection</p>
 <p>Catalog ← ConfigMap<br><code>/tmp</code> ← gateway disk scratch</p>
 <p>Model/chat tokens ← gateway env or private rotating credential mount</p>
 <p>↔ Outbound chat + model endpoints</p>
@@ -79,12 +79,12 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </div>
 </div>
 <p class="pod-socket">Gateway ⇄ <code>/run/dekopon/broker.sock</code> ⇄ broker<br>Socket 0660 · directory 0710 · shared IPC GID 65534 · gateway pins server UID 65532</p>
-<p class="pod-persistence">Retained state claim: distinct daemon-owned credential subdirectories; optional managed-provider subdirectory mounts only in broker.</p>
+<p class="pod-persistence">Retained state claim: distinct daemon-owned credential subdirectories, optional gateway journal/assets/wakes, and a managed-provider subdirectory mounted only in broker.</p>
 </div>
 <figcaption id="pod-caption">Both daemons → stdout / optional OTLP collector. Inbound routing and TLS are operator-owned; no Service or Ingress is created by default. The gateway is off in the smoke installation above.</figcaption>
 </figure>
 <p>The same kernel and shared socket are required for peer authentication and descriptor passing. Do not split this into remote broker/gateway Deployments or scale replicas against the same state. Daemons have read-only roots, no added capabilities and RuntimeDefault seccomp; this is not a production-hardening claim.</p>
-<p><code>console.enabled: true</code> (chart {{ release.chart.publishedVersion }}) adds one more idle container to the same pod: UID 65535, IPC group only, no credentials, for <code>kubectl exec -it … -c console -- dekopon-console</code>. It needs <code>gateway.enabled</code>, a pinned <code>console.image</code>, and its own broker attestor grant for <code>console.subject</code>.</p>
+<p><code>console.enabled: true</code> (chart {{ release.chart.publishedVersion }}) adds one more idle container to the same pod: UID 65535, IPC group only, no credentials, for <code>kubectl exec -it … -c console -- dekopon-console</code>. It needs <code>gateway.enabled</code> and its own broker attestor grant for <code>console.subject</code>. Its default image inherits the daemon image, which already contains the console; <code>console.image</code> can override that pin.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Resource default comparison">
 <table>
 <thead>
@@ -98,7 +98,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 <tr>
 <th scope="row">Broker</th>
 <td data-label="Request">100m CPU / 256Mi RAM</td>
-<td data-label="Limit">2 CPUs / 1Gi RAM</td>
+<td data-label="Limit">2 CPUs / 2Gi RAM</td>
 </tr>
 <tr>
 <th scope="row">Gateway</th>
@@ -111,7 +111,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </section>
 <section id="gateway">
 <h2>Enable chat with explicit inputs.</h2>
-<p>Use <a href="{{ source }}/charts/dekopon/values-pr-summarizer-linter.yaml">the release-pinned Slack/PR values example ↗</a> as a starting point. It does not install a GitHub component: add your reviewed <code>providers</code> or <code>providerSet</code> configuration. Replace its transport/model choices, identifiers and telemetry endpoints; check request budgets against the installed provider version.</p>
+<p>Start from the <a href="{{ source }}/charts/dekopon/values.yaml">pinned chart defaults ↗</a> and supply the following inputs. The chart places files; the daemons validate their contents. The historical PR-summarizer values example still contains removed constraint fields, so it is not a validated chat starter for this release.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Input comparison">
 <table>
 <thead>
@@ -125,7 +125,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 <tr>
 <th scope="row">Broker config and policy</th>
 <td data-label="Chart value / owner">broker.config / broker.policies</td>
-<td data-label="Required change">Map gateway UID 65533 separately from the 65532 probe; grant the sender and agent. Set the broker socket paths and policy files to chart mount paths.</td>
+<td data-label="Required change">Map gateway UID 65533 to the literal peer principal <code>dekopon-gatewayd</code>, separately from the 65532 probe; grant the sender and agent. Set the broker socket paths and policy files to chart mount paths.</td>
 </tr>
 <tr>
 <th scope="row">Gateway config and catalog</th>
@@ -145,20 +145,20 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </tbody>
 </table>
 </div>
-<p>Model credentials stay with the gateway. Optional <a href="/inference/#budgets">token budgets and boot restore</a> limit model admission; the <a href="/inference/#proxy">guest model proxy</a> needs its own mTLS listener and trusted jail. None is enabled by an application upgrade.</p>
+<p>Model credentials stay with the gateway. Optional <a href="/inference/#budgets">token budgets and boot restore</a> limit model admission, with restart and restore gaps; the <a href="/inference/#proxy">guest model proxy</a> needs its own mTLS listener and trusted jail. None is enabled by an application upgrade.</p>
 <p>For WhatsApp or another inbound webhook, enable <code>gateway.service</code>, bind the configured listener to <code>0.0.0.0</code> on the same port, and provide your own exact-path ingress/TLS route. Slack and Discord connect outbound; the broker’s provider HTTP is outbound too. The chart does not install a network egress policy.</p>
 <p>Render the combined values before upgrade, then repeat the rollout/probe checks. Finally send a chat message that invokes a harmless granted capability and <a href="/guides/traces/#records">check decision and execution records</a>; socket readiness alone does not prove the model, chat service or provider credentials work.</p>
 </section>
 <section id="providers">
 <h2>Install the provider set before the broker starts.</h2>
-<p>The application image includes only <code>cli-probe</code> and <code>http-probe</code>. GitHub, curl, Python, memory and other out-of-tree components need explicit, reviewed installation. A <code>providers:</code> path list and a managed <code>providerSet:</code> are mutually exclusive.</p>
+<p>The application image’s only bundled providers are <code>cli-probe</code> and <code>http-probe</code>. It also carries both daemons and <code>dekopon-console</code>; native release archives carry those three executables but no provider. GitHub, curl, Python, memory and other out-of-tree components need explicit, reviewed installation. A <code>providers:</code> path list and a managed <code>providerSet:</code> are mutually exclusive.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Provider installation stages">
 <table>
 <thead><tr><th scope="col">Stage</th><th scope="col">What the operator must arrange</th></tr></thead>
 <tbody>
-<tr><th scope="row">Sync</th><td data-label="What the operator must arrange"><code>provider sync</code> writes the immutable lock and source blobs. Enable <code>broker.providerSet.enabled</code> and either populate its state-claim subdirectory yourself or use <code>broker.providerSync.enabled</code> with a <code>providers.yaml</code> ConfigMap.</td></tr>
+<tr><th scope="row">Sync</th><td data-label="What the operator must arrange"><code>provider sync</code> writes the exact-reference lock and source blobs and populates the compiled cache. Enable <code>broker.providerSet.enabled</code> and either populate its state-claim subdirectory yourself or use <code>broker.providerSync.enabled</code> with a <code>providers.yaml</code> ConfigMap.</td></tr>
 <tr><th scope="row">Precompile</th><td data-label="What the operator must arrange">The chart’s <code>precompile</code> init container runs after <code>prepare-files</code>, as broker UID 65532 with the broker image and resource limits. It checks locked local blobs, fills or repairs compiled artifacts, and prunes stale cache generations.</td></tr>
-<tr><th scope="row">Load</th><td data-label="What the operator must arrange">The broker verifies and maps the compiled cache; it refuses a missing or invalid entry. It reads the lock at startup, so a changed lock needs a pod rollout. An external ConfigMap change does not trigger one automatically.</td></tr>
+<tr><th scope="row">Load</th><td data-label="What the operator must arrange">The broker verifies and maps the compiled cache; it refuses a missing or invalid entry. A settled provider-lock change drains and exits the running broker so its supervisor can restart it. Roll the pod when you need the precompile init container to run again; changing an external source ConfigMap alone does not roll it.</td></tr>
 </tbody>
 </table>
 </div>
@@ -168,14 +168,14 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
   --lock-file /var/lib/dekopon/providers/providers.lock.yaml \
   --store /var/lib/dekopon/providers/store precompile</code>
 </pre>
-<p>Direct <code>providers:</code> paths compile from source. <code>compileOnLoad: true</code> bypasses the managed cache, but does not skip the chart’s precompile init container. Stop the broker before manually removing mapped artifacts.</p>
+<p>Direct <code>providers:</code> paths compile from source. <code>compileOnLoad: true</code> bypasses the managed cache, but does not skip the chart’s precompile init container. Compiled objects are capped at 512 MiB each and 2 GiB total across at most 1,024 objects; keep the cache on persistent disk. Stop the broker before manually removing mapped artifacts. Digests prove byte identity, not publisher provenance.</p>
 <p><strong>Check component imports, not just version labels.</strong> The current broker requires <code>dekopon:provider@0.4.0</code> and refuses old <code>provider@0.3.0</code> components. HTTP <code>client@1.2.0</code> imports are also refused; use the supported <code>client@1.1.0</code> contract. <a href="/guides/provider-sdk/">Provider SDK and compatibility</a>.</p>
 </section>
 <section id="files">
-<h2>Projected Secrets become private ordinary files.</h2>
-<p>Kubernetes Secret projections contain symlinks; the daemon’s ordinary credential loader requires owned regular files. <code>prepare-files</code> copies them to the correct daemon’s private volume at mode <code>0600</code>, checking ownership and paths rather than handing both processes a common config directory.</p>
+<h2>Broker inputs are copied; gateway config stays projected.</h2>
+<p>The broker’s ordinary loader refuses Kubernetes projection symlinks. <code>prepare-files</code> copies broker configuration, policy and credential inputs to its private volume as broker-owned regular files at mode <code>0600</code>. Gateway config, catalog and skills instead mount directly as separate read-only projections: root- or gateway-owned, without group/world write access. Neither daemon receives the other’s private files.</p>
 <p>For split configuration, use <code>broker.configDirectory.configMap</code> or <code>gateway.configDirectory.configMap</code> and clear the conflicting single-file values. Set the corresponding <code>drainBudget.assumedBrokerShutdownGraceMs</code> / <code>assumedGatewayShutdownGraceMs</code>; the chart cannot read a grace period inside an external directory. Chart-rendered <code>peers.yaml</code> maps the probe and gateway separately, and must not collide with a supplied fragment.</p>
-<p>Changes to copied configuration or credential inputs require a pod rollout; use your own watched-secret restart mechanism. Inline chart config changes have checksum-triggered rollouts. Do not add <code>fsGroup</code>: group-readable credential files are refused.</p>
+<p>Copied broker inputs need a pod rollout to change; inline broker config and ordinary credential inputs have checksum-triggered rollouts. Gateway projections have no chart checksum: the gateway polls them and can apply supported model, route, catalog and indicator changes after validation. Changes to runtime connections, state paths or other restart-required settings need an explicit rollout; a refused candidate leaves the active configuration running. Model/chat tokens read from environment variables also need a restart after their Secret changes. Do not add <code>fsGroup</code>: group-readable broker credential files are refused.</p>
 <div id="credentials">
 <h3>Rotating credentials are seeded once.</h3>
 <p>ChatGPT gateway and broker credentials use different token families and different persistent subdirectories. The live refresh token rotates; the original exported seed is not a backup. Restoring it over the live file can revoke access. Use <code>reseed</code> only after deliberate re-login, then turn it back off.</p>
@@ -195,7 +195,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 <tbody>
 <tr>
 <th scope="row">State PVC</th>
-<td data-label="Ownership and lifecycle">Retained on uninstall by default; daemon-private rotating credentials, optional managed-provider store, and opted-in gateway journal/wakes. Back up live state, not old credential seeds. The default local-path class may not support expansion.</td>
+<td data-label="Ownership and lifecycle">Retained on uninstall by default; daemon-private rotating credentials, optional managed-provider store, and opted-in gateway journal/assets/wakes. Back up live state, not old credential seeds. The default local-path class may not support expansion.</td>
 </tr>
 <tr>
 <th scope="row">Provider-storage PVC</th>
@@ -203,7 +203,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </tr>
 <tr>
 <th scope="row">Gateway scratch / broker assets</th>
-<td data-label="Ownership and lifecycle">Separate disk-backed emptyDir volumes, each 320Mi by default. Gateway live retention defaults to 256 MiB; broker in-flight assets to 64 MiB. Losing the pod loses retained chat assets.</td>
+<td data-label="Ownership and lifecycle">Separate disk-backed emptyDir volumes, each 1152Mi by default. Gateway live retention defaults to 1 GiB; broker in-flight assets to 64 MiB. Without a journal, retained chat assets disappear with the pod. With a journal, enable <code>gateway.journal</code> and <code>gateway.assets</code> together and configure their separate paths on the state PVC.</td>
 </tr>
 <tr>
 <th scope="row">Config / socket / broker scratch</th>
@@ -236,11 +236,11 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </tr>
 <tr>
 <th scope="row">Broker never becomes ready</th>
-<td data-label="Check">Provider compatibility/loading, policy/config parsing and socket ownership. Startup gets 60 attempts at 5-second intervals.</td>
+<td data-label="Check">Provider compatibility/loading, policy/config parsing and socket ownership. Startup gets 60 attempts at 5-second intervals. A health probe can pass with an empty grant; that does not permit a model session.</td>
 </tr>
 <tr>
 <th scope="row">Gateway has not started</th>
-<td data-label="Check">With gateway enabled, the broker is a native sidecar; its startup probe must pass before gateway launch.</td>
+<td data-label="Check">With gateway enabled, the broker is a native sidecar; its startup probe must pass before gateway launch. If the gateway exits with <code>not the reconciliation owner</code>, check its mapped peer principal is <code>dekopon-gatewayd</code> and has an attestor grant.</td>
 </tr>
 <tr>
 <th scope="row">Webhook Service has no ready endpoint</th>

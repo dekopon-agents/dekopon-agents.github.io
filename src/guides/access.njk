@@ -13,7 +13,7 @@ ogType: article
 <h1>Identity and access</h1>
 <p>Map an authenticated chat subject to a principal, then grant an agent and its capabilities separately.</p>
 </header>
-<nav class="guide-jumps" aria-label="On this page"><a href="#identity">Caller mapping</a><a href="#policy">Worked decision</a><a href="#constraints">Execution limits</a><a href="#credentials">Credentials</a>
+<nav class="guide-jumps" aria-label="On this page"><a href="#identity">Caller mapping</a><a href="#policy">Worked decision</a><a href="#spaces">Channel scope</a><a href="#constraints">Execution limits</a><a href="#credentials">Credentials</a>
 </nav>
 <section id="identity">
 <h2>The broker maps the sender, not the prompt.</h2>
@@ -57,12 +57,17 @@ ogType: article
 </td>
 <td data-label="Trust source">Verified webhook sender</td>
 </tr>
+<tr>
+<th scope="row">GitHub</th>
+<td data-label="Canonical subject"><code>github.example.repo</code></td>
+<td data-label="Trust source">Repository identity from a webhook whose raw-body HMAC the gateway verified</td>
+</tr>
 </tbody>
 </table>
 </div>
 <p><strong>A compromised gateway can speak for its whole attestor lane.</strong> Restrict the namespace grant, then narrow conversation scope in the Cedar policies that grant capabilities. The local development transport accepts a caller-declared supported subject; it does not independently authenticate the sender.</p>
 <h3>Chart-aligned mapping excerpt</h3>
-<p>This is part of <code>broker.yaml</code>, not a complete configuration. An attestor without <code>namespaces</code> speaks for exactly its mapped subjects; the one below is intentionally broad for a whole Slack workspace, so narrow it for your deployment.</p>
+<p>This is part of <code>broker.yaml</code>, not a complete configuration. An attestor without <code>namespaces</code> can attest any mapped subject; the one below limits it to one Slack workspace. Use the actual gateway UID on a native host, rather than copying the chart's UID.</p>
 <pre tabindex="0" aria-label="Illustrative broker identity excerpt"><code>identities:
   - uid: 65533
     principal: dekopon-gatewayd
@@ -73,10 +78,11 @@ principals:
   alice:
     subjects: [slack.t0123abcd.u0123abcd]</code>
 </pre>
+<p>Keep the gateway peer principal named <code>dekopon-gatewayd</code>: the broker requires that name and an attestor grant for the gateway's startup/reload handshake. A mapped peer without an attestation receives no capability. The broker's own-UID health probe proves reachability, not permission for a chat sender.</p>
 </section>
 <section id="policy">
 <h2>Alice needs two grants.</h2>
-<p>Permission to prompt <code>pr-commenter</code> does not permit a GitHub write. A separate rule permits the comment capability only through that agent and gateway.</p>
+<p>Permission to prompt <code>pr-commenter</code> does not permit a GitHub write. A separate rule permits the comment capability only through that agent and gateway. This example is a direct-message session; a mapped channel also needs the channel's grants below.</p>
 <pre tabindex="0" aria-label="Illustrative Cedar policy excerpt"><code>@id("alice-prompt")
 permit(principal == Dekopon::Principal::"alice",
        action == Dekopon::Action::"agent.prompt",
@@ -121,6 +127,12 @@ when { context has agent &amp;&amp; context.agent == "pr-commenter"
 <p>These are worked decisions, not a deployed test. Cedar evaluates static rules, not intent; a permitted comment can still contain harmful text. A model can help draft configuration, but runtime decisions use the saved files.</p>
 <p>The provider resource is <code>gh</code>, not an individual repository. This rule does not inspect arbitrary provider input. Restrict the upstream GitHub token’s repository access rather than assuming this policy does so.</p>
 </section>
+<section id="spaces">
+<h2>A mapped channel narrows every participant's access.</h2>
+<p>A Slack channel subject such as <code>slack.t0123abcd.c0123abcd</code>, or a Discord channel subject such as <code>discord.123456789.987654321</code>, can map to a separate principal under <code>principals</code>. The broker derives this space from the authenticated conversation; the model cannot select it.</p>
+<p>In that channel and its threads, both the sender and the space must allow the agent prompt and each capability, secret use and HTTP decision. A participant's wider personal grant cannot override a restrictive channel. You may leave a channel unmapped, retaining the sender's existing grants. A mapped channel with no permits allows nothing. Direct messages and top-level group DMs have no space principal.</p>
+<p>GitHub webhook sessions instead use a repository principal and need their own prompt and capability grants. Signed event facts do not prove the current PR head or checks: the agent must read those through permitted tools. Cedar evaluates author-set facts both absent and present, so those facts can restrict access but cannot create permission.</p>
+</section>
 <section id="constraints">
 <h2>A Cedar allow does not widen HTTP access.</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Owner-controlled constraint comparison">
@@ -147,18 +159,19 @@ when { context has agent &amp;&amp; context.agent == "pr-commenter"
 </tbody>
 </table>
 </div>
-<p>Catalog descriptions tell the model what an agent is for; they do not authorize it. <a href="{{ source }}/charts/dekopon/values-pr-summarizer-linter.yaml">The pinned chart values example ↗</a> shows catalog, mapping, constraints and both policy layers together. Add compatible provider paths or a managed provider set, plus your chat/model inputs; the example does not install its GitHub component.</p>
+<p>Catalog descriptions tell the model what an agent is for; they do not authorize it. The <a href="{{ source }}/crates/dekopon-brokerd/README.md#configuration">pinned broker contract ↗</a> defines the current fields. Install a compatible provider and validate the configuration against its loaded manifest; copying a policy alone does not install its GitHub component. The <a href="/deploy/mac/">Mac runbook</a> starts with a harmless read capability before adding useful access.</p>
 </section>
 <section id="credentials">
 <h2>The native HTTP sink sends the credential.</h2>
 <p>Existing named credential bindings, optionally selected per agent, stay in broker configuration. The guest builds its request without receiving the value; the native HTTP host injects it for the bound destination. That endpoint receives the credential.</p>
-<p>A caller-named public DRN uses an additional <code>secret.use</code> policy and private binding for the exact sink, method and path/query scope. A DRN pasted into ordinary provider input is just text. Resolution is pinned to the invocation, without stale fallback.</p>
+<p>A public DRN is a logical secret name, not a credential value. A provider command can propose one, or the owner can configure a capability's <code>defaultSecretUse</code> bearer binding. Either route still needs the exact DRN's <code>secret.use</code> permission and a private binding for the sink, method and path/query scope. A DRN pasted into ordinary provider input is just text. The broker pins each resolved value to its invocation and never serves a stale fallback.</p>
+<p>Chat replies and model requests use gateway-held credentials directly. Broker policy governs provider effects; it does not govern every API call the gateway's chat token can make.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Refreshing secret sources">
 <table>
 <thead><tr><th scope="col">Private source</th><th scope="col">What the broker does</th><th scope="col">Operator responsibility</th></tr></thead>
 <tbody>
 <tr><th scope="row"><code>kubernetesTokenRequest</code></th><td data-label="What the broker does">Mints a token once per authorized invocation for a fixed namespace, ServiceAccount and audience. No cached token or stale fallback.</td><td data-label="Operator responsibility">Mount a live API-audience bootstrap token and CA only in the broker. Restrict <code>serviceaccounts/token</code> RBAC to the target account; configure the destination’s issuer, audience, subject and expiry checks.</td></tr>
-<tr><th scope="row"><code>oauth2Refresh</code></th><td data-label="What the broker does">Locks and rereads a broker-owned credential record, refreshes near expiry, and atomically saves a rotated token. The guest receives neither token.</td><td data-label="Operator responsibility">Use a regular single-link <code>0600</code> record in a writable persistent directory. Stop the broker before enrollment or reset; a retired token family needs reauthorization.</td></tr>
+<tr><th scope="row"><code>oauth2Refresh</code></th><td data-label="What the broker does">Locks and rereads a private version-2 record, refreshes near expiry, and atomically saves a rotated token. Optional scheduled refresh also runs while idle; the guest receives neither token.</td><td data-label="Operator responsibility">Use a regular single-link <code>0600</code> record in a writable persistent directory. A retired family needs a new private seed or reauthorization; follow the source's reset procedure.</td></tr>
 </tbody>
 </table>
 </div>

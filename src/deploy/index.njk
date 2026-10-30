@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 pageTitle: Install Dekopon — Dekopon
-pageDescription: Choose how to obtain the two executables, then configure a broker and gateway for your environment.
+pageDescription: Install Dekopon's daemon pair and optional operator console, then configure a Mac, Linux host or Kubernetes deployment.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -11,7 +11,7 @@ ogType: article
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
 <h1>Install Dekopon</h1>
-<p>On an Apple Silicon Mac, start with the <a href="/deploy/mac/">native Mac path</a>. The Linux and Kubernetes recipes below describe this site's <a href="{{ release.url }}">{{ release.tag }}</a> snapshot.</p>
+<p>On an Apple Silicon Mac, start with the <a href="/deploy/mac/">native Mac path</a>. Linux archives and a Kubernetes chart provide the same broker and gateway for server deployments.</p>
 </header>
 <section id="options">
 <h2>Mac, Linux and Kubernetes install paths</h2>
@@ -52,16 +52,16 @@ ogType: article
 </div>
 </section>
 <section id="upgrade">
-<h2>Older installations must rename <code>dekopond</code></h2>
-<p>Upgrade both daemons together. The old <code>dekopond</code> name has no alias; gateway configuration, environment names and the chart’s mount paths also changed. <a href="/deploy/kubernetes/#upgrade">Use the migration checklist</a> before restarting an existing installation.</p>
+<h2>Upgrade the daemon pair and console together</h2>
+<p>Keep the previous binaries and configuration available for rollback. Recent releases changed conversation journals and memory settings; older journals reset rather than migrate automatically. <a href="/whats-new/#migration">Review the migration checklist</a> before restarting an existing installation.</p>
 </section>
 <section id="configure">
-<h2>The pinned Linux recipes need configuration</h2>
+<h2>The broker needs a provider and an explicit grant</h2>
 <p>The gateway needs a chat transport, model endpoint and agent catalog. The broker needs explicitly installed providers plus identity, policy and execution constraints. The container includes only the in-tree <code>cli-probe</code> and <code>http-probe</code> components; install reviewed out-of-tree providers yourself. Supply credentials only to their owning process and configure telemetry collection before giving the agent useful access.</p>
-<p>Validate authored files with <code>dekopon-gatewayd check gatewayd.yaml --catalog agents.d</code> and <code>dekopon-brokerd check broker.yaml</code> before deployment. A managed broker check also needs <code>--provider-set</code> and a private <code>--store</code>; it may fetch its pinned components. Checks stop before opening the socket or loading runtime credentials, so they do not prove that credentials or external services work. Managed deployment sets also need <a href="/deploy/kubernetes/#providers">sync and precompile</a>.</p>
+<p>Validate authored files with <code>dekopon-gatewayd check gatewayd.yaml --catalog agents.d</code> and <code>dekopon-brokerd check broker.yaml</code> before deployment. A managed broker check also needs <code>--provider-set</code> and a private <code>--store</code>; it may fetch its pinned components. Ordinary checks don't prove that the socket, credentials or external services work. The gateway's explicit <code>check --probe</code> can make a paid OpenRouter canary request. Managed deployment sets also need <a href="/deploy/kubernetes/#providers">sync and precompile</a>.</p>
 <p><a class="button button-primary" href="/deploy/mac/">Run on a Mac →</a> <a href="/deploy/kubernetes/">Kubernetes installation</a>
 </p>
 <p>Application <a href="{{ release.url }}">{{ release.tag }}</a> and the chart are independently versioned. Both Linux arm64 and amd64 images are published; source availability is not evidence of a healthy deployment.</p>
-<p>Writing a provider rather than running an agent? Use the <a href="/guides/provider-sdk/">SDK guide</a>. The <a href="https://github.com/dekopon-agents/dekopon-console">separate console repository</a> is an optional client, not a third daemon; the chart can also run it as an idle in-pod container for <code>kubectl exec</code>, credential-free. <a href="/deploy/kubernetes/#pod">Console container</a>.</p>
+<p>The release archives and Linux image also include <a href="{{ source }}/crates/dekopon-console/README.md"><code>dekopon-console</code> ↗</a>, an optional operator client. Homebrew installs it separately with <code>brew install dekopon-agents/tap/dekopon-console</code>. The console does not support OpenRouter models and is not needed for the Mac Slack path. The chart can run it idle for <a href="/deploy/kubernetes/#pod"><code>kubectl exec</code></a>. To write a provider, use the <a href="/guides/provider-sdk/">SDK guide</a>.</p>
 </section>
 </article>

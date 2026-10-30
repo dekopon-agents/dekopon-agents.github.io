@@ -64,7 +64,7 @@
     "fragments": {}
   },
   "/almanac/scheduling/": {
-    "target": "/guides/traces/",
+    "target": "/guides/runtime/#wakes",
     "fragments": {}
   },
   "/almanac/components/": {

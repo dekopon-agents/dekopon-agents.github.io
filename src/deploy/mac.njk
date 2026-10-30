@@ -9,10 +9,10 @@ ogType: article
 {% set docs = site.repository ~ '/blob/main/docs' %}
 <article class="shell field-guide">
 <header class="guide-intro">
-<p class="guide-baseline"><a href="/deploy/">Install options</a> · Apple Silicon · pre-production</p>
+<p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
 <h1>Run Dekopon on a Mac</h1>
 <p>Use the native broker and gateway with Slack Socket Mode and a dedicated OpenRouter API key. For an unattended Mac, manage the two processes with macOS <code>launchd</code> under separate service accounts.</p>
-<p>This Mac path was reviewed on 30 October 2026. The site's other technical pages describe the older <a href="{{ release.url }}">{{ release.tag }}</a> snapshot; use the <a href="{{ docs }}/run-on-mac.md">current Mac runbook ↗</a> and the configuration contracts for your installed release.</p>
+<p>The <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a> owns the installation and service templates. Match its configuration contracts to the release you install; the Homebrew tap can move ahead of this page.</p>
 </header>
 <nav class="guide-jumps" aria-label="On this page"><a href="#install">Binaries</a><a href="#slack-model">Slack and budget</a><a href="#service">Service manager</a><a href="#verify">Before switching</a></nav>
 
@@ -25,20 +25,21 @@ brew trust dekopon-agents/tap
 brew install dekopon-agents/tap/dekopon
 dekopon-brokerd --version
 dekopon-gatewayd --version</code></pre>
-<p><code>brew trust</code> is required by Homebrew 6 for a non-official tap. Both daemons must report the same version. For a fixed release or rollback, the runbook gives checksum and attestation checks for the <a href="{{ site.releases }}/latest">release archives ↗</a>. Current archives support Apple Silicon; Intel Macs need a source build outside the release build matrix.</p>
+<p><code>brew trust</code> is required by Homebrew 6 for a non-official tap. Both daemons must report the same version; this page describes <code>{{ release.version }}</code>. For a fixed release or rollback, the runbook gives checksum and attestation checks for the <a href="{{ release.url }}">release archives ↗</a>. They also contain the optional console, which the main Homebrew formula does not install. Current archives support Apple Silicon; Intel Macs need a source build outside the release build matrix.</p>
 <p>The formula installs no provider or configuration and starts no service. The runbook's starter supplies an example catalog and policy, but you still need a compatible provider, Slack identity mapping and service accounts. The starter has not been exercised with real Slack and OpenRouter on macOS; complete the acceptance checks on your Mac before switching.</p>
 </section>
 
 <section id="slack-model">
 <h2>Slack receives messages; OpenRouter bills inference</h2>
-<p>Start with the <a href="{{ site.repository }}/blob/main/examples/slack/README.md">classic Slack app profile ↗</a>, which works on free and paid workspaces. Use the manifest from the same release as your binaries. Socket Mode opens an outbound connection, so you don't need a public webhook, port forwarding or a local web server.</p>
+<p>Start with the <a href="{{ release.sourceUrl }}/examples/slack/README.md">classic Slack app profile ↗</a>, which works on free and paid workspaces. Use the manifest from the same release as your binaries. Socket Mode opens an outbound connection, so you don't need a public webhook, port forwarding or a local web server.</p>
 <ol>
 <li>Create the Slack app from its manifest, install it, and create the separate app-level token with <code>connections:write</code>. Supply the <code>xapp-…</code> and <code>xoxb-…</code> tokens to the gateway using the environment-variable names in its configuration.</li>
 <li>Map the intended Slack member and workspace in the broker and grant the agent only the reviewed provider capabilities. Begin with DMs; unmentioned channel following needs additional configuration.</li>
 <li>Use the current gateway's <code>kind: openrouter</code> model with a dedicated inference key. Keep all three secrets out of the catalog, manifests and launchd plist. The runbook covers private per-process credential loading.</li>
 </ol>
 <p>Set the key's dollar limit and reset period in OpenRouter, with a finite prepaid account balance and automatic top-ups disabled. Avoid BYOK for this first setup: it introduces a separate provider bill. Confirm the key's remaining limit in <a href="https://openrouter.ai/docs/api/api-reference/api-keys/create-a-new-api-key">OpenRouter's key settings ↗</a>; don't give Dekopon a management key.</p>
-<p>Dekopon's optional token meter is a second control, not a dollar cap. It resets on restart unless a supported telemetry restore source is configured. Bound model output, steps and concurrency as well. Provider-side limits don't guarantee zero overshoot for requests already in flight; monitor actual OpenRouter usage.</p>
+<p>The key limit covers only requests billed through that key. Additional provider tools can have separate API or subscription charges; <code>gpt-image</code>, for example, needs a ChatGPT subscription. The starter's read-only JSONPlaceholder tool adds no provider API bill.</p>
+<p>Dekopon's optional token meter is a second control, not a dollar cap. It resets on restart unless a supported telemetry restore source is configured, and restore is best effort. Bound model output, steps and concurrency as well. Journal summaries make additional model calls outside that local budget; leave summaries off for the starter. Provider-side limits don't guarantee zero overshoot for requests already in flight; monitor actual OpenRouter usage.</p>
 </section>
 
 <section id="service">

@@ -73,7 +73,7 @@ ogType: article
 <tr>
 <th scope="row">How much model budget was charged?</th>
 <td data-label="Record">meter · model call charged</td>
-<td data-label="Look for">Agent, configured model, <code>meter.via</code> (agent/proxy), charged input/output and <code>usage.source</code> (reported/estimated/partial). This log survives independently of sampled model spans when exported.</td>
+<td data-label="Look for">Agent, configured model, <code>meter.via</code> (agent/proxy/summary), charged input/output and <code>usage.source</code> (reported/estimated/partial). This log survives independently of sampled model spans when exported.</td>
 </tr>
 <tr>
 <th scope="row">Why did a provider hit its memory limit?</th>
@@ -83,8 +83,9 @@ ogType: article
 </tbody>
 </table>
 </div>
-<p>Token budgets count raw input plus output, including cached input. Boot restore uses <code>meter</code> logs, not model spans, and can under-count after collection loss. A <code>meter.restore</code> warning means the gateway kept its live meters without retrying. <a href="/inference/#budgets">Budget and restore limits</a>.</p>
-<p>Broker probes only list authorized capabilities; they emit no decision audit. Use a real configured chat request to check decision/execution correlation.</p>
+<p>OpenRouter model spans may also carry reported <code>usage.cost</code> in USD, alongside its reported provider and generation ID. An absent cost stays absent; Dekopon does not compute a bill from token counts.</p>
+<p>Token budgets count raw input plus output, including cached input. Boot restore uses agent/proxy <code>meter</code> logs, not model spans, and can under-count after collection loss. Summary calls are recorded separately and bypass budget admission and restore. A <code>meter.restore</code> warning means the gateway kept its live meters without retrying. <a href="/inference/#budgets">Budget and restore limits</a>.</p>
+<p>Broker probes run as the mapped broker owner and only list authorized capabilities; they emit no decision audit. Use a real configured chat request to check decision/execution correlation.</p>
 </section>
 <section id="collection">
 <h2>Configure telemetry in each daemon.</h2>
@@ -95,7 +96,7 @@ ogType: article
   serviceName: dekopon-gatewayd
   exportTimeoutMs: 5000</code>
 </pre>
-<p>HTTP appends <code>/v1/traces</code> and <code>/v1/logs</code>; <code>grpc</code> uses the collector’s gRPC authority instead. Merely setting an endpoint environment variable does not enable the daemon’s configured export.</p>
+<p>OTLP/HTTP is the only supported transport; <code>transport: grpc</code> refuses configuration. The exporter appends <code>/v1/traces</code> and <code>/v1/logs</code> to the base endpoint. Merely setting an endpoint environment variable does not enable the daemon’s configured export.</p>
 <ol>
 <li>Supply any collector authentication through <code>OTEL_EXPORTER_OTLP_HEADERS</code> in each daemon’s environment, or a Kubernetes Secret reference. Do not put a token in command arguments or a config URL.</li>
 <li>Restart both daemons with their updated configuration. Send a normal chat message that uses one granted provider command.</li>
@@ -107,7 +108,8 @@ ogType: article
 <section id="privacy">
 <h2>The telemetry store contains user data.</h2>
 <p>Prompts, model responses and script payloads are visible to the operator and configured backend. Command-supplied headers and bodies are data too; broker-injected credential values and native credential-bearing wire requests are excluded, not arbitrary sensitive text a user typed.</p>
-<p>Command and proposal payload attributes are truncated at 4096 bytes with full-length byte counts; transcript events are a separate record shape. Sampling, <code>RUST_LOG</code> filtering and collection failures can leave gaps. Both processes emit stdout records; optional export is not a durable local audit archive.</p>
+<p>Command and proposal payload attributes are truncated at 4096 bytes with full-length byte counts. Prompt transcript events use <code>full</code> and <code>delta</code> records split into ordered segments of at most 16 KiB; opaque model reasoning is represented by a byte-count marker.</p>
+<p>Sampling, <code>RUST_LOG</code> filtering and collection failures can leave gaps. Both processes offer records to bounded, nonblocking stdout queues; overload or sink failure can drop lines, reported by <code>telemetry.console.dropped</code>. Optional export is not a durable local audit archive.</p>
 <p><strong>Lose collection and you lose the evidence.</strong> Configure backend retention and access controls yourself. Neither trace collection nor a restart undoes a posted comment.</p>
 <p><a href="{{ source }}/docs/observability.md">Read the pinned event and field reference ↗</a>
 </p>

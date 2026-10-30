@@ -13,7 +13,7 @@ ogType: article
 <h1>Shell workflows and files</h1>
 <p>Run byte pipelines in Dekopon’s controlled interpreter, with bounded jobs and invocation-scoped file handles.</p>
 </header>
-<nav class="guide-jumps" aria-label="On this page"><a href="#shell">Shell differences</a><a href="#workflow">PR read example</a><a href="#jobs">Jobs and child scripts</a><a href="#limits">Runtime limits</a><a href="#agents">Skills and models</a><a href="#assets">Files and delivery</a>
+<nav class="guide-jumps" aria-label="On this page"><a href="#shell">Shell differences</a><a href="#workflow">PR read example</a><a href="#jobs">Jobs and child scripts</a><a href="#wakes">Scheduled work</a><a href="#limits">Runtime limits</a><a href="#agents">Skills and models</a><a href="#assets">Files and delivery</a>
 </nav>
 <section id="shell">
 <h2>Provider commands share a scripting tool.</h2>
@@ -45,11 +45,11 @@ ogType: article
 </tr>
 <tr>
 <th scope="row">Assignment</th>
-<td data-label="Dekopon behavior"><code>x=$(...)</code> strips trailing LF bytes and preserves an object or array when the trimmed capture starts with <code>{</code> or <code>[</code>. Scalars stay text; unquoted substitutions split on newlines, never spaces. Text expansion requires valid UTF-8.</td>
+<td data-label="Dekopon behavior"><code>x=$(...)</code> strips trailing LF bytes and preserves an object or array when the trimmed capture starts with <code>{</code> or <code>[</code>. Scalars stay text. Unquoted expansions follow Bash-style <code>IFS</code> splitting; quote a capture to preserve spaces and internal newlines. Text expansion requires valid UTF-8.</td>
 </tr>
 <tr>
 <th scope="row">Expansion</th>
-<td data-label="Dekopon behavior">Globbing, brace/tilde expansion and POSIX IFS splitting are inert literal text.</td>
+<td data-label="Dekopon behavior">Filesystem globbing and brace/tilde expansion stay literal. <code>IFS</code> splitting is implemented; an unset <code>IFS</code> separates on space, tab and newline, while an empty value disables splitting.</td>
 </tr>
 <tr>
 <th scope="row">Rejected operations</th>
@@ -66,12 +66,12 @@ ogType: article
 </section>
 <section id="workflow">
 <h2>Read a PR and filter its JSON output.</h2>
-<p><strong>Illustrative, read-only workflow.</strong> In an agent session, ask the model to submit this script through the <code>bash</code> tool. Replace <code>owner/repo</code> and <code>7</code>. It needs a current <a href="https://github.com/dekopon-agents/dekopon-provider-gh/releases/tag/v0.7.0">GitHub component ↗</a> implementing <code>provider@0.4.0</code>, the <code>gh.pull-request.read</code> session/Cedar grant, and broker-bound GET access to <code>api.github.com</code> with a credential allowed to read the repository.</p>
+<p><strong>Illustrative, read-only workflow.</strong> In an agent session, ask the model to submit this script through the <code>bash</code> tool. Replace <code>owner/repo</code> and <code>7</code>. It needs the <a href="https://github.com/dekopon-agents/dekopon-provider-gh/releases/tag/v0.11.1">GitHub component pinned by this core release’s fixture ↗</a> implementing <code>provider@0.4.0</code>, the <code>gh.pull-request.read</code> session/Cedar grant, and broker-bound GET access to <code>api.github.com</code> with a credential allowed to read the repository.</p>
 <pre tabindex="0" aria-label="Illustrative PR read script"><code>set -e
 set -o pipefail
-gh pr view 7 -R owner/repo | jq '{title, state}'</code>
+gh pr view 7 -R owner/repo --json title,state | jq '{title, state}'</code>
 </pre>
-<p>Expected shape: <code>{"title":"Fix the build","state":"open"}</code>, with values from your PR. The provider writes JSON bytes to stdout; <code>jq</code> parses those bytes and writes the projection with a newline. This performs one remote read and no write; the example was source-checked, not run against GitHub.</p>
+<p>Expected shape: <code>{"title":"Fix the build","state":"OPEN"}</code>, with values from your PR. The explicit <code>--json</code> selects JSON output; without it the provider prints text rows. <code>jq</code> parses those JSON bytes and writes the projection with a newline. This performs one remote read and no write; the example was source-checked, not run against GitHub.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Failure comparison">
 <table>
 <thead>
@@ -110,7 +110,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tbody>
 </table>
 </div>
-<p><code>pipefail</code> keeps a failed read from becoming a successful empty filter. It can also report <code>141</code> after an intentional downstream close. Re-running a write is not deduplication or rollback. <a href="https://github.com/dekopon-agents/dekopon-provider-gh/tree/v0.7.0">GitHub provider source ↗</a> · <a href="/guides/access/#policy">Separate write grants</a>
+<p><code>pipefail</code> keeps a failed read from becoming a successful empty filter. It can also report <code>141</code> after an intentional downstream close. Re-running a write is not deduplication or rollback. <a href="https://github.com/dekopon-agents/dekopon-provider-gh/tree/v0.11.1">GitHub provider source ↗</a> · <a href="/guides/access/#policy">Separate write grants</a>
 </p>
 </section>
 <section id="jobs">
@@ -121,6 +121,12 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 <h3>Providers can request child scripts.</h3>
 <p><code>dekopon:spawn/run@0.1.0</code> asks the gateway to run a nested script under the same person, agent and broker leg. Every child capability still passes Cedar and the same tree budgets; nesting grants no extra authority. One child may be live per provider invocation, and cancellation stops descendants.</p>
 <p>Child stdout is bounded script text delivered at exit, not a live pass-through pipe. Waiting pauses the provider’s work clock, but the shared tree deadline keeps running. Inherited stdin shares the parent’s remaining bytes, so the parent must stop reading it after the spawn. <a href="/guides/provider-sdk/#interfaces">SDK child-script contract</a> · <a href="{{ source }}/docs/gatewayd.md#detached-jobs">Job configuration ↗</a>.</p>
+</section>
+<section id="wakes">
+<h2>Wakes can schedule one turn or watch a read-only condition.</h2>
+<p>A route with <code>wakes: true</code> and gateway wake storage offers <code>wake</code>. A scheduled wake returns once after a delay; a watch runs a bounded probe script at its configured interval without a model in the polling loop. The initial probe establishes a baseline without waking. On later checks, exit 0 wakes the agent, exit 1 keeps watching, and an error wakes it with the failure and retires the watch.</p>
+<p>Each probe gets a fresh broker leg that refuses writes. A woken turn gets fresh authorization for the original authenticated person and conversation; the model cannot choose a different recipient. Pending rows can survive restart, but a row removed just before dispatch can be lost. Saturated ticks are skipped rather than queued. This is not durable job delivery.</p>
+<p><a href="{{ source }}/docs/gatewayd.md#wakes">Wake limits and storage ↗</a>. Native Mac chat needs neither wakes nor a guest VM.</p>
 </section>
 <section id="limits">
 <h2>Limits apply at different layers.</h2>
@@ -137,7 +143,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 <tr>
 <th scope="row">Interpreter</th>
 <td data-label="What stops work">Step, recursion, retained-value/output and capability-call budgets; a shared tree deadline. Nested interpreters share the tree’s step and retained-value accounting.</td>
-<td data-label="Boundary / caveat">Every <code>jq</code> stage uses a worker subprocess, killed and waited on at deadline or cancellation. Linux bounds its address space to startup size plus 256 MiB; a crash fails that stage.</td>
+<td data-label="Boundary / caveat">Every <code>jq</code> stage uses a worker subprocess, killed and waited on at deadline or cancellation. Linux bounds its address space to startup size plus 256 MiB; macOS does not apply that cap. A crash fails that stage.</td>
 </tr>
 <tr>
 <th scope="row">Wasm invocation</th>
@@ -158,7 +164,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 <h2>Skills guide the model; budgets bound its calls.</h2>
 <p>An agent’s <code>spec.skills</code> mounts reviewed directories containing <code>SKILL.md</code> and optional resource files. The model sees names and descriptions, then uses <code>read_skill</code> to load instructions on demand. The gateway reads the files at catalog load; a session doesn’t open the host filesystem. Keep secrets out of skills: the model can read all of them, and <code>allowed-tools</code> is metadata, not an enforced grant.</p>
 <p>The route can name a model explicitly. Otherwise, the agent’s <code>modelClass</code> selects the first matching configured model; no match fails startup. Gateway model credentials are separate from broker-held provider credentials.</p>
-<p>Optional <code>metering.budgets</code> applies per-agent token limits using fixed, rolling, session or refilling-credit meters. Every meter must admit a call before it is sent. The gateway reserves an estimate and settles actual usage afterward; a larger final charge can leave debt that blocks later calls. These are token limits, not a hard currency spending cap.</p>
+<p>Optional <code>metering.budgets</code> applies per-agent token limits using fixed, rolling, session or refilling-credit meters. Every applicable meter must admit a chat or guest inference call before it is sent. Background journal summaries are recorded but bypass those meters. The gateway reserves an estimate and settles actual usage afterward; a larger final charge can leave debt that blocks later calls. These are token limits, not a hard currency spending cap.</p>
 <p>Budgets live in gateway memory. Optional <code>metering.restore</code> reads OpenObserve or Quickwit once at boot, best effort; missing telemetry can undercount earlier spend. Without a configured budget, token spend is recorded but unbounded. An optional guest model proxy shares these budgets and uses gateway model credentials; it doesn’t grant broker capabilities.</p>
 <p><a href="{{ source }}/docs/catalog.md#skills-are-directories-the-model-reads-on-demand">Skill format ↗</a> · <a href="{{ source }}/docs/gatewayd.md#token-budgets">Model budget configuration ↗</a> · <a href="{{ source }}/docs/gatewayd.md#guest-model-proxy">Guest model proxy ↗</a>.</p>
 </section>
@@ -179,7 +185,8 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </div>
 <figcaption>Asset payloads stay out of broker JSON frames. Guest reads still copy bytes; model image requests still carry image data. This is not end-to-end zero-copy transport.</figcaption>
 </figure>
-<p><strong>Attach is not send.</strong> Attach retains an output for the conversation; a separately granted <code>asset.send</code> operation delivers it. Failed invocations admit no asset effects. Queued deliveries and retained scratch bytes don’t survive restart. A configured conversation journal can restore attachment metadata and numbering, but expired source files may be unavailable. Closing the last descriptor releases an unlinked file.</p>
+<p>Pass <code>chat-asset:N</code> as its own unquoted provider argument. Quoted references and values expanded from variables are ordinary text, not attachment handles. <code>asset cat chat-asset:3 | head</code> streams text through a separately granted asset provider; builtins never open attachments directly.</p>
+<p><strong>Attach is not send.</strong> Attach retains an output for the conversation; a separately granted <code>asset.send</code> operation delivers it. Failed invocations admit no asset effects. Queued deliveries and retained scratch bytes don’t survive restart. With a journal and separate asset store, eligible inbound attachment metadata, numbering and already-downloaded bytes can survive restart; generated outputs are not restored. Evicted inbound bytes are fetched again on use when the platform still has them. Closing the last descriptor releases an unlinked file.</p>
 <div class="guide-table" tabindex="0" role="region" aria-label="Asset budget comparison">
 <table>
 <thead>
@@ -199,7 +206,7 @@ gh pr view 7 -R owner/repo | jq '{title, state}'</code>
 </tr>
 <tr>
 <th scope="row">Conversation / delivery</th>
-<td data-label="Limit / accounting">32 rows in the conversation table; at most four new sends per turn. Retention and spool budgets count stored bytes, separately from decoded-content ceilings.</td>
+<td data-label="Limit / accounting">No per-conversation row cap for a live generation; at most four new sends per turn. A shared disk budget defaults to 1 GiB and counts stored bytes, separately from decoded-content ceilings. Journal retention owns durable inbound bytes; generated files stay session-only.</td>
 </tr>
 </tbody>
 </table>

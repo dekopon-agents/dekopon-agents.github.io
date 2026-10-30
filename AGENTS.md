@@ -267,10 +267,12 @@ to justify weakening one of these.
 - Keep **current**, **next**, and **not claimed** work visibly separate.
 - Preserve important limits: a compromised gateway speaks for its whole attestor
   lane, audit lives only in the trace and dies with the exporter, no multi-tenant
-  transport, no automatic durable-memory replay, and no production-hardening
-  claim.
+  transport, history replay scoped to the authorized conversation, and no production-hardening
+  claim. Journal-backed replay is opt-in and does not imply cross-agent memory.
 - Audit records belong to the W3C trace; there is no durable local audit archive.
-  Only `dekopon-gatewayd` and `dekopon-brokerd` ship as core executables; the console is separate.
+  The core release ships two daemons, `dekopon-gatewayd` and `dekopon-brokerd`, plus the optional
+  `dekopon-console` client. The container image includes all three; the Homebrew console formula
+  remains separate from the daemon formula.
   Use `dekopond` only when explaining the historical rename. The current gateway
   config API is `dekopon.dev/gatewayd/v1alpha1`.
 - Providers implement the pinned `provider@0.4.0` byte-stream contract; old

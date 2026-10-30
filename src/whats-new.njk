@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: Gateway rename, streaming providers and bounded jobs — Dekopon
-pageDescription: Current Dekopon releases add byte-stream providers, bounded background jobs and child scripts, with a renamed gateway and explicit provider precompilation.
+pageTitle: Wake reasons, conversation memory and channel permissions — Dekopon
+pageDescription: The current Dekopon release exposes wake reasons and fixes GitHub review deliveries, alongside journal memory, channel permissions and packaged operator tools.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,46 +10,49 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>A renamed gateway, streaming providers and bounded jobs</h1>
-<p>The gateway is now <code>dekopon-gatewayd</code>. Since 0.26, providers gained streamed input and output, while shell workflows gained background jobs and child scripts that keep the caller's limits.</p>
+<h1>Agents can inspect why a turn started</h1>
+<p>The new <code>wake_reason</code> tool tells the model what started its current turn, including chat and webhook input or scheduled work. {{ release.tag }} also fixes GitHub pull-request review deliveries. Neither change requires new configuration.</p>
 </header>
-<p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ release.sourceUrl }}">{{ release.shortRevision }}</a></p>
-<nav class="guide-jumps" aria-label="On this page"><a href="#changes">Since 0.26</a><a href="#migration">Upgrade order</a><a href="#limits">Limits</a></nav>
+<p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ release.shortRevision }}</a></p>
+<nav class="guide-jumps" aria-label="On this page"><a href="#changes">Since the last site update</a><a href="#migration">Upgrade order</a><a href="#limits">Limits</a><a href="#install">Install</a></nav>
+
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span>
-<h2>Nine releases since the previous site snapshot</h2>
-<div class="guide-table" tabindex="0" role="region" aria-label="Changes since version 0.26">
-<table><thead><tr><th scope="col">Release</th><th scope="col">What changed</th></tr></thead><tbody>
-<tr><th scope="row">0.34 · gateway name</th><td data-label="What changed"><code>dekopond</code> becomes <code>dekopon-gatewayd</code>, including its config API and environment variables. Chart {{ release.chart.publishedVersion }} and console 0.8.0 target this release.</td></tr>
-<tr><th scope="row">0.33 · child scripts</th><td data-label="What changed">A provider can ask the gateway to run a child script through <code>dekopon:spawn</code>. The child shares the caller's execution tree, budget and trace; it does not gain a new identity or wider grants.</td></tr>
-<tr><th scope="row">0.32 · offline compilation</th><td data-label="What changed">Managed provider sets require precompiled artifacts before broker startup. Providers can read monotonic time and bounded OS entropy during invocation.</td></tr>
-<tr><th scope="row">0.31 · provider streams</th><td data-label="What changed"><code>provider@0.4.0</code> reads stdin and writes stdout through bounded streams, returning an exit status. Per-agent token budgets and a metered guest model proxy also ship.</td></tr>
-<tr><th scope="row">0.30 · background jobs</th><td data-label="What changed">Routes that set <code>limits.jobTimeoutMs</code> can run detached jobs with <code>&amp;</code>. Use <code>jobs</code>, <code>wait</code> and <code>kill</code>; a restart loses those jobs.</td></tr>
-<tr><th scope="row">0.29 · byte pipelines</th><td data-label="What changed">Pipes preserve bytes and newlines. Non-final compound and function stages isolate their variables; <code>jq</code> consumes JSON text, while ordinary filters produce text.</td></tr>
-<tr><th scope="row">0.28 / 0.28.1 · bounded workers</th><td data-label="What changed"><code>jq</code> runs in a killable, memory-limited worker process. Guest memory is charged as it grows; the patch release fixes compiled-cache reuse after an engine change.</td></tr>
-<tr><th scope="row">0.27 · skills and secrets</th><td data-label="What changed">An example teaches agents to save learned skills in agent-scoped Turso storage. Broker-private Kubernetes TokenRequest credentials arrive here; OAuth2 refresh sources follow in 0.28.</td></tr>
+<h2>Conversation history now includes tool evidence</h2>
+<p>Since the previous site update, Dekopon gained journal replay with bounded summaries and stronger control over shared-channel work. These are the operator-visible changes to review before upgrading.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Changes since the previous site update">
+<table><thead><tr><th scope="col">Area</th><th scope="col">What ships</th><th scope="col">What to configure</th></tr></thead><tbody>
+<tr><th scope="row">Conversation memory</th><td data-label="What ships">Journal records retain tool exchanges and attachment references. Older turns can replay as summaries or metadata, with a notice when detail is omitted.</td><td data-label="What to configure">A journal requires an asset-store path. Set retention and prompt-window bounds; summaries run after the reply and make additional model calls. <a href="/inference/#memory">Memory controls</a>.</td></tr>
+<tr><th scope="row">Slack and Discord follow</th><td data-label="What ships">An invited agent can follow unmentioned replies on opted-in channel/thread routes. A Slack route can also opt into starting a review from a top-level PR link.</td><td data-label="What to configure">Install the follow provider and grant its capabilities; enable a journal and the route opt-in. Reinstall the Slack app when scopes change. <a href="{{ source }}/docs/gatewayd.md#slack-thread-follow">Follow contract ↗</a>.</td></tr>
+<tr><th scope="row">Channel and GitHub permissions</th><td data-label="What ships">A mapped channel constrains each sender's grants. GitHub webhook turns carry typed event facts into Cedar, and author-set facts can only deny.</td><td data-label="What to configure">Map the space or repository explicitly and write its policy. A post or an event payload never grants authority. <a href="/guides/access/">Identity and access</a>.</td></tr>
+<tr><th scope="row">OpenRouter checks</th><td data-label="What ships">Explicit model probes check tool support before a configuration change. Model traces record OpenRouter's reported cost, and cache hints cover replayed prefixes.</td><td data-label="What to configure"><code>check --probe</code> makes a paid canary call. Keep a dollar limit on the OpenRouter key; local token budgets don't cap dollars. <a href="/inference/">Models and budgets</a>.</td></tr>
+<tr><th scope="row">Operator console</th><td data-label="What ships"><code>dekopon-console</code> ships in the same release archives and Linux image as both daemons.</td><td data-label="What to configure">Keep the console at the daemon version. Homebrew retains its separate console formula. OpenRouter is not wired into this optional client. <a href="/deploy/#configure">Installation</a>.</td></tr>
+<tr><th scope="row">Local execution</th><td data-label="What ships">The shell gains an <code>awk</code> subset and glob patterns in <code>case</code>. Runtime thread pools are configurable, and active turns share their shell-thread ceiling with jobs and memory work.</td><td data-label="What to configure">Unsupported awk constructs are refused. Size thread pools for the host; those ceilings do not turn the interpreter into a host shell. <a href="/guides/runtime/">Runtime bounds</a>.</td></tr>
 </tbody></table>
 </div>
-<p><a href="/guides/runtime/">Shell behavior and limits</a> · <a href="/guides/provider-sdk/">Current provider contract</a> · <a href="/inference/">Model endpoints and budgets</a></p>
 </section>
+
 <section id="migration"><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>Upgrade the provider set and both daemons together</h2>
+<h2>Back up state before changing both daemons</h2>
 <ol>
-<li><strong>Replace old components.</strong> Brokers reject <code>provider@0.3.0</code>. Install compatible components explicitly: core archives and images no longer bundle out-of-tree providers. Recheck the HTTP contract; the current broker links <code>client@1.1.0</code>.</li>
-<li><strong>Prepare startup.</strong> Run <code>dekopon-brokerd provider precompile</code> for the broker's engine before starting a managed set. Chart 0.21 and newer supply the precompile init container. Roll the gateway with the broker for the changed protocol.</li>
-<li><strong>Migrate gateway configuration.</strong> Rename the binary and its config API to <code>dekopon.dev/gatewayd/v1alpha1</code>. Update deployment paths and environment variables; preserve journal state at its new path. Review shell scripts that assumed JSON-value pipes.</li>
+<li><strong>Keep the binaries together.</strong> Upgrade <code>dekopon-brokerd</code>, <code>dekopon-gatewayd</code> and any console together. Preserve the previous binaries, configuration and provider lock. Stop the gateway before the broker; start the broker first and verify the real gateway afterward.</li>
+<li><strong>Check the intervening configuration changes.</strong> OTLP now uses HTTP/protobuf only; replace <code>telemetry.transport: grpc</code> and use the receiver's HTTP endpoint. Journal configurations require <code>sessions.assets.path</code>, and removed memory keys must be replaced before startup. Run both configuration checks as the owning service users.</li>
+<li><strong>Expect a memory reset when crossing old formats.</strong> Journal v3 resets older-format records at startup. This is not an automatic history migration; reverting a binary cannot restore discarded state. Back up the matching state and review the release-specific instructions before upgrading.</li>
 </ol>
-<p>The <a href="{{ source }}/docs/upgrading.md">pinned upgrade guide ↗</a> gives exact renamed fields and the intervening breaking changes. <a href="/deploy/kubernetes/">The Kubernetes recipe</a> pins the verified current image independently of the chart's historical tag label.</p>
+<p>Earlier installations also need the <code>dekopond</code> rename and <code>dekopon.dev/gatewayd/v1alpha1</code> configuration API. Brokers accept the <code>provider@0.4.0</code> stream contract and refuse older <code>provider@0.3.0</code> components. By default, managed sets load from a compatible compiled cache: sync populates it, and <code>dekopon-brokerd provider precompile</code> fills or repairs it after an engine change.</p>
+<p>The <a href="{{ source }}/docs/upgrading.md">release-pinned upgrade guide ↗</a> gives each breaking change and its rollback limits. Use the <a href="/deploy/mac/">Mac runbook</a> or <a href="/deploy/kubernetes/#upgrade">Kubernetes checklist</a> for the process and storage layout.</p>
 </section>
+
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
-<h2>Optional features need explicit configuration</h2>
-<p>Background jobs are off until a route grants a timeout. Learned skills need the catalog skill and storage grant. Token budgets need configured limits; boot restore needs a supported telemetry backend. None of these enable themselves by upgrading.</p>
-<p>Provider-vm 0.3.0 and vm-runner 0.3.0 add a separate VM execution path for browser and document tooling. The <code>ssh</code> command word calls the runner's API; it is not an SSH connection or a host-shell escape. Deploy and constrain that service separately.</p>
-<p>Dekopon is still pre-production. Cedar checks declared access, not intent. A permitted endpoint can reflect a credential it receives, and telemetry retention remains your responsibility.</p>
+<h2>Summaries spend outside the local token budget</h2>
+<p>Journal-recall routes enable background summaries by default. Those model calls are recorded but not refused by the gateway token governor; set <code>summaries: off</code> for a minimal budgeted setup. Ordinary token windows also reset on restart unless best-effort telemetry restore is configured. Use the model provider's spending controls.</p>
+<p>Detached jobs remain opt-in through <code>limits.jobTimeoutMs</code>. Provider child scripts use <code>dekopon:spawn</code> under the caller's shared limits. Neither feature gives a provider access to the Mac's host shell; the optional VM runner is a separate Linux/KVM service.</p>
+<p>Dekopon is pre-1.0. Cedar checks declared access, not intent. A permitted endpoint receives its credential, and telemetry retention remains your responsibility. Journal replay restores conversation data; it does not resume a paid effect or undo one that already ran.</p>
 </section>
+
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
-<h2>Application, chart and console have separate versions</h2>
-<p>Application <strong>{{ release.tag }}</strong> and chart <strong>{{ release.chart.publishedVersion }}</strong> are published. The chart's verified image digest selects application <strong>{{ release.chart.publishedAppVersion }}</strong>. <a href="https://github.com/dekopon-agents/dekopon-console/releases/tag/v0.8.0">Console 0.8.0 ↗</a> targets the same gateway and broker release.</p>
-<p><a class="button button-primary" href="/deploy/">Install options →</a> <a href="/guides/provider-sdk/#start">Build and test a provider</a></p>
-<p><a href="{{ source }}/CHANGELOG.md">Complete release history ↗</a> · <a href="https://github.com/dekopon-agents/dekopon-provider-vm/releases/tag/v0.3.0">VM provider release ↗</a> · <a href="https://github.com/dekopon-agents/vm-runner/releases/tag/v0.3.0">VM runner release ↗</a></p>
+<h2>The console now follows the application release</h2>
+<p>Application <strong>{{ release.tag }}</strong> includes both daemons and the optional console in its archives and Linux image. Chart <strong>{{ release.chart.publishedVersion }}</strong> is versioned separately and targets application <strong>{{ release.chart.publishedAppVersion }}</strong>. The daemon Homebrew formula installs the two daemons; <code>dekopon-console</code> has its own formula.</p>
+<p><a class="button button-primary" href="/deploy/mac/">Run on a Mac →</a> <a href="/deploy/">All install options</a> · <a href="/guides/provider-sdk/#start">Build and test a provider</a></p>
+<p><a href="{{ source }}/CHANGELOG.md">Complete release history ↗</a> · <a href="{{ source }}/crates/dekopon-console/README.md">Console contract ↗</a></p>
 </section>
 </article>

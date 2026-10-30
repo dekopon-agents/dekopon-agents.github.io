@@ -34,44 +34,5 @@
       "label": "Build a provider",
       "href": "/guides/provider-sdk/"
     }
-  },
-  "protocols": {
-    "title": "Your agent, in your chat.",
-    "intro": "Slack leads with its native Agent experience. The same runtime also connects to Discord, WhatsApp, and Telegram.",
-    "note": "Live sessions stay in memory; configured journals restore conversation history. Image understanding needs a compatible model; file replies need a provider and delivery grant.",
-    "items": [
-      {
-        "name": "Slack",
-        "badge": "Native Agent experience",
-        "conversation": "DMs + shared threads",
-        "inputs": "Images + documents",
-        "outputs": "Text + generated PNGs",
-        "feedback": "Progress message + native status"
-      },
-      {
-        "name": "Discord",
-        "badge": "DMs and server conversations",
-        "conversation": "DMs + mentions in servers",
-        "inputs": "Images + documents",
-        "outputs": "Text + generated PNGs",
-        "feedback": "Streamed edits + typing"
-      },
-      {
-        "name": "WhatsApp",
-        "badge": "Cloud API",
-        "conversation": "Individual chats",
-        "inputs": "Images",
-        "outputs": "Text + generated PNGs",
-        "feedback": "Typing · no streaming"
-      },
-      {
-        "name": "Telegram",
-        "badge": "Bot API",
-        "conversation": "DMs + addressed groups/topics",
-        "inputs": "Images + documents",
-        "outputs": "Text + generated PNGs",
-        "feedback": "Streamed edits + typing"
-      }
-    ]
   }
 }
