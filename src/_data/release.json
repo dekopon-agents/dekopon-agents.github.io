@@ -1,26 +1,26 @@
 {
-  "version": "0.72.0",
-  "tag": "v0.72.0",
-  "date": "29 October 2026",
-  "dateShort": "29 Oct 2026",
-  "dateIso": "2026-10-29",
-  "revision": "74423fd0cf7c6a389ed6d9dd5fdde942cb6bda8b",
-  "shortRevision": "74423fd",
-  "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.72.0",
-  "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/74423fd0cf7c6a389ed6d9dd5fdde942cb6bda8b",
-  "imageReference": "ghcr.io/dekopon-agents/dekopon:v0.72.0",
-  "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.72.0",
+  "version": "0.74.0",
+  "tag": "v0.74.0",
+  "date": "30 October 2026",
+  "dateShort": "30 Oct 2026",
+  "dateIso": "2026-10-30",
+  "revision": "41bbd24779e5453fa3776feb8da39389a9ad4557",
+  "shortRevision": "41bbd24",
+  "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.74.0",
+  "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/41bbd24779e5453fa3776feb8da39389a9ad4557",
+  "imageReference": "ghcr.io/dekopon-agents/dekopon:v0.74.0",
+  "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.74.0",
   "archive": {
     "target": "aarch64-unknown-linux-gnu",
-    "size": "25.4 MiB",
-    "gatewaySize": "21.0 MiB",
+    "size": "25.6 MiB",
+    "gatewaySize": "21.1 MiB",
     "brokerSize": "28.5 MiB"
   },
   "chart": {
-    "publishedVersion": "0.59.0",
-    "publishedAppVersion": "0.72.0",
-    "sourceVersion": "0.59.0",
-    "sourceAppVersion": "0.72.0"
+    "publishedVersion": "0.61.0",
+    "publishedAppVersion": "0.74.0",
+    "sourceVersion": "0.61.0",
+    "sourceAppVersion": "0.74.0"
   },
-  "imageDigest": "sha256:d2bce04a711ddfc2db04a360ce9904735547ad6a393d1c8cd4ea30dc8aa5c9e4"
+  "imageDigest": "sha256:b2b9ee3bf72afb1af496b5282a323a834016e9db142926fa1bf8cd80ba6e5e05"
 }
