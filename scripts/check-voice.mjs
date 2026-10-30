@@ -43,9 +43,9 @@ const RUN_EVIDENCE = [
     [/\bHomebrew \d+\.\d+/i, "Homebrew version"],
 ];
 
-// History words are sometimes current terms ("legacy credential bindings"),
-// so they are listed for review rather than failed.
-const HISTORY = /\b(previously|migrat\w*|no longer|deprecat\w*|used to)\b/i;
+// History words are sometimes current terms (a migration that has not shipped
+// yet is Committed direction), so they are listed for review rather than failed.
+const HISTORY = /\b(previously|migrat\w*|no longer|deprecat\w*|used to|dekopond)\b/gi;
 
 const THROAT_CLEARING_KICKER = [
     /^(now|next|first|introducing)\b/i,
@@ -113,12 +113,12 @@ for (const file of (await walk(outputDirectory)).filter((f) => f.endsWith(".html
     }
 
     for (const [pattern, label] of RUN_EVIDENCE) {
-        const match = raw.match(pattern) ?? strip(html).match(pattern);
+        const match = raw.match(pattern) ?? strip(raw).match(pattern);
         if (match) failures.push(`${page}: ${label} "${match[0]}"`);
     }
 
-    const history = strip(html).match(HISTORY);
-    if (history) reviewable.push(`${page}: history word "${history[0]}"`);
+    const history = [...new Set(strip(html).match(HISTORY) ?? [])];
+    if (history.length > 0) reviewable.push(`${page}: history words ${history.map((w) => `"${w}"`).join(", ")}`);
 
     for (const phrase of BANNED) {
         if (strip(html).toLowerCase().includes(phrase.toLowerCase())) {
@@ -151,7 +151,7 @@ for (const [text, page] of kickers) {
 }
 
 const enumerations = reviewable.filter((r) => r.includes("-item enumeration")).length;
-const historyPages = reviewable.filter((r) => r.includes("history word"));
+const historyPages = reviewable.filter((r) => r.includes("history words"));
 if (enumerations > 0) {
     console.log(`Voice check: ${enumerations} long enumerations on reference pages (not gated).`);
 }

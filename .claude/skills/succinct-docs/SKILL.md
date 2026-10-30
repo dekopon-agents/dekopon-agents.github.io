@@ -17,15 +17,16 @@ repository keeps its own copy of this skill, tuned to its docs.
 - **Reference voice:** `src/deploy/*`, `src/guides/*`, `src/inference.njk`,
   `src/how-it-works.njk`, `src/whats-new.njk`.
 - **Exempt:** the landing page (`src/index.njk`, `src/_includes/sections/*`, `src/_data/home.json`)
-  stays conversational, witty, playful and fun. Score it only for accuracy and the run-evidence
-  rule.
+  stays conversational, witty, playful and fun. Score it only for accuracy, voice rules 1–9 and
+  the hard rules.
 - **Leave alone:** the "Guide moved" stubs; `check-site` guards their routes and fragments.
 
 ## Website rules
 
-- **Pinned release only.** No history, "previously", migration notes or version minimums. Versions
+- **Pinned release only.** No history, "previously", migration notes or Dekopon version minimums. Versions
   come from `src/_data/release.json`, never typed into prose.
-- **No run evidence.** No CI run links, OS or Homebrew patch versions, call counts or "we tested".
+- **No run evidence.** No CI run links, OS or Homebrew patch versions, observed call counts or
+  "we tested".
 - **Code proves what exists.** Verify every claim you change against the dekopon source at
   `release.sourceUrl` or a released binary, and record what you checked.
 - **Stop for the owner** when the page and the pinned code disagree, or a cut would change a
@@ -80,7 +81,7 @@ every score below 5.
 6. **Score again**, then report scores and words before and after, removed facts and where they
    live, ids changed, gate output, and `Choices I made`.
 7. **Review.** A reviewer who did not write the change re-checks claims against the sources and
-   tags each finding `blocking` or `follow-up`. Fix blocking findings before merge.
+   tags each finding `blocking` or `follow-up`. Fix blocking findings before publishing.
 
 ## Failure modes seen in rewrites
 

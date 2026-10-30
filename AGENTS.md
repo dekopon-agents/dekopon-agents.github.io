@@ -19,7 +19,7 @@ wins.
 
 ## Documentation hard rules
 
-These rules hold on every page; a change that breaks one is not merged. Write and review copy with
+These rules hold on every page; a change that breaks one is not published. Write and review copy with
 the [`succinct-docs` skill](.claude/skills/succinct-docs/SKILL.md), which holds the rubric. The
 dekopon repository's [AGENTS.md#documentation](https://github.com/dekopon-agents/dekopon/blob/main/AGENTS.md#documentation)
 states the same rules for its docs.
@@ -28,7 +28,8 @@ states the same rules for its docs.
   "previously", migration notes, Dekopon version minimums or compatibility guidance; `/whats-new/` covers
   the pinned release only. Name the current key, never the old one.
 - **No run evidence.** No CI run links or IDs, OS or Homebrew patch versions, observed call counts or
-  "we tested". `check-voice.mjs` fails on run links, `x.y.z or later` and Homebrew version numbers.
+  "we tested". `check-voice.mjs` fails on run links, any `x.y.z or later` (state the exact pin from a data file
+  instead) and Homebrew version numbers.
 - **One fact, one owner.** Contracts live in the core docs; a page states what the reader needs
   and links the owning heading for the rest.
 - **Verified blocks.** Every `<pre>` command or config is checked against the pinned release; a
@@ -37,9 +38,9 @@ states the same rules for its docs.
 - **Deployment positioning.** Kubernetes is the preferred deployment; the Mac path serves people
   moving from OpenClaw or Hermes. `/deploy/` shows both as equal buttons before its first
   section, Kubernetes first, and each install page links the other.
-- **The landing page is exempt from the reference voice.** `src/index.njk` and
-  `src/_includes/sections/*` stay conversational, witty, playful and fun; the run-evidence rule
-  still applies.
+- **The landing page keeps its own voice.** `src/index.njk`, `src/_includes/sections/*` and
+  `src/_data/home.json` stay conversational, witty, playful and fun rather than terse reference
+  prose; voice rules 1–9 and the other hard rules still apply.
 - **Re-pin checks anchors.** Core links pin `release.sourceUrl`; when it moves, confirm every
   pinned core anchor still exists. Links to core `main` must be fixed whenever core renames one.
 
@@ -317,7 +318,7 @@ to justify weakening one of these.
   it cannot be talked into a different answer.
 - Prefer scoped claims: "keeps credentials out of prompts and guest code" is
   better than "secrets cannot leak."
-- Measurements need a date, units, and scope. The 200 KiB OpenObserve figure is
+- Measurements need units and scope. The 200 KiB OpenObserve figure is
   an aggregate physical-allocation sample, not a per-prompt guarantee.
 
 ## Source of truth and checks
