@@ -17,6 +17,32 @@ storytelling. Blunt is welcome; theatrical is not. When a tighter version of
 an existing sentence competes with a more dramatic rewrite, the tighter one
 wins.
 
+## Documentation hard rules
+
+These rules hold on every page; a change that breaks one is not merged. Write and review copy with
+the [`succinct-docs` skill](.claude/skills/succinct-docs/SKILL.md), which holds the rubric. The
+dekopon repository's [AGENTS.md#documentation](https://github.com/dekopon-agents/dekopon/blob/main/AGENTS.md#documentation)
+states the same rules for its docs.
+
+- **Current release only.** Dekopon is pre-1.0 and keeps no backwards compatibility. No history,
+  "previously", migration notes, Dekopon version minimums or compatibility guidance; `/whats-new/` covers
+  the pinned release only. Name the current key, never the old one.
+- **No run evidence.** No CI run links or IDs, OS or Homebrew patch versions, observed call counts or
+  "we tested". `check-voice.mjs` fails on run links, `x.y.z or later` and Homebrew version numbers.
+- **One fact, one owner.** Contracts live in the core docs; a page states what the reader needs
+  and links the owning heading for the rest.
+- **Verified blocks.** Every `<pre>` command or config is checked against the pinned release; a
+  prose edit leaves blocks byte-identical.
+- **No backsliding.** A change never lowers a page's rubric score.
+- **Deployment positioning.** Kubernetes is the preferred deployment; the Mac path serves people
+  moving from OpenClaw or Hermes. `/deploy/` shows both as equal buttons before its first
+  section, Kubernetes first, and each install page links the other.
+- **The landing page is exempt from the reference voice.** `src/index.njk` and
+  `src/_includes/sections/*` stay conversational, witty, playful and fun; the run-evidence rule
+  still applies.
+- **Re-pin checks anchors.** Core links pin `release.sourceUrl`; when it moves, confirm every
+  pinned core anchor still exists. Links to core `main` must be fixed whenever core renames one.
+
 ## Technical guides: understanding per screen
 
 Write for a senior engineer choosing what to build, not someone following a Rust lesson.
@@ -273,11 +299,10 @@ to justify weakening one of these.
   The core release ships two daemons, `dekopon-gatewayd` and `dekopon-brokerd`, plus the optional
   `dekopon-console` client. The container image includes all three; the Homebrew console formula
   remains separate from the daemon formula.
-  Use `dekopond` only when explaining the historical rename. The current gateway
-  config API is `dekopon.dev/gatewayd/v1alpha1`.
+  The gateway config API is `dekopon.dev/gatewayd/v1alpha1`.
 - Providers implement the pinned `provider@0.4.0` byte-stream contract; old
   `provider@0.3.0` components are refused. Describe bounded byte pipelines,
-  not the earlier JSON-value pipes. Keep historical migration text when useful.
+  not JSON-value pipes.
 - The latest application version lives only in `src/_data/release.json`. Derive
   headers, install commands, source links, and release CTAs from it rather than
   copying a version into page data. This is why the hero proof chips say "two
@@ -318,11 +343,10 @@ npm run check:release -- --remote
 
 `npm test` includes release-validator regression tests, an isolated watch/rebuild
 smoke test, HTML and local-link checks, and `scripts/check-voice.mjs`, which enforces rules 1, 3, 5,
-and 7 and the banned-construction list. It cannot see rules 2, 4, 6, 8, or 9 —
+and 7, the banned-construction list and the run-evidence rule, and lists history words for review. It cannot see rules 2, 4, 6, 8, or 9 —
 those are on you. Remote checks also verify the tag’s commit, source and published
 chart metadata, the Homebrew tap formula’s Apple Silicon archive URL, and the SDK
-toolchain/interface pins. A historical API name in
-a clearly labeled migration explanation is not evidence of a stale current claim.
+toolchain/interface pins.
 
 This repository uses a direct-to-`main` publishing workflow. Do not open a pull
 request for website changes unless the user explicitly asks for one. Validate
