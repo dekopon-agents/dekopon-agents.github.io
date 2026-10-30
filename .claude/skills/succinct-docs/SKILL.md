@@ -39,8 +39,8 @@ Center, 1992 (<https://ntrs.nasa.gov/citations/19930013813>). Score each criteri
 means no violation is left (maximum 50). Score before and after editing, and cite one line for
 every score below 5.
 
-1. **Purpose first.** The intro says what the reader ends with, then the step order, table of
-   contents or the two install buttons. The body follows that plan. ("State your purpose or
+1. **Purpose first.** The intro says what the reader ends with, then the step order or table of
+   contents. On `/deploy/`, the two install buttons come first, directly under the `<h1>`. The body follows that plan. ("State your purpose or
    objective clearly and follow it with a concise description of the method you will use")
 2. **Get to the point.** Every sentence is a step or a contract. Asides go, or become a link. Keep
    one sentence of reason where a restriction looks arbitrary. ("Technical reports are not mystery
