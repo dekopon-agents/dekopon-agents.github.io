@@ -15,7 +15,7 @@ ogType: article
 <p>Twelve steps end with Dekopon on an always-on Apple Silicon Mac:</p>
 <ul>
 <li>You and a colleague mention <code>@dekopon</code> in a private Slack channel and get a PR review in the thread.</li>
-<li>It reads GitHub with a fine-grained token only the broker holds, and can't write to GitHub.</li>
+<li>It reads GitHub with your token, which only the broker holds; Dekopon can't write to GitHub.</li>
 <li>It bills one OpenRouter key under a spending limit you set.</li>
 <li>Two launchd services run it at boot under separate accounts.</li>
 </ul>
@@ -115,7 +115,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <section id="slack">
 <h2>5. One Slack app with two tokens</h2>
 <ol>
-<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml"><code>manifest-agent.yaml</code> ↗</a>.</li>
+<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml"><code>manifest-agent.yaml</code> ↗</a>. To rename the bot, change both <code>name</code> and <code>display_name</code> in it first.</li>
 <li>Under <strong>Basic Information → App-Level Tokens → Generate Token and Scopes</strong>, name it <code>dekopon</code> with scope <code>connections:write</code>. Copy the <code>xapp-…</code> token.</li>
 <li>Choose <strong>Install App → Install to Workspace → Allow</strong>. Copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-…</code>) from <strong>OAuth &amp; Permissions</strong>.</li>
 <li>In the review channel, send <code>/invite @dekopon</code>.</li>
@@ -124,13 +124,13 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 </section>
 
 <section id="keys"><span class="compat-anchor" id="slack-model" aria-hidden="true"></span>
-<h2>6. A fine-grained GitHub token and a capped OpenRouter key</h2>
-<p>Create the token at <strong>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token</strong>:</p>
+<h2>6. A classic GitHub token and a capped OpenRouter key</h2>
+<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)</strong>:</p>
 <ul>
-<li>Repository access: <strong>Only select repositories</strong>, the ones to review.</li>
-<li>Repository permissions, each <strong>Read-only</strong>: Pull requests, Contents, Actions, Commit statuses.</li>
-<li>Set an expiration date. Copy the <code>github_pat_…</code> token.</li>
-<li>A fine-grained token can't read check runs, so check results on a private repository return an error.</li>
+<li>Scope: <code>repo</code>. A fine-grained token can't read check runs.</li>
+<li>Set an expiration date. Copy the <code>ghp_…</code> token.</li>
+<li>For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token.</li>
+<li><code>repo</code> can write to every repository you can. The broker sends only GET and Cedar permits only reads, so Dekopon can't write; whoever steals the token can.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -160,7 +160,7 @@ credentials:
     kind: bearerToken
     scheme: Bearer
     destinations: [api.github.com]
-    secret: REPLACE_WITH_FINE_GRAINED_PAT</code></pre>
+    secret: REPLACE_WITH_GITHUB_TOKEN</code></pre>
 </section>
 
 <section id="config">
@@ -201,7 +201,7 @@ capabilities:
         allowedMethods: [GET]
         maxRequests: 10
         maxRequestBytes: 16384
-        maxResponseBytes: 1048576
+        maxResponseBytes: 4194304
         allowPlaintextLoopback: false
     capabilities:
       gh.pull-request.list: {}
@@ -314,7 +314,6 @@ routes:
       maxTurns: 6
       maxBytes: 32768
 sessions:
-  maxConcurrent: 1
   maxConversations: 16
   assetRetentionBytes: 0
 metering:
@@ -324,6 +323,7 @@ metering:
         - {kind: rolling, limit: 100000, period: 1d}
 shutdownGraceMs: 120000
 EOF</code></pre>
+<p>With an <code>anthropic/</code> model, add <code>cache: {style: explicitPrefix, ttl: 5m}</code> beside <code>routing</code>; Anthropic caches nothing without it.</p>
 <p>Set the four Slack IDs from step 5 and the model ID from step 6:</p>
 <pre aria-label="vars" tabindex="0"><code>TEAM=
 CHANNEL=
