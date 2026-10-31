@@ -98,6 +98,7 @@
 
 .seq-label code {
   font-size: 0.9em;
+  white-space: nowrap;
 }
 
 .seq-n {

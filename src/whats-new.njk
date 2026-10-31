@@ -19,14 +19,14 @@ ogType: article
 <h2>Two changes, none needing new configuration</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Changes in this release">
 <table><thead><tr><th scope="col">Change</th><th scope="col">What you get</th></tr></thead><tbody>
-<tr><th scope="row">Async ChatGPT sign-in</th><td data-label="What you get">Login and token refresh no longer block a thread on a second, synchronous HTTP stack.</td></tr>
+<tr><th scope="row">Async ChatGPT sign-in</th><td data-label="What you get">Login and token refresh run on one async HTTP stack, with no synchronous client beside it.</td></tr>
 <tr><th scope="row">Homebrew caveats</th><td data-label="What you get">After <code>brew install</code>, the formula points at the release README's install section.</td></tr>
 </tbody></table>
 </div>
 </section>
 
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
-<h2>Rolling back to the previous release needs no undo</h2>
+<h2>A rollback is a binary swap</h2>
 <p>No configuration, credential file or stored format changed, so swapping both daemons back is the whole rollback. Upgrade and roll back <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> together.</p>
 </section>
 

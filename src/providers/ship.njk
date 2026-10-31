@@ -49,7 +49,7 @@ ogType: article
 
 <section id="release">
 <h2>An annotated tag on <code>main</code> starts the release.</h2>
-<p>Merge the version bump, then dispatch <em>Cut release</em> with <code>tags: v&lt;version&gt;</code>, dry run first. It pushes the tag as a GitHub App because a tag pushed with <code>GITHUB_TOKEN</code> starts no workflow; without that App, push an annotated tag yourself. The release refuses a lightweight tag, a tag that differs from the Cargo version and a commit outside <code>main</code>.</p>
+<p>Merge the version bump, then dispatch <em>Cut release</em> with <code>tags: v&lt;version&gt;</code>, dry run first. It pushes the tag as the GitHub App in the secrets <code>DEKOPON_RELEASE_APP_ID</code> and <code>DEKOPON_RELEASE_APP_KEY</code>, since a <code>GITHUB_TOKEN</code> tag starts no workflow. The release refuses a lightweight tag, a tag that differs from the Cargo version and a commit outside <code>main</code>.</p>
 <p>One release publishes the same component bytes twice: as the <code>&lt;name&gt;-provider.wasm</code> release asset with its <code>.sha256</code>, SBOM and provenance attestations, and as the single <code>application/wasm</code> layer of <code>ghcr.io/&lt;owner&gt;/provider-&lt;name&gt;:&lt;version&gt;</code>, tagged without the <code>v</code>. The workflow checks that the layer digest equals the <code>.sha256</code>.</p>
 <p>The attestations cover the release assets, not the OCI manifest, so <code>gh attestation verify oci://…</code> finds nothing. Verify the release asset instead; the layer is the same bytes.</p>
 </section>

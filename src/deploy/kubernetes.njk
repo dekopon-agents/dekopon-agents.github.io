@@ -43,14 +43,20 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </section>
 <section id="gateway"><span class="compat-anchor" id="pod" aria-hidden="true"></span><span class="compat-anchor" id="security" aria-hidden="true"></span><span class="compat-anchor" id="one-pod" aria-hidden="true"></span><span class="compat-anchor" id="files" aria-hidden="true"></span>
 <h2>Chat starts when the broker maps UID 65533</h2>
-<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. Adapt it, then:</p>
+<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. It runs both daemons as one local user, so adapt it to the pod:</p>
+<ul>
+<li>In the broker configuration, set <code>socketPath: /run/dekopon/broker.sock</code> and point the provider at <code>/opt/dekopon/providers/http-probe-provider.wasm</code>, which the image bakes.</li>
+<li>Delete its <code>identities</code> entry: the chart's peers file maps the gateway. To keep that entry's narrow <code>namespaces</code>, set <code>broker.configDirectory.peers: false</code> and change its UID to 65533 instead.</li>
+<li>In the gateway configuration, set <code>broker.socketPath: /run/dekopon/broker.sock</code> and <code>broker.serverUid: 65532</code>. A wrong broker socket path shows up only as a failing startup probe.</li>
+</ul>
+<p>Then:</p>
 <ol>
 <li><strong>Map the gateway at the broker.</strong> Put the broker's <code>*.yaml</code> and <code>*.cedar</code> files in a ConfigMap and name it in <code>broker.configDirectory.configMap</code>. With <code>broker.configDirectory.peers</code>, on by default, the chart maps UID 65533 to the principal <code>dekopon-gatewayd</code> with an attestor grant. Without that mapping the broker refuses the gateway.</li>
 <li><strong>Enable the gateway.</strong> Set <code>gateway.enabled: true</code> with <code>gateway.config</code> and <code>gateway.catalog</code>. The chart names any key you still owe.</li>
 <li><strong>Give each daemon only its own credentials.</strong> Chat and model tokens go in Secrets that <code>gateway.env</code> references; provider credentials go in <code>broker.credentials</code>. A token typed into Helm values lands in the release, where <code>helm get values</code> prints it.</li>
 <li><strong>Prove a real turn.</strong> Send a chat message that invokes a harmless granted capability, then <a href="/how-it-works/#trace">find its decision and execution records</a>. A passing probe doesn't prove the model, chat service or provider credentials work.</li>
 </ol>
-<p>That attestor grant covers every subject namespace: compromise the gateway and it speaks for any sender, with that sender's grants.</p>
+<p>That attestor grant covers every subject namespace: compromise the gateway and it speaks for any sender, with that sender's grants. The chart installs no NetworkPolicy, so the pod reaches whatever your cluster allows.</p>
 <div id="credentials">
 <h3>The ChatGPT credential is seeded once</h3>
 <p>Log in on a workstation with <code>dekopon-gatewayd auth chatgpt login</code>, export the Secret and set <code>gateway.chatgpt</code>. The gateway rotates the refresh token, so after the first refresh your exported Secret is a retired token: never copy it back over the live one. A broker ChatGPT credential needs a second, separate login. <a href="{{ deploy }}#kubernetes">Export and re-seed steps ↗</a></p>
