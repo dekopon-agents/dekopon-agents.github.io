@@ -21,6 +21,7 @@ wins.
 
 Docs are for humans: what a principal engineer can't derive from the code. Agents read the code,
 `check` and `--help`. These rules hold on every page; a change that breaks one is not published.
+Make the text that survives clear with the [`succinct-docs` skill](.claude/skills/succinct-docs/SKILL.md).
 
 **When to document.** A page states only:
 
