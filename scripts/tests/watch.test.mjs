@@ -23,6 +23,7 @@ test("the pinned Eleventy toolchain rebuilds data, includes, new templates, and 
     });
     await cp(path.join(root, "src"), path.join(directory, "src"), { recursive: true });
     await cp(path.join(root, "eleventy.config.js"), path.join(directory, "eleventy.config.js"));
+    await cp(path.join(root, "providers.json"), path.join(directory, "providers.json"));
     await writeFile(path.join(directory, "package.json"), '{"type":"module"}');
     const write = (file, value) => writeFile(path.join(directory, "src", file), value);
     await write("_data/watchProbe.json", '{"message":"initial data"}');

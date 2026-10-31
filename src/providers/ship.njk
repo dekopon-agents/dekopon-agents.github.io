@@ -7,7 +7,8 @@ bodyClass: technical-page
 technicalPage: true
 ogType: article
 ---
-{% set ship = providerSdk.ship %}
+{% set gh = providers.providers | providerRepo("dekopon-provider-gh") %}
+{% set ship = { owner: "dekopon-agents", name: "gh", version: gh.release | replace("v", "", 1), manifestDigest: gh.manifestDigest } %}
 {% set workflows = "https://github.com/dekopon-agents/provider-workflows" %}
 {% set repo = ship.owner ~ "/dekopon-provider-" ~ ship.name %}
 {% set image = ship.owner ~ "/provider-" ~ ship.name %}

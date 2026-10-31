@@ -47,8 +47,14 @@ Everything else is the code, `check` and `--help`; link it.
   needs next, not everything related.
 - **No history.** Dekopon is pre-1.0 and keeps no backwards compatibility. `/whats-new/` covers
   the pinned release only, as release notes. No "previously", migration steps, version minimums
-  or compatibility guidance; name the current key, never the old one. Versions come from
-  `src/_data/release.json`, never typed into prose.
+  or compatibility guidance; name the current key, never the old one.
+- **Versions live only in data.** `src/_data/release.json` (core), `src/_data/providerSdk.json`
+  (SDK and contract pins) and `providers.json` (providers); `check-site` fails on a version typed
+  into a template.
+- **`providers.json` is the official provider list.** It sits at the repository root and feeds
+  `/providers/official/`, the ship guide and the Mac page. Keep it current: when a listed provider
+  releases, update its `release` (and `manifestDigest`, if present) and its row's facts in the same
+  change; add or retire a provider only there, with each fact taken from the provider's own source.
 - **No run receipts.** No CI run links or IDs, OS or Homebrew patch versions, observed call counts
   or "we tested". `check-voice.mjs` fails on run links, any `x.y.z or later` and Homebrew version
   numbers.

@@ -207,7 +207,7 @@ for (const [relativeFile, current] of [
     }
 }
 // The official list renders one row per data entry, each linking its repository and release.
-const officialProviders = JSON.parse(await readFile(path.resolve("src", "_data", "officialProviders.json"), "utf8"));
+const officialProviders = JSON.parse(await readFile(path.resolve("providers.json"), "utf8"));
 const officialMain = (await readFile(path.join(outputDirectory, "providers/official/index.html"), "utf8")).match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
 const officialRows = [...officialMain.matchAll(/<tr data-provider="([^"]+)">([\s\S]*?)<\/tr>/g)];
 if (officialRows.length !== officialProviders.providers.length) {
@@ -344,6 +344,14 @@ for (const file of htmlFiles) {
                 failures.push(`${relativeFile}: missing fragment #${fragment} in ${path.relative(outputDirectory, target)}`);
             }
         }
+    }
+}
+
+// Versions live in data files (release.json, providerSdk.json, providers.json), never in a template.
+for (const template of (await walk(path.resolve("src"))).filter((file) => file.endsWith(".njk"))) {
+    const source = (await readFile(template, "utf8")).replace(/\sd="[^"]*"/g, "");
+    for (const match of source.matchAll(/\bv?\d+\.\d+\.\d+\b|@\d+\.\d+/g)) {
+        failures.push(`${path.relative(process.cwd(), template)}: version ${match[0]} typed into a template; read it from a data file`);
     }
 }
 

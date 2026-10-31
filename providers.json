@@ -4,7 +4,9 @@
   "providers": [
     {
       "repo": "dekopon-provider-gh",
-      "command": ["gh"],
+      "command": [
+        "gh"
+      ],
       "release": "v0.12.0",
       "description": "Calls fixed GitHub endpoints for repos, pull requests and issues; no raw API passthrough.",
       "needs": "A GitHub PAT or App installation token, injected by the broker for api.github.com.",
@@ -15,11 +17,14 @@
         "description": "Cargo.toml:9; README.md:5-8",
         "needs": "README.md:171-189",
         "oci": "README.md:299; ghcr.io/v2/dekopon-agents/provider-gh/manifests/0.12.0 200"
-      }
+      },
+      "manifestDigest": "sha256:d31da63625c5f3d1e79c3c7295eec6cb054798f10dfe7e9fbb643207c70f0e3b"
     },
     {
       "repo": "dekopon-provider-exa-search",
-      "command": ["exa"],
+      "command": [
+        "exa"
+      ],
       "release": "v0.4.0",
       "description": "Runs Exa web search, contents and answer requests; every call is billable.",
       "needs": "An Exa API key, injected as a Bearer token for api.exa.ai.",
@@ -34,7 +39,9 @@
     },
     {
       "repo": "dekopon-provider-python",
-      "command": ["python"],
+      "command": [
+        "python"
+      ],
       "release": "v0.10.0",
       "description": "Runs Python in a fresh RustPython interpreter per call; selected modules, no pip.",
       "needs": "Nothing for pure scripts; HTTP hosts you allow (no credential), and storage for python sql.",
@@ -49,7 +56,9 @@
     },
     {
       "repo": "dekopon-provider-ripgrep",
-      "command": ["rg"],
+      "command": [
+        "rg"
+      ],
       "release": "v0.6.1",
       "description": "Searches piped stdin with ripgrep-style flags; it opens no files.",
       "needs": "Nothing: no network, storage or file access.",
@@ -64,7 +73,9 @@
     },
     {
       "repo": "dekopon-provider-curl",
-      "command": ["curl"],
+      "command": [
+        "curl"
+      ],
       "release": "v0.6.1",
       "description": "Sends one bounded GET to a host you allow; the grant covers every path there.",
       "needs": "Hosts you allow, no credential; optionally a secret you bind and name by DRN.",
@@ -79,7 +90,9 @@
     },
     {
       "repo": "dekopon-provider-turso-sql",
-      "command": ["turso"],
+      "command": [
+        "turso"
+      ],
       "release": "v0.7.0",
       "description": "Runs SQLite-compatible SQL on broker-owned files; trip the write budget and you lose the database.",
       "needs": "A storage grant: the namespace it opens, its byte budgets and quota.",
@@ -94,7 +107,9 @@
     },
     {
       "repo": "dekopon-provider-gpt-image",
-      "command": ["image"],
+      "command": [
+        "image"
+      ],
       "release": "v0.6.0",
       "description": "Generates or edits PNG images on a ChatGPT subscription; each call spends quota.",
       "needs": "A ChatGPT subscription credential for chatgpt.com and an asset attach grant; asset send delivers the image.",
@@ -109,7 +124,9 @@
     },
     {
       "repo": "dekopon-provider-mediawiki",
-      "command": ["wikipedia"],
+      "command": [
+        "wikipedia"
+      ],
       "release": "v0.8.0",
       "description": "Searches Wikipedia and reads one bounded lead, outline or section at a time; read-only.",
       "needs": "One exact Wikipedia host, such as en.wikipedia.org; no credential.",
@@ -124,7 +141,11 @@
     },
     {
       "repo": "dekopon-provider-openobserve",
-      "command": ["openobserve", "agent", "broker"],
+      "command": [
+        "openobserve",
+        "agent",
+        "broker"
+      ],
       "release": "v0.6.1",
       "description": "Runs fixed, read-only queries on Dekopon telemetry in OpenObserve; the agent can’t write SQL.",
       "needs": "Your OpenObserve endpoint in provider settings and a Basic credential bound to it.",
@@ -139,7 +160,9 @@
     },
     {
       "repo": "dekopon-provider-memory-chat",
-      "command": ["memory"],
+      "command": [
+        "memory"
+      ],
       "release": "v0.6.1",
       "description": "Reads recent turns or literal matches from this chat’s memory; only the broker writes it.",
       "needs": "Broker-owned JSONL storage and a chat namespace.",
@@ -154,7 +177,9 @@
     },
     {
       "repo": "dekopon-provider-vm",
-      "command": ["ssh"],
+      "command": [
+        "ssh"
+      ],
       "release": "v0.6.0",
       "description": "Runs literal argv in a vm-runner Firecracker jail you operate; it isn’t SSH.",
       "needs": "A vm-runner endpoint in provider settings and a bearer secret named by DRN.",

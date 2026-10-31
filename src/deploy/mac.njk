@@ -6,6 +6,7 @@ bodyClass: technical-page
 technicalPage: true
 ogType: article
 ---
+{% set ghProvider = providers.providers | providerRepo("dekopon-provider-gh") %}
 {% set deploy = site.repository ~ '/blob/main/docs/deploy.md' %}
 <article class="shell field-guide">
 <header class="guide-intro">
@@ -106,7 +107,7 @@ ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /u
 <section id="provider">
 <h2>4. One attested GitHub provider component</h2>
 <p>Download and verify the provider; step 8 installs it:</p>
-<pre aria-label="provider" tabindex="0"><code>gh release download v0.11.1 -R dekopon-agents/dekopon-provider-gh -p 'gh-provider.wasm*'
+<pre aria-label="provider" tabindex="0"><code>gh release download {{ ghProvider.release }} -R dekopon-agents/dekopon-provider-gh -p 'gh-provider.wasm*'
 shasum -a 256 -c gh-provider.wasm.sha256
 gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
   --signer-repo dekopon-agents/provider-workflows gh-provider.wasm</code></pre>

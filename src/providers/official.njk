@@ -13,8 +13,8 @@ ogType: article
 <div class="shell sdk-guide">
   {% include "components/provider-tabs.njk" %}
   <header class="sdk-intro">
-    <p class="sdk-baseline">Snapshot: {{ officialProviders.snapshotDate }}</p>
-    <h1>{{ officialProviders.providers | length }} official providers</h1>
+    <p class="sdk-baseline">Snapshot: {{ providers.snapshotDate }}</p>
+    <h1>{{ providers.providers | length }} official providers</h1>
     <p>Each is a separately released Wasm component that the broker runs only for capabilities you grant.</p>
   </header>
 
@@ -22,7 +22,7 @@ ogType: article
     <table class="sdk-table official-table">
       <thead><tr><th scope="col">Command</th><th scope="col">What it does</th><th scope="col">What it needs</th><th scope="col">Source</th></tr></thead>
       <tbody>
-        {%- for p in officialProviders.providers %}
+        {%- for p in providers.providers %}
         {%- set name = p.repo | replace("dekopon-provider-", "") %}
         <tr data-provider="{{ name }}">
           <th scope="row">{% for word in p.command %}<code>{{ word }}</code>{% if not loop.last %} {% endif %}{% endfor %}</th>

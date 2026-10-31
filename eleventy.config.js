@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 const escapeHtml = (value) => String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -43,6 +45,9 @@ export default function (eleventyConfig) {
     eleventyConfig.addPassthroughCopy({ "src/static": "." });
     eleventyConfig.addFilter("yamlHighlight", yamlHighlight);
     eleventyConfig.addFilter("terminalHighlight", terminalHighlight);
+    eleventyConfig.addGlobalData("providers", () => JSON.parse(readFileSync("providers.json", "utf8")));
+    eleventyConfig.addWatchTarget("providers.json");
+    eleventyConfig.addFilter("providerRepo", (list, repo) => list.find((provider) => provider.repo === repo));
 
     return {
         dir: {
