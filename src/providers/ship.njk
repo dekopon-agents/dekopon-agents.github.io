@@ -87,7 +87,7 @@ gh attestation verify {{ ship.name }}-provider.wasm \
   --source-ref refs/tags/v{{ ship.version }}</code></pre>
 
 <h3>Untrusted source: read the raw <code>.wasm</code> before you grant anything.</h3>
-<p>A component’s imports are the most it can reach. Without a <code>dekopon:http</code> import it makes no request, whatever you grant; with <code>dekopon:spawn</code> it can run anything the caller may. The broker compiles the <code>.wasm</code> itself, and no native code ships with it.</p>
+<p>A component’s imports are the most it can reach. Without a <code>dekopon:http</code> import it makes no request, whatever you grant; with <code>dekopon:spawn</code> it can run anything the caller may. Your broker compiles the <code>.wasm</code> into its own <code>cwasm</code> cache; no native code ships with a release.</p>
 <pre aria-label="List a component's imports" tabindex="0"><code>wasm-tools component wit {{ ship.name }}-provider.wasm | grep '^  import'</code></pre>
 <p>Grant only capabilities whose imports and constraints you’ve read. Any credential you bind is the component’s to use at its destinations.</p>
 
