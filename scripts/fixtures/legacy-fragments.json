@@ -54,5 +54,41 @@
   ],
   "/almanac/boundaries/": [],
   "/architecture/": [],
-  "/deploy/credentials/": []
+  "/deploy/credentials/": [],
+  "/guides/access/": [
+    "profiles",
+    "identity",
+    "policy",
+    "spaces",
+    "constraints",
+    "credentials"
+  ],
+  "/guides/runtime/": [
+    "shell",
+    "workflow",
+    "jobs",
+    "wakes",
+    "limits",
+    "agents",
+    "assets"
+  ],
+  "/guides/traces/": [
+    "waterfall",
+    "records",
+    "collection",
+    "privacy"
+  ],
+  "/inference/": [
+    "models",
+    "budgets",
+    "restore",
+    "proxy",
+    "memory"
+  ],
+  "/guides/provider-sdk/": [
+    "provider-map",
+    "lifecycle",
+    "interfaces",
+    "start"
+  ]
 }

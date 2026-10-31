@@ -7,5 +7,11 @@
     "provider": "dekopon:provider/provider-cli@0.4.0",
     "stdio": "dekopon:stdio/streams@0.1.0",
     "http": "dekopon:http/client@1.1.0"
+  },
+  "ship": {
+    "owner": "dekopon-agents",
+    "name": "gh",
+    "version": "0.12.0",
+    "manifestDigest": "sha256:d31da63625c5f3d1e79c3c7295eec6cb054798f10dfe7e9fbb643207c70f0e3b"
   }
 }

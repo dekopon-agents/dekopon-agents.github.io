@@ -69,20 +69,20 @@
 }
 
 .hero-diagram {
-  padding: 20px;
+  padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 60px rgba(80, 48, 24, 0.12);
-  font-size: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 20px 60px rgba(80, 48, 24, 0.1);
+  font-size: 13px;
   line-height: 1.35;
 }
 
 .hero-diagram h2,
 .hero-diagram h3 {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 800;
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 750;
   line-height: 1.3;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -104,7 +104,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid #e8cb87;
   border-radius: 10px;
   background: #fff8e5;
@@ -129,7 +129,7 @@
 
 .hero-diagram-model-step {
   text-align: center;
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .hero-diagram-horizontal-arrow {
@@ -159,10 +159,6 @@
   transform: rotate(-135deg);
 }
 
-.hero-diagram-mobile-route {
-  display: none;
-}
-
 .hero-diagram-number {
   display: inline-grid;
   place-items: center;
@@ -180,25 +176,25 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  min-height: 34px;
+  min-height: 30px;
   padding-left: 16px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .hero-diagram-step > span[aria-hidden] {
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1;
   color: #986128;
 }
 
 .hero-diagram-step small {
   margin-left: 8px;
-  color: var(--slate);
-  font-size: 12px;
+  color: var(--slate-light);
+  font-size: 11px;
 }
 
 .hero-diagram-broker {
-  padding: 14px;
+  padding: 12px 14px;
   border: 1px solid #bd6a2d;
   border-radius: 12px;
   background: #fff3e6;
@@ -213,7 +209,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #e5c1a0;
   border-radius: 7px;
   background: #fffdfa;
@@ -224,7 +220,7 @@
 }
 
 .hero-diagram-wasm {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px dashed #4b816a;
   border-radius: 8px;
   background: #eef8f1;
@@ -243,18 +239,15 @@
 
 .hero-diagram-http {
   align-self: stretch;
-  padding: 12px;
+  padding: 10px 12px;
+  border: 1px solid #c3d2ee;
   border-radius: 8px;
-  background: var(--navy);
-  color: #fff;
+  background: #eef4ff;
+  color: #26314a;
 }
 
 .hero-diagram-http h3 {
-  color: #ffdf9a;
-}
-
-.hero-diagram-http p {
-  font-size: 13px;
+  color: #3d5c99;
 }
 
 .hero-diagram-credential-arrow {
@@ -264,7 +257,7 @@
 }
 
 .hero-diagram-credential {
-  padding: 10px;
+  padding: 8px 10px;
   border: 1px solid #dbb557;
   border-radius: 8px;
   background: #fff6cf;
@@ -276,7 +269,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 1px solid #d1dbe3;
   border-radius: 8px;
   background: #f6f9fc;
@@ -284,15 +277,8 @@
 
 .hero-diagram-github > span {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--slate);
-}
-
-.hero-diagram figcaption {
-  margin-top: 12px;
-  color: var(--slate);
-  font-size: 13px;
-  line-height: 1.45;
 }
 
 @media (max-width: 1100px) {
@@ -343,17 +329,6 @@
 
   .hero-diagram-model-step {
     text-align: left;
-    font-size: 13px;
-  }
-
-  .hero-diagram-horizontal-arrow {
-    display: none;
-  }
-
-  .hero-diagram-mobile-route {
-    display: block;
-    margin-top: 4px;
-    color: #594577;
     font-size: 12px;
   }
 

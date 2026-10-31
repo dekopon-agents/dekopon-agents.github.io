@@ -1,24 +1,24 @@
 {
   "/almanac/observability/": {
-    "target": "/guides/traces/",
+    "target": "/how-it-works/#trace",
     "fragments": {
-      "waterfall": "/guides/traces/#waterfall",
-      "correlation": "/guides/traces/#waterfall",
-      "signals": "/guides/traces/#records",
-      "logs": "/guides/traces/#records",
-      "privacy": "/guides/traces/#privacy",
-      "openobserve": "/guides/traces/#collection"
+      "waterfall": "/how-it-works/#trace",
+      "correlation": "/how-it-works/#trace",
+      "signals": "/how-it-works/#trace",
+      "logs": "/how-it-works/#trace",
+      "privacy": "/how-it-works/#trace",
+      "openobserve": "/how-it-works/#trace"
     }
   },
   "/almanac/permissions/": {
-    "target": "/guides/access/",
+    "target": "/how-it-works/#authority",
     "fragments": {
-      "model": "/guides/access/#policy",
-      "catalog": "/guides/access/#policy",
-      "broker": "/guides/access/#constraints",
-      "policy": "/guides/access/#policy",
-      "decision": "/guides/access/#policy",
-      "limits": "/guides/access/#constraints"
+      "model": "/how-it-works/#authority",
+      "catalog": "/how-it-works/#authority",
+      "broker": "/how-it-works/#authority",
+      "policy": "/how-it-works/#authority",
+      "decision": "/how-it-works/#authority",
+      "limits": "/how-it-works/#authority"
     }
   },
   "/almanac/": {
@@ -26,65 +26,107 @@
     "fragments": {}
   },
   "/almanac/providers/": {
-    "target": "/guides/provider-sdk/",
+    "target": "/providers/",
     "fragments": {
-      "contract": "/guides/provider-sdk/#provider-map",
-      "hosts": "/guides/provider-sdk/#interfaces",
-      "fresh": "/guides/provider-sdk/#lifecycle",
-      "http": "/guides/provider-sdk/#interfaces",
-      "storage": "/guides/provider-sdk/#lifecycle",
-      "credential": "/guides/provider-sdk/#provider-map",
-      "scope": "/guides/provider-sdk/#provider-map"
+      "contract": "/providers/#provider-map",
+      "hosts": "/providers/#interfaces",
+      "fresh": "/providers/#lifecycle",
+      "http": "/providers/#interfaces",
+      "storage": "/providers/#lifecycle",
+      "credential": "/providers/#provider-map",
+      "scope": "/providers/#provider-map"
     }
   },
   "/almanac/one-tool-runtime/": {
-    "target": "/guides/runtime/",
+    "target": "/how-it-works/#shell",
     "fragments": {
-      "one-tool": "/guides/runtime/#shell",
-      "explore": "/guides/runtime/#workflow",
-      "commenter": "/guides/runtime/#workflow",
-      "not-bash": "/guides/runtime/#shell",
-      "data": "/guides/runtime/#shell",
-      "bounds": "/guides/runtime/#limits"
+      "one-tool": "/how-it-works/#shell",
+      "explore": "/how-it-works/#follow",
+      "commenter": "/how-it-works/#follow",
+      "not-bash": "/how-it-works/#shell",
+      "data": "/how-it-works/#shell",
+      "bounds": "/how-it-works/#limits"
     }
   },
   "/almanac/assets/": {
-    "target": "/guides/runtime/#assets",
+    "target": "/how-it-works/#shell",
     "fragments": {
-      "handle": "/guides/runtime/#assets",
-      "hops": "/guides/runtime/#assets",
-      "invariants": "/guides/runtime/#assets",
-      "ceilings": "/guides/runtime/#assets",
+      "handle": "/how-it-works/#shell",
+      "hops": "/how-it-works/#shell",
+      "invariants": "/how-it-works/#shell",
+      "ceilings": "/how-it-works/#shell",
       "one-kernel": "/deploy/kubernetes/#state",
       "receipts": "/whats-new/#limits"
     }
   },
   "/almanac/run-lifecycle/": {
-    "target": "/guides/access/",
+    "target": "/how-it-works/#follow",
     "fragments": {}
   },
   "/almanac/scheduling/": {
-    "target": "/guides/runtime/#wakes",
+    "target": "/how-it-works/#shell",
     "fragments": {}
   },
   "/almanac/components/": {
-    "target": "/guides/provider-sdk/",
+    "target": "/providers/",
     "fragments": {}
   },
   "/almanac/identity/": {
-    "target": "/guides/access/",
+    "target": "/how-it-works/#authority",
     "fragments": {
-      "origin": "/guides/access/#identity",
-      "chain": "/guides/access/#identity",
-      "configuration": "/guides/access/#identity",
-      "cedar": "/guides/access/#policy",
-      "audit": "/guides/traces/#records",
-      "limit": "/guides/access/#identity"
+      "origin": "/how-it-works/#authority",
+      "chain": "/how-it-works/#authority",
+      "configuration": "/how-it-works/#authority",
+      "cedar": "/how-it-works/#authority",
+      "audit": "/how-it-works/#trace",
+      "limit": "/how-it-works/#authority"
     }
   },
   "/almanac/boundaries/": {
-    "target": "/guides/runtime/",
+    "target": "/how-it-works/#limits",
     "fragments": {}
+  },
+  "/guides/access/": {
+    "target": "/how-it-works/#authority",
+    "fragments": {
+      "profiles": "/how-it-works/#authority",
+      "identity": "/how-it-works/#authority",
+      "policy": "/how-it-works/#authority",
+      "spaces": "/how-it-works/#authority",
+      "constraints": "/how-it-works/#authority",
+      "credentials": "/how-it-works/#credentials"
+    }
+  },
+  "/guides/runtime/": {
+    "target": "/how-it-works/#shell",
+    "fragments": {
+      "shell": "/how-it-works/#shell",
+      "workflow": "/how-it-works/#follow",
+      "jobs": "/how-it-works/#shell",
+      "wakes": "/how-it-works/#shell",
+      "limits": "/how-it-works/#limits",
+      "agents": "/how-it-works/#keyless",
+      "assets": "/how-it-works/#shell"
+    }
+  },
+  "/guides/traces/": {
+    "target": "/how-it-works/#trace",
+    "fragments": {
+      "waterfall": "/how-it-works/#trace",
+      "records": "/how-it-works/#trace",
+      "collection": "/how-it-works/#trace",
+      "privacy": "/how-it-works/#trace"
+    }
+  },
+  "/inference/": {
+    "target": "/how-it-works/#keyless",
+    "fragments": {
+      "models": "/how-it-works/#keyless",
+      "budgets": "/how-it-works/#keyless",
+      "restore": "/how-it-works/#keyless",
+      "proxy": "/how-it-works/#keyless",
+      "memory": "/how-it-works/#memory"
+    }
   },
   "/architecture/": {
     "target": "/how-it-works/",
@@ -93,5 +135,14 @@
   "/deploy/credentials/": {
     "target": "/deploy/kubernetes/#credentials",
     "fragments": {}
+  },
+  "/guides/provider-sdk/": {
+    "target": "/providers/",
+    "fragments": {
+      "provider-map": "/providers/#provider-map",
+      "lifecycle": "/providers/#lifecycle",
+      "interfaces": "/providers/#interfaces",
+      "start": "/providers/#start"
+    }
   }
 }

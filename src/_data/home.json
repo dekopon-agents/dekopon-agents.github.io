@@ -32,7 +32,7 @@
     },
     "secondaryCta": {
       "label": "Build a provider",
-      "href": "/guides/provider-sdk/"
+      "href": "/providers/"
     }
   }
 }

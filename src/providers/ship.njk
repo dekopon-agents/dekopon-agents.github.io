@@ -1,0 +1,105 @@
+---
+layout: layouts/base.njk
+permalink: providers/ship/index.html
+pageTitle: Ship a provider — Dekopon
+pageDescription: Build a Dekopon provider in GitHub Actions, publish it to GHCR, and install it by digest at the trust its source has earned.
+bodyClass: technical-page
+technicalPage: true
+ogType: article
+---
+{% set ship = providerSdk.ship %}
+{% set workflows = "https://github.com/dekopon-agents/provider-workflows" %}
+{% set repo = ship.owner ~ "/dekopon-provider-" ~ ship.name %}
+{% set image = ship.owner ~ "/provider-" ~ ship.name %}
+<article class="shell field-guide">
+<header class="guide-intro">
+<p class="guide-baseline"><a href="/providers/">Providers</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<h1>Ship a provider</h1>
+<p>Build every release in GitHub Actions, publish it to GitHub Packages (GHCR) and install it by digest. The shared <a href="{{ workflows }}">provider-workflows</a> build, attest and push; you set up the repository and the package, then tag. The examples use the <code>gh</code> provider.</p>
+</header>
+<nav class="guide-jumps" aria-label="On this page"><a href="#actions">Build in Actions</a><a href="#ghcr">Set up GHCR</a><a href="#release">Release</a><a href="#install">Install by digest</a><a href="#trust">Trust tiers</a>
+</nav>
+
+<section id="actions">
+<h2>Three caller workflows build every provider.</h2>
+<p>Name the repository <code>dekopon-provider-&lt;name&gt;</code>; the workflows derive the package, component and image names from it. Your repository keeps the source and the files <a href="{{ workflows }}#the-providers-half-of-the-contract">the provider’s half of the contract ↗</a> lists. Copy the CI, Release and Cut release <a href="{{ workflows }}#callers">callers ↗</a>. The release caller’s job grants every permission the release uses, because a reusable workflow gets no more than its caller grants:</p>
+<pre aria-label="Release caller permissions" tabindex="0"><code>jobs:
+  release:
+    uses: dekopon-agents/provider-workflows/.github/workflows/release.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      packages: write</code></pre>
+<p><code>contents</code> drafts and publishes the GitHub release, <code>id-token</code> and <code>attestations</code> sign its provenance, and <code>packages</code> pushes to GHCR.</p>
+<p><strong>Why Actions:</strong> the shared build script gives the same bytes on any machine with the same pins, but only an Actions build carries a provenance attestation that ties those bytes to your workflow, tag and commit.</p>
+<p>The workflows hard-code the <code>dekopon-agents</code> owner. In another account, fork provider-workflows, replace <code>dekopon-agents</code> in its <code>ci.yml</code> and <code>release.yml</code> with your owner, and call your fork.</p>
+</section>
+
+<section id="ghcr">
+<h2>GHCR needs one token permission and a public package.</h2>
+<p>The push job logs in to <code>ghcr.io</code> with the job’s own <code>GITHUB_TOKEN</code>. No personal access token or secret is involved. Set the package up at the first release:</p>
+<ol>
+<li><strong>Grant <code>packages: write</code></strong> in the release caller. Without it the push is refused.</li>
+<li><strong>Let the release create the package.</strong> A package the workflow’s token creates inherits the repository’s visibility and access. If the package already exists, pushed by hand or from another repository, open it and add this repository under <em>Package settings → Manage Actions access</em> with the <em>Write</em> role.</li>
+<li><strong>Check that the package page names your repository.</strong> If it doesn’t, click <em>Connect repository</em> on the package page. A linked package inherits the repository’s access, so its workflows can push new versions.</li>
+<li><strong>Make it public.</strong> The broker pulls anonymously; <code>provider sync</code> sends no registry credential. A private repository makes a private package: change it under <em>Package settings → Danger Zone → Change visibility</em>. You can’t make it private again. If <em>Public</em> isn’t offered, an organization owner allows public packages under the organization’s <em>Settings → Packages</em>. The anonymous request in <a href="#install">Install by digest</a> checks it.</li>
+</ol>
+</section>
+
+<section id="release">
+<h2>An annotated tag on <code>main</code> starts the release.</h2>
+<p>Merge the version bump, then dispatch <em>Cut release</em> with <code>tags: v&lt;version&gt;</code>, dry run first. It pushes the tag as the GitHub App in the secrets <code>DEKOPON_RELEASE_APP_ID</code> and <code>DEKOPON_RELEASE_APP_KEY</code>, since a <code>GITHUB_TOKEN</code> tag starts no workflow. The release refuses a lightweight tag, a tag that differs from the Cargo version and a commit outside <code>main</code>.</p>
+<p>One release publishes the same component bytes twice: as the <code>&lt;name&gt;-provider.wasm</code> release asset with its <code>.sha256</code>, SBOM and provenance attestations, and as the single <code>application/wasm</code> layer of <code>ghcr.io/&lt;owner&gt;/provider-&lt;name&gt;:&lt;version&gt;</code>, tagged without the <code>v</code>. The workflow checks that the layer digest equals the <code>.sha256</code>.</p>
+<p>The attestations cover the release assets, not the OCI manifest, so <code>gh attestation verify oci://…</code> finds nothing. Verify the release asset instead; the layer is the same bytes.</p>
+</section>
+
+<section id="install">
+<h2>Install by manifest digest; a tag can move.</h2>
+<p><code>provider sync</code> resolves a tag once and keeps its digests in the lock, but without that lock it resolves the tag again, and a tag can be pushed over. Pin the digest in the provider set. Look it up with the broker’s own anonymous request:</p>
+<pre aria-label="Look up the manifest digest anonymously" tabindex="0"><code>repo={{ image }}
+token=$(curl -fsS "https://ghcr.io/token?scope=repository:$repo:pull" | jq -r .token)
+curl -fsSI -H "Authorization: Bearer $token" \
+  -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+  "https://ghcr.io/v2/$repo/manifests/{{ ship.version }}" | grep -i docker-content-digest</code></pre>
+<p>No digest means the broker can’t pull it either: the package is private or the tag doesn’t exist. Name the digest in the provider set:</p>
+<pre aria-label="Provider set pinned by digest" tabindex="0"><code>apiVersion: dekopon.dev/provider-set/v1alpha1
+providers:
+  - source: ghcr.io/{{ image }}@{{ ship.manifestDigest }}</code></pre>
+<p>Sync checks every digest and loads every component before it writes the lock, so a component the broker can’t link never gets there. <code>sync --locked</code> fetches only what the lock names. On Kubernetes, the chart’s hook Job runs the sync: <a href="/deploy/kubernetes/#providers">managed provider sets</a>.</p>
+<p>A digest proves which bytes, not who published them; the lock has no provenance check or revocation. The tiers below cover the publisher.</p>
+</section>
+
+<section id="trust">
+<h2>Wasm limits what a provider can reach, not what it does there.</h2>
+<p>That’s why providers are Wasm: a component reaches only the host interfaces the broker links, under constraint sets it can’t widen, and never holds a credential. Inside its grants it does what its author wrote: a provider granted <code>POST</code> to <code>api.github.com</code> with your token can post anything the token allows. Dekopon’s <a href="https://github.com/dekopon-agents/dekopon/blob/main/docs/security-model.md#trust-boundaries">security model ↗</a> trusts the provider bytes the lock pins. Wasmtime runs inside the broker process and isn’t claimed as a production sandbox. Trust the source, or shrink what you have to trust.</p>
+
+<h3>Trusted source: verify the attestation, install by digest.</h3>
+<p>The attestation ties the release asset to the publisher’s workflow, tag and commit. Install by digest and check that the lock’s <code>componentDigest</code> matches this <code>.sha256</code>.</p>
+<pre aria-label="Verify a release asset" tabindex="0"><code>base=https://github.com/{{ repo }}/releases/download/v{{ ship.version }}
+curl -fsSLO "$base/{{ ship.name }}-provider.wasm"
+curl -fsSLO "$base/{{ ship.name }}-provider.wasm.sha256"
+sha256sum --check --strict {{ ship.name }}-provider.wasm.sha256
+gh attestation verify {{ ship.name }}-provider.wasm \
+  --repo {{ repo }} \
+  --predicate-type https://slsa.dev/provenance/v1 \
+  --signer-workflow dekopon-agents/provider-workflows/.github/workflows/release.yml \
+  --source-ref refs/tags/v{{ ship.version }}</code></pre>
+
+<h3>Untrusted source: read the raw <code>.wasm</code> before you grant anything.</h3>
+<p>A component’s imports are the most it can reach. Without a <code>dekopon:http</code> import it makes no request, whatever you grant; with <code>dekopon:spawn</code> it can run anything the caller may. Your broker compiles the <code>.wasm</code> into its own <code>cwasm</code> cache; no native code ships with a release.</p>
+<pre aria-label="List a component's imports" tabindex="0"><code>wasm-tools component wit {{ ship.name }}-provider.wasm | grep '^  import'</code></pre>
+<p>Grant only capabilities whose imports and constraints you’ve read. Any credential you bind is the component’s to use at its destinations.</p>
+
+<h3>Most paranoid: build from source.</h3>
+<p>The shared build script fixes the metadata salt, remaps local paths and uses one codegen unit, so the same source, Rust toolchain and <code>wasm-tools</code> give the same bytes. It needs rustup with the toolchain <code>rust-toolchain.toml</code> names, <code>jq</code> and the <code>wasm-tools</code> version provider-workflows pins.</p>
+<pre aria-label="Build a provider from source" tabindex="0"><code>git clone --depth 1 --branch v{{ ship.version }} https://github.com/{{ repo }}.git
+git clone --depth 1 {{ workflows }}.git
+cd dekopon-provider-{{ ship.name }}
+../provider-workflows/build.sh
+cat {{ ship.name }}-provider.wasm.sha256</code></pre>
+<p>A hash equal to the release’s means the published component is this source: install its digest. Otherwise install your own build as a <a href="/providers/#install">direct <code>providers:</code> path</a>.</p>
+
+<p><strong>Compiled code is trusted as written.</strong> Releases carry only <code>.wasm</code>. Sync and <code>provider precompile</code> compile it into the store’s <code>cwasm</code> cache, and the broker maps that native code at start without recompiling. The cache’s hash check catches a corrupt file, not a planted one, and <code>precompile</code> keeps an entry that passes it. Never restore a store from a machine you don’t control. To rebuild the cache, delete its <code>cwasm</code> directory and run <code>provider precompile</code>; <code>compileOnLoad: true</code> skips the cache.</p>
+</section>
+</article>
