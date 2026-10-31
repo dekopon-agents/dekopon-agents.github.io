@@ -19,22 +19,45 @@ wins.
 
 ## Documentation hard rules
 
-These rules hold on every page; a change that breaks one is not published. Write and review copy with
-the [`succinct-docs` skill](.claude/skills/succinct-docs/SKILL.md), which holds the rubric. The
-dekopon repository's [AGENTS.md#documentation](https://github.com/dekopon-agents/dekopon/blob/main/AGENTS.md#documentation)
-states the same rules for its docs.
+Docs are for humans: what a principal engineer can't derive from the code. Agents read the code,
+`check` and `--help`. These rules hold on every page; a change that breaks one is not published.
 
-- **Current release only.** Dekopon is pre-1.0 and keeps no backwards compatibility. No history,
-  "previously", migration notes, Dekopon version minimums or compatibility guidance; `/whats-new/` covers
-  the pinned release only. Name the current key, never the old one.
-- **No run evidence.** No CI run links or IDs, OS or Homebrew patch versions, observed call counts or
-  "we tested". `check-voice.mjs` fails on run links, any `x.y.z or later` (state the exact pin from a data file
-  instead) and Homebrew version numbers.
-- **One fact, one owner.** Contracts live in the core docs; a page states what the reader needs
-  and links the owning heading for the rest.
+**When to document.** A page states only:
+
+- one of Dekopon's four ideas:
+  - credentials the agent never holds;
+  - two-layer authority: Cedar decides who, constraint sets decide how far;
+  - the memory ladder;
+  - keyless model access for outside VMs;
+- a design reason the code can't show;
+- a security limit: what Dekopon deliberately doesn't protect;
+- a step a human performs outside the repository.
+
+Everything else is the code, `check` and `--help`; link it.
+
+- **Derivation test.** No page states a key, field, default, event, error, limit or command that a
+  type, serde attribute, constant, `values.yaml`, `--help` or test name states; link the path. A
+  step names only the keys its reader sets.
+- **Novelty test.** A section survives only if a principal engineer who knows agent gateways,
+  Kubernetes, OpenTelemetry, Cedar and Slack couldn't predict it from its heading.
+- **Idea, reason, limit or step.** Every paragraph is one of them; delete the rest. When a change
+  makes a sentence wrong, delete it rather than reword it.
+- **No indexes.** The site navigation is the only list of pages; a page links what its reader
+  needs next, not everything related.
+- **No history.** Dekopon is pre-1.0 and keeps no backwards compatibility. `/whats-new/` covers
+  the pinned release only, as release notes. No "previously", migration steps, version minimums
+  or compatibility guidance; name the current key, never the old one. Versions come from
+  `src/_data/release.json`, never typed into prose.
+- **No run receipts.** No CI run links or IDs, OS or Homebrew patch versions, observed call counts
+  or "we tested". `check-voice.mjs` fails on run links, any `x.y.z or later` and Homebrew version
+  numbers.
+- **Word budget.** The rendered technical pages, every page but the landing page, `404` and the
+  "Guide moved" stubs, stay within the budget `check-voice.mjs` enforces. A change over budget
+  cuts as much as it adds, or cites the owner's raise.
+- **One fact, one owner.** Contracts live in the core docs; a page links the owning heading
+  instead of restating it.
 - **Verified blocks.** Every `<pre>` command or config is checked against the pinned release; a
   prose edit leaves blocks byte-identical.
-- **No backsliding.** A change never lowers a page's rubric score.
 - **Deployment positioning.** Kubernetes is the preferred deployment; the Mac path serves people
   moving from OpenClaw or Hermes. `/deploy/` shows both as equal buttons before its first
   section, Kubernetes first, and each install page links the other.
@@ -343,9 +366,10 @@ npm run check:release -- --remote
 ```
 
 `npm test` includes release-validator regression tests, an isolated watch/rebuild
-smoke test, HTML and local-link checks, and `scripts/check-voice.mjs`, which enforces rules 1, 3, 5,
-and 7, the banned-construction list and the run-evidence rule, and lists history words for review. It cannot see rules 2, 4, 6, 8, or 9 —
-those are on you. Remote checks also verify the tag’s commit, source and published
+smoke test, HTML and local-link checks, and `scripts/check-voice.mjs`, which enforces voice rules
+1, 3, 5 and 7, the banned-construction list, the run-receipt rule and the word budget, and lists
+history words for review. It cannot see voice rules 2, 4, 6, 8 or 9, the four-ideas rule, or the
+derivation and novelty tests; those are on you. Remote checks also verify the tag’s commit, source and published
 chart metadata, the Homebrew tap formula’s Apple Silicon archive URL, and the SDK
 toolchain/interface pins.
 

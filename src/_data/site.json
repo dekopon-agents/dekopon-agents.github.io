@@ -16,7 +16,7 @@
     },
     {
       "label": "Providers",
-      "href": "/#providers"
+      "href": "/providers/"
     },
     {
       "label": "Deploy",
@@ -61,24 +61,8 @@
           "href": "/how-it-works/"
         },
         {
-          "label": "Identity and access",
-          "href": "/guides/access/"
-        },
-        {
-          "label": "Shell and files",
-          "href": "/guides/runtime/"
-        },
-        {
-          "label": "Models and budgets",
-          "href": "/inference/"
-        },
-        {
           "label": "Build a provider",
-          "href": "/guides/provider-sdk/"
-        },
-        {
-          "label": "Trace a request",
-          "href": "/guides/traces/"
+          "href": "/providers/"
         }
       ]
     },

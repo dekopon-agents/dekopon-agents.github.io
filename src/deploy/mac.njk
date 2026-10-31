@@ -6,8 +6,7 @@ bodyClass: technical-page
 technicalPage: true
 ogType: article
 ---
-{% set docs = site.repository ~ '/blob/main/docs' %}
-{% set starter = site.repository ~ '/blob/main/examples/slack-github/README.md' %}
+{% set deploy = site.repository ~ '/blob/main/docs/deploy.md' %}
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
@@ -20,7 +19,7 @@ ogType: article
 <li>It bills one OpenRouter key under a spending limit you set.</li>
 <li>Two launchd services run it at boot under separate accounts.</li>
 </ul>
-<p>The files come from the <a href="{{ starter }}">Slack GitHub recipe ↗</a> and the <a href="{{ docs }}/run-on-mac.md">Mac runbook ↗</a>. If this page and GitHub disagree, GitHub is current.</p>
+<p>The <a href="{{ deploy }}#mac">core deploy notes ↗</a> give the reason behind each account, file mode and start order.</p>
 </header>
 <nav aria-label="Steps">
 <ol>
@@ -42,7 +41,7 @@ ogType: article
 <section id="before">
 <h2>1. What you need: a Mac, Slack, GitHub and OpenRouter</h2>
 <ul>
-<li>An Apple Silicon Mac on macOS 15 or later, with <a href="https://brew.sh">Homebrew</a> and an administrator account.</li>
+<li>An Apple Silicon Mac with <a href="https://brew.sh">Homebrew</a> and an administrator account.</li>
 <li>A paid Slack workspace where you can create apps, and a private channel with you and your colleague.</li>
 <li>A GitHub account that can read the repositories to review.</li>
 <li>An OpenRouter account with prepaid credit.</li>
@@ -101,11 +100,11 @@ for d in broker gateway; do for f in stdout stderr; do
   sudo install -o _dekopon_$d -g dekopon-ipc -m 0600 /dev/null /usr/local/var/log/dekopon-$d/$f.log
 done; done
 ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /usr/local/var/run</code></pre>
-<ul><li>Every <code>ls</code> line shows owner <code>root</code> and no group or other <code>w</code>. The daemons refuse to start under a directory your login owns or a group can write.</li></ul>
+<ul><li>Every <code>ls</code> line shows owner <code>root</code> and no group or other <code>w</code>.</li></ul>
 </section>
 
 <section id="provider">
-<h2>4. GitHub provider 0.11.1</h2>
+<h2>4. One attested GitHub provider component</h2>
 <p>Download and verify the provider; step 8 installs it:</p>
 <pre aria-label="provider" tabindex="0"><code>gh release download v0.11.1 -R dekopon-agents/dekopon-provider-gh -p 'gh-provider.wasm*'
 shasum -a 256 -c gh-provider.wasm.sha256
@@ -116,60 +115,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <section id="slack">
 <h2>5. One Slack app with two tokens</h2>
 <ol>
-<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste this manifest (<a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml">on GitHub ↗</a>):</li>
-</ol>
-<pre aria-label="manifest" tabindex="0"><code>display_information:
-  name: dekopon
-  description: Your fresh and zesty agent
-  background_color: "#ff6a3d"
-features:
-  app_home:
-    messages_tab_enabled: true
-    messages_tab_read_only_enabled: false
-  agent_view:
-    agent_description: A fresh and zesty agent for safely completing bounded tasks.
-    suggested_prompts:
-      - title: Review a pull request
-        message: Review this pull request and summarize the important findings.
-      - title: Check an incident
-        message: Help me investigate this incident and identify the next safe step.
-  bot_user:
-    display_name: dekopon
-    always_online: true
-oauth_config:
-  scopes:
-    bot:
-      - app_mentions:read
-      - assistant:write
-      - channels:history
-      - channels:read
-      - chat:write
-      - files:read
-      - files:write
-      - groups:history
-      - groups:read
-      - im:history
-      - im:read
-      - mpim:read
-      - reactions:read
-      - users:read
-      - reactions:write
-settings:
-  event_subscriptions:
-    bot_events:
-      - agent_session_stopped
-      - app_home_opened
-      - app_mention
-      - message.channels
-      - message.groups
-      - message.im
-      - reaction_added
-  interactivity:
-    is_enabled: false
-  org_deploy_enabled: false
-  socket_mode_enabled: true
-  token_rotation_enabled: false</code></pre>
-<ol start="2">
+<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml"><code>manifest-agent.yaml</code> ↗</a>.</li>
 <li>Under <strong>Basic Information → App-Level Tokens → Generate Token and Scopes</strong>, name it <code>dekopon</code> with scope <code>connections:write</code>. Copy the <code>xapp-…</code> token.</li>
 <li>Choose <strong>Install App → Install to Workspace → Allow</strong>. Copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-…</code>) from <strong>OAuth &amp; Permissions</strong>.</li>
 <li>In the review channel, send <code>/invite @dekopon</code>.</li>
@@ -215,7 +161,6 @@ credentials:
     scheme: Bearer
     destinations: [api.github.com]
     secret: REPLACE_WITH_FINE_GRAINED_PAT</code></pre>
-<ul><li>The gateway loads <code>credentials.env</code> with <a href="{{ docs }}/gatewayd.md#environment-file"><code>--env-file</code> ↗</a>, refuses it unless it is a <code>0600</code> file owned by <code>_dekopon_gateway</code>, and never prints a value. Values are literal: nothing expands <code>$</code>.</li></ul>
 </section>
 
 <section id="config">
@@ -512,11 +457,10 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
-<li>Rotate the GitHub token without a restart: edit <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. The broker's <code>stdout.log</code> shows <code>broker_reload_applied</code>, or <code>broker_reload_refused</code> if it kept the old token.</li>
-<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>. The gateway records why it stopped in <code>stdout.log</code>; the broker, in <code>stderr.log</code>. They hold prompts and replies: keep them private.</li>
-<li>An OpenRouter refusal, such as the key's limit, shows "The agent could not complete this request." in Slack and <code>gateway_session_failed</code> in the gateway's <code>stdout.log</code>. Raise the limit or wait for the reset.</li>
-<li>Upgrade or roll back both daemons together with the runbook's <a href="{{ docs }}/run-on-mac.md#sleep-logs-updates-and-recovery">update steps ↗</a>.</li>
+<li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. While the gateway is connected, the broker reloads it without a restart.</li>
+<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>. They hold prompts and replies, and launchd never rotates them: keep them private and bound them yourself.</li>
+<li>When the OpenRouter key reaches its limit, the agent replies that it couldn't complete the request. Raise the limit or wait for the reset.</li>
+<li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
-<p><a class="button button-primary" href="{{ starter }}">Open the Slack GitHub recipe ↗</a> <a href="{{ docs }}/run-on-mac.md">Read the full Mac runbook ↗</a></p>
 </section>
 </article>

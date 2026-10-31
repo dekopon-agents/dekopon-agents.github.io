@@ -1,78 +1,17 @@
 ---
 layout: layouts/base.njk
-pageTitle: Models, budgets and memory — Dekopon
-pageDescription: Select a model, bound an agent’s token spend, and keep guest inference separate from provider authority.
+pageTitle: Guide moved — Dekopon
+pageDescription: This guide has moved to a focused task page.
 bodyClass: technical-page
-technicalPage: true
-ogType: article
+canonical: https://dekopon-agents.github.io/how-it-works/
+eleventyExcludeFromCollections: true
 ---
-{% set source = release.sourceUrl %}
-<article class="shell field-guide">
-<header class="guide-intro">
-<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>Models, budgets and memory</h1>
-<p>The gateway holds model credentials, selects a configured model for each route, and can reject a model call before it spends an agent’s remaining token budget.</p>
-</header>
-<nav class="guide-jumps" aria-label="On this page"><a href="#models">Model adapters</a><a href="#budgets">Token budgets</a><a href="#restore">Boot restore</a><a href="#proxy">Guest proxy</a><a href="#memory">History and caching</a></nav>
-<section id="models">
-<h2>The gateway selects the model; the broker grants effects.</h2>
-<p>A chat route names a catalog agent and may name a configured model. Otherwise, the gateway selects the first model offering the agent’s <code>modelClass</code>. A fresh broker grant comes before inference; a model choice never grants a provider capability.</p>
-<div class="guide-table" tabindex="0" role="region" aria-label="Model adapter comparison">
-<table>
-<thead><tr><th scope="col">Model kind</th><th scope="col">Connection and credential</th><th scope="col">Where it runs</th></tr></thead>
-<tbody>
-<tr><th scope="row"><code>openaiCompatible</code></th><td data-label="Connection and credential">Your local or hosted chat-completions endpoint; optional environment-referenced API key</td><td data-label="Where it runs">Gateway chat routes; not the guest proxy</td></tr>
-<tr><th scope="row"><code>chatgptSubscription</code></th><td data-label="Connection and credential">ChatGPT/Codex backend using a private rotating auth file</td><td data-label="Where it runs">Gateway routes and the proxy’s Responses path; always streaming</td></tr>
-<tr><th scope="row"><code>openrouter</code></th><td data-label="Connection and credential">OpenRouter API key, with explicit generation, reasoning, routing and cache settings</td><td data-label="Where it runs">Gateway routes and the proxy’s chat-completions path</td></tr>
-<tr><th scope="row"><code>anthropic</code></th><td data-label="Connection and credential">Environment-referenced Anthropic API key</td><td data-label="Where it runs">Guest proxy only; selecting it in a chat route fails startup</td></tr>
-</tbody>
-</table>
-</div>
-<p>Put key variable names in <code>gatewayd.yaml</code>, never the key values. Give the gateway and broker separate ChatGPT credential families. The subscription adapter uses an undocumented ChatGPT backend; public OpenAI API limits and retention promises do not describe that endpoint. <a href="/deploy/kubernetes/#credentials">Credential delivery</a>.</p>
-</section>
-<section id="budgets">
-<h2>Token budgets admit chat and guest model calls.</h2>
-<p>Add <code>metering.budgets</code> to gateway configuration for agents that need a spend limit. This excerpt assumes <code>pr-commenter</code> already exists and is served by a route; absent budgets leave model spend unbounded.</p>
-<pre tabindex="0" aria-label="Agent token budget excerpt"><code>metering:
-  budgets:
-    pr-commenter:
-      meters:
-        - { kind: rolling, limit: 200000, period: 5h }
-        - { kind: fixed, limit: 1000000, period: 1d }</code></pre>
-<p>All meters must allow the call. Fixed windows start at UTC multiples of their period; rolling windows count recent spend. Session windows start on the first charge, and credit buckets refill over time. Optional <code>models</code> narrows which configured models the budget covers.</p>
-<p>The gateway reserves estimated input and output before sending, so concurrent calls cannot spend the same reservation. It then settles against reported usage, or an estimate when the provider reports none. A call can finish above its estimate and leave debt that delays the next call.</p>
-<p><strong>This is a raw-token budget, not a dollar cap.</strong> Input plus output counts at full weight, including cached input. A budget refusal stops that turn; it does not undo provider effects that already ran. Every model call records <code>meter</code> usage even without a budget. <a href="/guides/traces/#records">Inspect charged usage and refusals</a>.</p>
-<p>Background journal summaries make additional model calls, but their <code>meter.via = summary</code> records bypass budget admission and boot restore. Use <code>memory.summaries: off</code> when that extra inference is unwanted. Paid provider effects use separate broker-owned credentials and are outside this model token meter. For OpenRouter, configure a dedicated key’s dollar limit at the provider as well; see the <a href="/deploy/mac/#slack-model">Mac setup’s budget guidance</a>.</p>
-</section>
-<section id="restore">
-<h2>Boot restore is best effort.</h2>
-<p>Budgets live in gateway memory. Without restore, each restart starts with empty windows. Optional <code>metering.restore</code> can rebuild them from OpenObserve or Quickwit <code>meter</code> logs; it requires telemetry and at least one configured budget to run.</p>
-<p>The gateway serves immediately, then makes one bounded search after the configured delay and combines historical charges with calls made since boot. A failed, partial or truncated result leaves the live meters unchanged and logs <code>meter.restore</code> without retrying.</p>
-<p><strong>Collection loss can under-count spend.</strong> Dropped logs, a crash, ingestion lag and bucket precision keep restore from being an exact restart-proof cap. Run one gateway at a time; overlapping processes break its assumptions. The chart uses one replica and <code>Recreate</code>. <a href="{{ source }}/docs/gatewayd.md#restoring-token-windows-at-boot-is-best-effort">Restore fields and error bounds ↗</a>.</p>
-</section>
-<section id="proxy">
-<h2>The guest proxy uses gateway model credentials.</h2>
-<p>An optional <code>proxy</code> listener lets clients inside Firecracker guests call configured models without receiving an upstream key. Inference calls count against the owning agent’s token budget; Anthropic <code>count_tokens</code> does not. This path grants no broker provider authority.</p>
-<p>The listener requires mTLS and an exact jail certificate identity. That trusted jail supplies <code>x-dekopon-vm-subject</code>; the gateway maps it to an agent and allowed model names, rewrites the upstream model, and injects its own credential. The gateway trusts the jail to name the VM correctly.</p>
-<p>This is a Linux Firecracker deployment option, not a requirement for native Mac chat. Expose it only through the jail’s egress route, with no public ingress. Configure the guest client’s base URL explicitly. The proxy serves Anthropic Messages, ChatGPT Responses and OpenRouter chat completions; it refuses ungranted models and unsupported dialects.</p>
-<p>Requests are bounded to 8 MiB, with 16 simultaneous connections by default. The body reader can briefly hold two copies per connection, up to 256 MiB at those defaults; size the gateway’s memory accordingly. Cached coding prompts still consume full input-token budget. <a href="{{ source }}/docs/gatewayd.md#guest-model-proxy">Exact listener, grant and client configuration ↗</a>.</p>
-</section>
-<section id="memory">
-<h2>History, prompt caching and durable memory have different owners.</h2>
-<div class="guide-table" tabindex="0" role="region" aria-label="History and cache comparison">
-<table>
-<thead><tr><th scope="col">Mechanism</th><th scope="col">What survives</th><th scope="col">Limit</th></tr></thead>
-<tbody>
-<tr><th scope="row">Gateway memory without journal recall</th><td data-label="What survives">A bounded question/final-answer window in the running process; optional platform recall reads chat messages</td><td data-label="Limit">The live window dies at restart. Private per subject by default; sharing one conversation must be explicit.</td></tr>
-<tr><th scope="row">Gateway journal recall</th><td data-label="What survives">Original user and assistant text, consumed steers and tool exchanges; recent turns replay verbatim, older turns may use generated summaries</td><td data-label="Limit">Separate prompt-window and disk-retention bounds apply. Background summaries cost model calls; failed summaries remain failed.</td></tr>
-<tr><th scope="row">Provider prompt-prefix cache</th><td data-label="What survives">The provider may reuse identical leading prompt computation; the gateway sends dialect-specific hints</td><td data-label="Limit">No completed-answer cache, cache lease or guaranteed hit. Measure the provider’s reported cached-input usage.</td></tr>
-<tr><th scope="row">Broker-backed durable chat turns</th><td data-label="What survives">Explicitly installed memory provider’s scoped stored turns</td><td data-label="Limit">Retrieval is a separately authorized call; stored turns never enter a prompt automatically.</td></tr>
-</tbody>
-</table>
-</div>
-<p>With <code>sessions.journal</code>, the gateway requires a separate <code>sessions.assets.path</code>. Eligible journal records and already-downloaded inbound attachment bytes can survive restart. Generated attachments remain session-only. Earlier or malformed journal formats are reset, not migrated; preserve needed history before changing releases.</p>
-<p>Journal records are private files under the gateway user. Memory retention defaults to seven days and 64 MiB per agent, independently of the prompt’s turn and byte window. Turn summaries run after the reply through a bounded queue; no reply waits for them. Optional memory reads and pins refer to this same scoped journal.</p>
-<p>History is untrusted prompt text. Every capability request still goes to the broker for a fresh decision. A capability-ID change drops the gateway’s remembered window; tightening constraints or changing a credential under the same ID does not necessarily clear it.</p>
-<p><a href="{{ source }}/docs/inference.md">Read the pinned inference and caching reference ↗</a> · <a href="{{ source }}/docs/gatewayd.md#conversations">Conversation scope, recall and bounds ↗</a> · <a href="/deploy/kubernetes/#gateway">Configure a gateway</a></p>
-</section>
-</article>
+<article class="shell field-guide"><h1>This guide has moved.</h1>
+<p><a data-move-default href="/how-it-works/#keyless">Continue to the updated guide →</a></p>
+<nav class="moved-links" aria-label="Moved sections">
+<a id="models" data-move-fragment href="/how-it-works/#keyless">Models →</a>
+<a id="budgets" data-move-fragment href="/how-it-works/#keyless">Budgets →</a>
+<a id="restore" data-move-fragment href="/how-it-works/#keyless">Restore →</a>
+<a id="proxy" data-move-fragment href="/how-it-works/#keyless">Proxy →</a>
+<a id="memory" data-move-fragment href="/how-it-works/#memory">Memory →</a>
+</nav></article>

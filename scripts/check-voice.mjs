@@ -7,6 +7,12 @@ import process from "node:process";
 
 const PAIR_BUDGET = 3;
 
+// Technical pages share one word budget (AGENTS.md, "Documentation hard rules"): every rendered
+// page but the landing page, 404 and the "Guide moved" stubs, counted inside <main>, code
+// included. A change over budget cuts as much as it adds.
+const WORD_BUDGET = 6500;
+const UNBUDGETED = new Set(["index.html", "404.html"]);
+
 // The enumeration cap is a rule about function, not form: a long list used to
 // make something sound thorough is the tic, a long list that IS the spec is
 // information. A regex can't tell those apart, so the cap only fails the build
@@ -35,7 +41,7 @@ const BANNED = [
     "cutting-edge",
 ];
 
-// Docs describe the pinned release only and carry no run evidence (AGENTS.md,
+// Docs describe the pinned release only and carry no run receipts (AGENTS.md,
 // "Documentation hard rules"). These shapes are unambiguous, so they fail.
 const RUN_EVIDENCE = [
     [/actions\/runs\/\d+/i, "CI run link"],
@@ -92,11 +98,19 @@ const withoutCode = (html) => html
 
 const pairs = new Map();       // text -> first page it appeared on
 const kickers = new Map();
+const pageWords = new Map();
 
 for (const file of (await walk(outputDirectory)).filter((f) => f.endsWith(".html"))) {
     const page = path.relative(outputDirectory, file);
     const raw = await readFile(file, "utf8");
     const html = withoutCode(raw);
+
+    if (!UNBUDGETED.has(page) && !raw.includes("data-move-default")) {
+        const main = raw.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
+        const words = strip(main.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " "))
+            .split(" ").filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
+        pageWords.set(page, words);
+    }
 
     const headings = [
         ...html.matchAll(/<h[1-4][^>]*>([\s\S]*?)<\/h[1-4]>/gi),
@@ -144,6 +158,12 @@ if (pairs.size > PAIR_BUDGET) {
     for (const [text, page] of pairs) failures.push(`    ${page}: "${text}"`);
 }
 
+const words = [...pageWords.values()].reduce((sum, count) => sum + count, 0);
+if (words > WORD_BUDGET) {
+    failures.push(`technical pages hold ${words} words, budget is ${WORD_BUDGET}:`);
+    for (const [page, count] of [...pageWords].sort((a, b) => b[1] - a[1])) failures.push(`    ${page}: ${count}`);
+}
+
 for (const [text, page] of kickers) {
     if (THROAT_CLEARING_KICKER.some((r) => r.test(text))) {
         failures.push(`${page}: kicker announces the section instead of saying something — "${text}"`);
@@ -163,4 +183,4 @@ if (failures.length > 0) {
     process.exit(1);
 }
 
-console.log(`Voice check passed: ${pairs.size}/${PAIR_BUDGET} fragment pairs, ${kickers.size} kickers.`);
+console.log(`Voice check passed: ${pairs.size}/${PAIR_BUDGET} fragment pairs, ${kickers.size} kickers, ${words}/${WORD_BUDGET} technical-page words.`);

@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 pageTitle: Install Dekopon — Dekopon
-pageDescription: Install Dekopon on Kubernetes, a Mac, Linux or a container host, then give the broker a provider and a grant.
+pageDescription: Install Dekopon on Kubernetes or a Mac, then give the broker a provider and a grant.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -16,10 +16,10 @@ ogType: article
 <a class="button button-primary" href="/deploy/mac/">Run on a Mac <span aria-hidden="true">→</span></a>
 </div>
 <p>Kubernetes is the preferred deployment; the Mac path is for people moving from OpenClaw or Hermes.</p>
-<p>Every path installs the same two daemons, <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code>. Pick an environment, give the broker a provider and a grant, then check both configurations.</p>
+<p>Every path runs <code>dekopon-brokerd</code>, which holds policy and provider credentials, and <code>dekopon-gatewayd</code>, which holds chat and model credentials, under separate UIDs joined by one Unix socket.</p>
 </header>
 <section id="options">
-<h2>Four environments, one daemon pair</h2>
+<h2>Linux hosts use the same release</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Environment comparison">
 <table>
 <thead>
@@ -31,37 +31,23 @@ ogType: article
 </thead>
 <tbody>
 <tr>
-<th scope="row">Kubernetes ≥1.29</th>
-<td data-label="Get the application">Chart <strong>{{ release.chart.publishedVersion }}</strong>, application <strong>{{ release.chart.publishedAppVersion }}</strong>
-</td>
-<td data-label="Next step"><a href="/deploy/kubernetes/#install">Install and verify the broker probe</a>, then enable the gateway, which is off by default.</td>
-</tr>
-<tr>
-<th scope="row">Apple Silicon Mac</th>
-<td data-label="Get the application">Native executables from a verified <a href="{{ release.url }}">release archive</a>, or the <a href="https://github.com/dekopon-agents/homebrew-tap">Homebrew tap ↗</a>.</td>
-<td data-label="Next step"><a href="/deploy/mac/">Slack Agent setup, GitHub access and launchd</a>. The tap tracks the latest release; use configuration from the same release.</td>
-</tr>
-<tr>
 <th scope="row">Linux</th>
-<td data-label="Get the application">Download an <a href="{{ release.url }}">attested release archive</a>.</td>
-<td data-label="Next step">Run <code>dekopon-gatewayd --help</code> and <code>dekopon-brokerd --help</code>, then use the <a href="{{ source }}/crates/dekopon-brokerd/README.md">local configuration example ↗</a>.</td>
+<td data-label="Get the application">An attested <a href="{{ release.url }}">release archive</a> for arm64 or x86_64.</td>
+<td data-label="Next step">Create two service users and a shared group, then adapt the <a href="{{ source }}/crates/dekopon-brokerd/README.md">local configuration example ↗</a>.</td>
 </tr>
 <tr>
-<th scope="row">Linux container host</th>
-<td data-label="Get the application"><code>{{ release.installCommand }}</code>; the image covers arm64 and amd64.
-</td>
-<td data-label="Next step">Download only. The distroless image has no shell or site configuration; arrange separate daemon identities and a shared Unix socket.</td>
+<th scope="row">Container host</th>
+<td data-label="Get the application"><code>{{ release.installCommand }}</code> for arm64 or amd64.</td>
+<td data-label="Next step">The distroless image has no shell or configuration. Run each daemon under its own UID with a shared socket directory.</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The chart and the application carry separate versions. Keep the gateway and broker on one application release, and follow the <a href="{{ source }}/docs/upgrading.md">upgrade guide ↗</a> when you replace them.</p>
-<p>The archives and the image also carry <a href="{{ source }}/crates/dekopon-console/README.md"><code>dekopon-console</code> ↗</a>, an optional operator client; Homebrew installs it separately with <code>brew install dekopon-agents/tap/dekopon-console</code>. It doesn't support OpenRouter models, and the Mac Slack path doesn't need it. The chart can run it idle for <a href="/deploy/kubernetes/#pod"><code>kubectl exec</code></a>.</p>
 </section>
 <section id="configure">
-<h2>The broker needs a provider and an explicit grant</h2>
-<p>The broker needs installed providers, identities, policy and execution constraints. Release archives carry no providers and the image carries only <code>cli-probe</code> and <code>http-probe</code>; install reviewed providers yourself, or write one with the <a href="/guides/provider-sdk/">SDK guide</a>. The gateway needs a chat transport, a model endpoint and an agent catalog. Give each credential only to the daemon that uses it: chat and model credentials to the gateway, provider credentials to the broker. Set up <a href="/guides/traces/">telemetry collection</a> before you grant the agent useful access: the audit record lives only in the trace.</p>
-<p>The <a href="{{ site.repository }}/blob/main/examples/slack-github/README.md">Slack GitHub reviewer recipe ↗</a> has a pinned provider and a complete read-only configuration for two people in one channel.</p>
-<p>Check both files before you deploy: <code>dekopon-gatewayd check gatewayd.yaml --catalog agents.d</code> and <code>dekopon-brokerd check broker.yaml</code>. A broker with a managed provider set also needs <code>--provider-set</code> and a private <code>--store</code>, and its check may fetch the pinned components; deploying that set needs <a href="/deploy/kubernetes/#providers">sync and precompile</a>. Without <code>--probe</code>, neither check proves that the socket, credentials or external services work. <code>dekopon-gatewayd check --probe</code> sends one short, paid canary request for each OpenRouter model; other models are reported as not probed.</p>
+<h2>The broker runs nothing until you grant it</h2>
+<p>Release archives carry no providers, and the image carries only <code>cli-probe</code> and <code>http-probe</code>. Install reviewed providers yourself, or <a href="/providers/">write one</a>. <a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a complete broker and gateway configuration for one Slack sender.</p>
+<p>Set up <a href="/how-it-works/#trace">telemetry collection</a> before you grant the agent useful access: the audit record lives only in the trace.</p>
+<p>Check both configurations before you start either daemon: <code>dekopon-brokerd check broker.yaml</code> and <code>dekopon-gatewayd check gatewayd.yaml</code>. Neither check opens the socket or proves a credential works.</p>
 </section>
 </article>

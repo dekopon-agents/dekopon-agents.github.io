@@ -3,22 +3,6 @@
     {
       "href": "/how-it-works/",
       "label": "How it works"
-    },
-    {
-      "href": "/guides/access/",
-      "label": "Identity and access"
-    },
-    {
-      "href": "/guides/runtime/",
-      "label": "Shell and files"
-    },
-    {
-      "href": "/inference/",
-      "label": "Models and budgets"
-    },
-    {
-      "href": "/guides/traces/",
-      "label": "Trace a request"
     }
   ]
 }

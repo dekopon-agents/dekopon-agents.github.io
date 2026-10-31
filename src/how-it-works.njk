@@ -1,86 +1,97 @@
 ---
 layout: layouts/base.njk
 pageTitle: How Dekopon works — Dekopon
-pageDescription: Two local processes connect chat and models to a controlled shell runtime and permissioned services.
+pageDescription: Follow one Slack message to GitHub and back through the gateway and the broker, then the four ideas behind each hop and the limits Dekopon leaves to you.
 bodyClass: technical-page
 technicalPage: true
+sequenceDiagram: true
 ogType: article
 ---
 {% set source = release.sourceUrl %}
+{% set core = site.repository ~ '/blob/main/docs/' %}
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
 <h1>How Dekopon works</h1>
-<p>Two local processes connect chat and models to a controlled shell runtime and permissioned services.</p>
+<p>Follow one Slack message to GitHub and back, then the four ideas behind each hop and the limits Dekopon leaves to you.</p>
 </header>
-<nav class="guide-jumps" aria-label="On this page"><a href="#processes">What runs where</a><a href="#configure">What you configure</a><a href="#follow">Follow a request</a>
+<nav class="guide-jumps" aria-label="On this page"><a href="#follow">The request path</a><a href="#ideas">Four ideas</a><a href="#design">Design reasons</a><a href="#limits">Limits</a>
 </nav>
-<section id="processes">
-<h2>The gateway owns the conversation; the broker runs providers.</h2>
-<figure class="ownership-map">
-<div class="map-input"><strong>Chat service ↔ gateway ↔ model endpoint</strong>
-<p>Messages and replies · prompts and tool results</p>
+<section id="follow" class="seq-section">
+<h2>Only the hop from the broker to GitHub carries the token.</h2>
+<figure class="seq" aria-labelledby="seq-caption">
+<div class="seq-actors">
+<div class="seq-actor seq-actor-user"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><strong>Slack user</strong><small>Alice</small></div>
+<div class="seq-actor seq-actor-gateway"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><strong>dekopon-<wbr>gatewayd</strong><small>chat, model, shell</small></div>
+<div class="seq-actor seq-actor-broker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><strong>dekopon-<wbr>brokerd</strong><small>policy, providers, credentials</small></div>
+<div class="seq-actor seq-actor-github"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="seq-fill" d="M12 .7a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.2.8-.5v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.4 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.5 11.5 0 0 0 12 .7Z"/></svg><strong>GitHub</strong><small>api.github.com</small></div>
 </div>
-<div class="map-zone">
-<h3>Gateway · dekopon-gatewayd</h3>
-<p>Conversation history, attachment spool and controlled shell interpreter</p>
-<p><code>bash({ script })</code> dispatches builtins locally and provider commands over the socket.</p>
-</div>
-<p class="flow-label">Unix socket: authenticated peer + subject attestation ↓ requests / results ↑</p>
-<div class="map-zone broker-zone">
-<h3>Broker · dekopon-brokerd</h3>
-<p>Peer/subject mapping → Cedar decision → fresh Wasm invocation</p>
-<p>Native HTTP, storage and asset services enforce separate execution constraints. Providers can also request bounded child scripts; those return to the gateway on the caller’s existing budget and trace.</p>
-<p>Provider credential → native HTTP → allowed remote endpoint</p>
-</div>
-<figcaption>Provider credentials bypass the model and guest code. Chat-service and model credentials belong to the gateway. A separately configured Linux guest deployment can also use the gateway's model proxy; the native Mac path needs no VM. Both processes can export telemetry to your collection backend.</figcaption>
-</figure>
-<p>These are local processes joined by a protected Unix socket, not a multi-tenant network service. Wasmtime runs inside the broker process; a runtime vulnerability or compromised broker host defeats that boundary.</p>
-</section>
-<section id="configure">
-<h2>Three inputs define the agent.</h2>
-<div class="guide-table" tabindex="0" role="region" aria-label="Input comparison">
-<table>
-<thead>
-<tr>
-<th scope="col">Input</th>
-<th scope="col">Controls</th>
-<th scope="col">Next task</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th scope="row">Gateway config + catalog</th>
-<td data-label="Controls">Transport, model endpoint and agent behavior; catalog entries do not grant effects.</td>
-<td data-label="Next task"><a href="/deploy/">Choose an installation path</a>
-</td>
-</tr>
-<tr>
-<th scope="row">Identity + Cedar policy</th>
-<td data-label="Controls">Which authenticated subject may use an agent and its capabilities.</td>
-<td data-label="Next task"><a href="/guides/access/">Map users and grant actions</a>
-</td>
-</tr>
-<tr>
-<th scope="row">Provider components + constraints</th>
-<td data-label="Controls">Command implementations and their permitted I/O.</td>
-<td data-label="Next task"><a href="/guides/provider-sdk/">Build a component</a>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>You can start without a telemetry collector, but need retained stdout or an external receiver to investigate past decisions. Logs can include prompts and results. <a href="/guides/traces/">Choose what stores the trace</a> before relying on it for operations.</p>
-</section>
-<section id="follow">
-<h2>One PR read crosses both processes.</h2>
-<ol>
-<li>The gateway receives a chat sender identifier and builds a canonical subject. Before asking a model, it obtains the sender's allowed capabilities from the broker; the broker first checks permission to prompt that agent. The gateway makes no model call after a refusal or empty grant.</li>
-<li>The model can use a script to read a PR and filter its structured result. The interpreter is not Bash and cannot spawn the host’s <code>gh</code> executable.</li>
-<li>The broker checks the peer and subject mapping, evaluates static rules, then invokes the provider inside its configured HTTP limits. The result returns to the script and model.</li>
+<ol class="seq-steps">
+<li class="seq-msg seq-12"><p class="seq-label"><span class="sr-only">Slack user to gateway: </span><b class="seq-n">1</b> “What changed in PR 123?”<small>Slack names the sender.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
+<li class="seq-note seq-on-2"><p class="seq-label"><span class="sr-only">In the gateway: </span><b class="seq-n">2</b> The model writes <code>gh pr view 123 -R owner/repo</code><small>The shell turns the command word into a request, not a process.</small></p></li>
+<li class="seq-msg seq-23"><p class="seq-label"><span class="sr-only">Gateway to broker: </span><b class="seq-n">3</b> Attests the sender<small><code>slack.t0123abc.u9xyz</code> asks for <code>gh.pull-request.read</code> over the Unix socket, naming no principal and carrying no token.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
+<li class="seq-note seq-on-3"><p class="seq-label"><span class="sr-only">In the broker: </span><b class="seq-n">4</b> Maps the sender to a principal; Cedar decides<small><code>alice</code> may read pull requests through agent <code>reviewer</code>: allow.</small></p></li>
+<li class="seq-note seq-on-3 seq-wasm"><p class="seq-label"><span class="sr-only">In the broker: </span><b class="seq-n">5</b> A Wasm provider builds the request<small>The <code>gh</code> provider runs in a fresh sandbox and never sees the token.</small></p></li>
+<li class="seq-msg seq-34 seq-secret"><p class="seq-label"><span class="sr-only">Broker to GitHub: </span><b class="seq-n">6</b> Injects the credential bound to <code>api.github.com</code><small><code>GET /repos/{owner}/{repo}/pulls/123</code> leaves only after the host, method, byte and per-request Cedar checks pass.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
+<li class="seq-msg seq-34 seq-back"><p class="seq-label"><span class="sr-only">GitHub to broker: </span><b class="seq-n">7</b> Pull request JSON<small>A response that echoes the token is refused.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
+<li class="seq-msg seq-23 seq-back"><p class="seq-label"><span class="sr-only">Broker to gateway: </span><b class="seq-n">8</b> Returns as the command’s output<small>The provider’s stdout streams into the script.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
+<li class="seq-msg seq-12 seq-back"><p class="seq-label"><span class="sr-only">Gateway to Slack user: </span><b class="seq-n">9</b> The answer, in Slack<small>Posted with the gateway’s own Slack token.</small></p><span class="seq-arrow" aria-hidden="true"></span></li>
 </ol>
-<p>Rules do not judge intent: an allowed action can still be harmful. <a href="/guides/access/#policy">The PR-commenter decision</a> shows how separate grants and constraints fit together; <a href="/guides/runtime/#workflow">the shell example</a> shows what the model can compose.</p>
-<p><a href="/deploy/mac/">Run on a Mac</a> · <a href="/deploy/kubernetes/">Install on Kubernetes</a> · <a href="{{ source }}/docs/security-model.md">Read the pinned security model ↗</a>
-</p>
+<figcaption id="seq-caption">A read-only PR question from Slack to GitHub and back. Solid arrows are requests, dashed arrows replies.</figcaption>
+</figure>
+<p>The run stops at the first step that refuses. The broker checks <code>agent.prompt</code> for the sender before the gateway calls a model, denies a capability with no constraint set before Cedar runs, and caches no decision: the next command is authorized afresh.</p>
+</section>
+<section id="ideas">
+<h2>Dekopon rests on four ideas.</h2>
+<div class="idea-grid">
+<div class="idea" id="credentials">
+<h3>The agent never holds a credential.</h3>
+<p>A model can name a secret but can’t read one. The broker adds the credential after the provider has built its request, only for a destination inside that credential’s binding, and refuses a response that echoes it. The gateway, model, script and provider never see it.</p>
+<p><strong>The endpoint you authorize receives it.</strong> Allowlist a host that reflects headers back in another encoding and the token walks out through the provider’s output. Pick your hosts.</p>
+<p><a href="{{ core }}design.md#constitution">Credentials the agent never holds ↗</a> · <a href="{{ core }}security-model.md#endpoint-trust">Endpoint trust ↗</a></p>
+</div>
+<div class="idea" id="authority">
+<h3>Cedar decides who; constraint sets decide how far.</h3>
+<p>The gateway attests which chat sender asked; only the broker maps that sender to a principal. Cedar answers allow or deny. Hosts, methods, request and byte ceilings, the timeout and the credential live in constraint sets the owner writes, which no policy reaches: you can edit a policy to broaden who may act, but not to add a host. Each outbound request gets its own Cedar check, which can only narrow.</p>
+<p><strong>Rules check declared access, not intent.</strong> A permitted comment can still say something harmful, and the token’s own scope upstream stays the final boundary.</p>
+<p><a href="{{ core }}authorization.md">Authorization ↗</a></p>
+</div>
+<div class="idea" id="memory">
+<h3>Older turns replay as summaries without breaking the prompt cache.</h3>
+<p>On a route with a journal, the gateway records each turn and writes its summaries in the background. An older turn replays at one rung: the original, a summary from fullest to shortest, or a metadata line. It changes rung only at a repack, when it leaves the hot window or when the model pins it, so consecutive prompts share a byte-identical prefix. A history trimmed from the front, or summarized afresh each turn, would make every request a full-price cache miss. The model can read any retained original back.</p>
+<p><strong>Memory is prompt text and never grants authority.</strong> A changed grant drops the history, but the check compares capability names only: tightening a constraint set keeps what the agent read under the looser one.</p>
+<p><a href="{{ core }}memory.md#the-ladder">The memory ladder ↗</a></p>
+</div>
+<div class="idea" id="keyless">
+<h3>A coding agent in a VM reaches models without a key.</h3>
+<p>A key inside a Firecracker VM is a key whatever runs there can print. So <code>claude</code>, <code>pi</code> or <code>codex</code> calls the gateway’s model proxy through the jail’s egress route. The jail connects over mTLS and names the VM; the proxy maps it to an agent and its models, injects the key and charges the agent’s token budget. The proxy lives in the gateway because the gateway already holds the model keys.</p>
+<p><strong>The certificate identifies the jail, not the VM.</strong> A guest that escapes into the jail can name any configured VM and spend that agent’s budget. Budgets count raw tokens with cached input in full and live in gateway memory; at boot the gateway restores them from telemetry, undercounting whatever the exporter dropped.</p>
+<p><a href="{{ core }}design.md#keyless-model-access-for-outside-vms">Keyless model access ↗</a></p>
+</div>
+</div>
+</section>
+<section id="design">
+<h2>Two daemons, one script tool, no audit store</h2>
+<h3 id="processes">The exposed half never holds provider credentials.</h3>
+<p><code>dekopon-gatewayd</code> talks to chat services, runs the model loop and parses whatever the internet sends. <code>dekopon-brokerd</code> holds policy, provider credentials and provider storage. Whoever takes over the gateway gets its chat and model keys and its history, and can speak for every sender its attestor grant covers. Separate UIDs keep provider credentials and policy out of reach. The broker identifies the gateway by kernel peer UID, so there’s no shared secret to leak. Run both under one UID and you keep attribution, not separation. <a href="{{ core }}design.md#why-two-processes-and-two-uids">Why two processes ↗</a></p>
+<h3 id="shell">The model writes one script, and its command words are requests.</h3>
+<p>One tool schema per capability bloats the prompt and forces many round trips. A bash-like script lets the model write a whole plan in one call, in a language it already writes fluently. The interpreter links no filesystem and no process launcher: <code>gh</code> is a provider word routed to the broker, not the host’s GitHub CLI, and <code>curl</code> is not found unless a provider supplies it. <a href="{{ source }}/crates/dekopon-shell/README.md">dekopon-shell ↗</a></p>
+<h3 id="trace">The W3C trace is the audit log.</h3>
+<p>Each broker decision and execution is a log record in the message’s trace, beside the prompt and script that caused it, so one trace ID answers “why did this happen” without a second store holding another copy of sensitive data. <strong>Lose or overflow the exporter and those records are gone.</strong> The telemetry store holds every prompt and output; whoever reads it reads every conversation. <a href="{{ core }}design.md#trace-as-audit">Trace as audit ↗</a></p>
+</section>
+<section id="limits">
+<h2>What Dekopon deliberately doesn’t protect</h2>
+<ul>
+<li>Dekopon doesn’t detect prompt injection or make a model trustworthy; it shrinks what a successful injection can reach. An agent that reads something private and writes somewhere public can be steered to move one to the other: give those capabilities to different agents, or fence the write with a request <code>forbid</code>.</li>
+<li>A compromised gateway speaks for every sender inside its attestor grant. Narrow the grant to the workspaces it serves.</li>
+<li>If something hostile already runs as root or as the broker’s user, you’ve lost.</li>
+<li>Wasmtime runs inside the broker and bounds memory, fuel and time per call. It isn’t claimed as a production sandbox.</li>
+<li>Nothing retries or rolls back. A failed call goes back to the model, and a posted comment stays posted.</li>
+<li>Shared conversation history replays each participant’s text into prompts the others start.</li>
+<li>Cedar governs provider effects, not the gateway’s own chat replies or downloads.</li>
+<li>Dekopon isn’t production-hardened and has no multi-tenant transport.</li>
+</ul>
+<p><a href="{{ core }}security-model.md">Security model ↗</a></p>
+<p><a href="/deploy/kubernetes/">Install on Kubernetes</a> · <a href="/deploy/mac/">Run on a Mac</a> · <a href="/providers/">Build a provider</a></p>
 </section>
 </article>

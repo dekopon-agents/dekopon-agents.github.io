@@ -143,7 +143,7 @@ for (const [index, label] of ["Prompt + script tool", "Requested bash command", 
 }
 if (!heroDiagram.includes("Unix socket")) failures.push("index.html: hero must name the Unix socket");
 
-for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides/provider-sdk/index.html"]) {
+for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "providers/index.html", "providers/ship/index.html"]) {
     const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
     if (!html.includes(release.tag)) {
         failures.push(`${relativeFile}: missing current release ${release.tag}`);
@@ -151,7 +151,7 @@ for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "guides
 }
 
 // The provider guide is an orientation page, not an inline SDK or deployment manual.
-const providerGuide = await readFile(path.join(outputDirectory, "guides/provider-sdk/index.html"), "utf8");
+const providerGuide = await readFile(path.join(outputDirectory, "providers/index.html"), "utf8");
 const guideMain = providerGuide.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
 for (const id of ["provider-map", "interfaces", "start"]) {
     if (!guideMain.includes(`id="${id}"`)) failures.push(`provider guide: missing #${id}`);
@@ -172,7 +172,17 @@ if (!guideMain.includes(`--branch ${release.tag}`) || !guideMain.includes(`${rel
 }
 if ([...guideMain.matchAll(/<pre\b/g)].length !== 2) failures.push("provider guide: keep two command panels, not full source listings");
 const guideWords = guideMain.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length;
-if (guideWords > 1600) failures.push(`provider guide: ${guideWords} words exceeds the 1600-word orientation budget`);
+if (guideWords > 1100) failures.push(`provider guide: ${guideWords} words exceeds the 1100-word orientation budget`);
+// Shipping keeps the GHCR setup, digest pinning and the three trust tiers.
+const shipMain = (await readFile(path.join(outputDirectory, "providers/ship/index.html"), "utf8")).match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
+for (const required of ["packages: write", "GITHUB_TOKEN", "Change visibility", "provider-set/v1alpha1", "@sha256:", "gh attestation verify", "wasm-tools component wit", "build.sh", "not a planted one"]) {
+    if (!shipMain.includes(required)) failures.push(`ship guide: missing contract/step ${required}`);
+}
+for (const id of ["actions", "ghcr", "release", "install", "trust"]) {
+    if (!shipMain.includes(`id="${id}"`)) failures.push(`ship guide: missing #${id}`);
+}
+const shipWords = shipMain.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length;
+if (shipWords > 1150) failures.push(`ship guide: ${shipWords} words exceeds the 1150-word budget`);
 const guideBoundaries = new Map();
 const guideStack = [];
 for (const tag of guideMain.matchAll(/<div\b[^>]*>|<\/div>/g)) {
@@ -192,13 +202,9 @@ for (const child of ["policy", "host", "credential"]) {
 
 // Consolidated pages keep distinct mechanisms instead of six overlapping chapters.
 const contracts = {
-    'how-it-works/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', 'Unix socket', 'not a multi-tenant'],
-    'guides/access/index.html': ['uid: 65533', 'principals:', 'subjects: [slack.t0123abcd.u0123abcd]', 'agent.prompt', 'gh.pull-request.comment', 'secret.use', 'intent', 'endpoint receives'],
-    'guides/runtime/index.html': ['not complete Bash/POSIX', 'Pipeline stages exchange bytes', 'isolated scope snapshots', 'worker subprocess', 'limits.jobTimeoutMs', 'metering.budgets', 'dekopon:spawn/run@0.1.0', '127', '126', 'SCM_RIGHTS', 'Attach is not send', '64 KiB', '40 MiB', 'stored bytes'],
-    'inference/index.html': ['modelClass', 'metering.budgets', 'metering.restore', 'guest proxy', 'not a dollar cap'],
-    'guides/traces/index.html': ['broker.decision', 'broker.execution', 'serviceName: dekopon-gatewayd', '4096', 'RUST_LOG', 'Both processes', 'Lose collection'],
-    'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', '0660', '0710', '65534', 'gateway-config', 'prepare-files', 'CHOWN', 'FOWNER', 'seeded once', '270', '1152Mi', 'gateway.enabled: true', 'helm upgrade --install'],
-    'whats-new/index.html': ['dekopon-gatewayd', 'provider@0.4.0', 'dekopon:spawn', 'limits.jobTimeoutMs', 'provider precompile', 'dekopon.dev/gatewayd/v1alpha1']
+    'how-it-works/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', 'Unix socket', 'agent.prompt', 'endpoint you authorize receives', 'not intent', 'never grants authority', 'identifies the jail, not the VM', 'no multi-tenant transport', 'design.md#constitution', 'authorization.md', 'memory.md#the-ladder', 'design.md#keyless-model-access-for-outside-vms'],
+    'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', 'broker.configDirectory.peers', 'dekopon-gatewayd', 'CHOWN', 'FOWNER', 'seeded once', 'gateway.enabled: true', 'helm upgrade --install'],
+    'whats-new/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', '--env-file', 'RUSTSEC-2026-0422']
 };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
@@ -208,21 +214,30 @@ for (const [file, strings] of Object.entries(contracts)) {
     }
     if (html.includes('article-rail') || html.includes('<details')) failures.push(`${file}: obsolete essay scaffolding`);
 }
-// Keep the documented PR workflow aligned on the homepage and runtime guide.
 // Providers write JSON bytes; jq consumes the pipeline and emits the projection.
 const prReadScript = "set -e\nset -o pipefail\ngh pr view 7 -R owner/repo --json title,state | jq '{title, state}'";
-const runtimeGuide = await readFile(path.join(outputDirectory, 'guides/runtime/index.html'), 'utf8');
-for (const [file, html, label] of [
-    ['index.html', homepage, 'Illustrative read-only GitHub workflow'],
-    ['guides/runtime/index.html', runtimeGuide, 'Illustrative PR read script']
+const homeScript = homepage.match(/<pre\b[^>]*aria-label="Illustrative read-only GitHub workflow"[^>]*><code>([\s\S]*?)<\/code>/)?.[1];
+if (homeScript !== prReadScript) failures.push('index.html: PR read script must pipe the structured object directly to jq');
+
+// The how-it-works hero is a sequence: nine numbered hops, each in order, the credential added
+// by the broker on the hop to GitHub and never earlier.
+const howItWorks = await readFile(path.join(outputDirectory, 'how-it-works/index.html'), 'utf8');
+const sequence = howItWorks.match(/<ol class="seq-steps">([\s\S]*?)<\/ol>/)?.[1] ?? '';
+const hops = [...sequence.matchAll(/<li class="([^"]+)">([\s\S]*?)<\/li>/g)].map(([, kind, body]) => ({ kind, body }));
+if (hops.map(({ body }) => body.match(/class="seq-n">(\d+)</)?.[1]).join(',') !== '1,2,3,4,5,6,7,8,9') {
+    failures.push('how-it-works: the sequence must show nine numbered hops in order');
+}
+for (const [index, kind, label] of [
+    [2, 'seq-msg seq-23', 'Attests the sender'],
+    [3, 'seq-note seq-on-3', 'Cedar decides'],
+    [4, 'seq-note seq-on-3 seq-wasm', 'A Wasm provider builds the request'],
+    [5, 'seq-msg seq-34 seq-secret', 'Injects the credential bound to'],
+    [7, 'seq-msg seq-23 seq-back', 'Returns as the command’s output']
 ]) {
-    const script = html.match(new RegExp(`<pre\\b[^>]*aria-label="${label}"[^>]*><code>([\\s\\S]*?)</code>`))?.[1];
-    if (script !== prReadScript) failures.push(`${file}: PR read script must pipe the structured object directly to jq`);
+    if (hops[index]?.kind !== kind || !hops[index]?.body.includes(label)) failures.push(`how-it-works: hop ${index + 1} must be "${label}" (${kind})`);
 }
-const workflowSection = runtimeGuide.split('id="workflow"')[1]?.split('</section>')[0] ?? '';
-if (!workflowSection.includes('<code>{"title":"Fix the build","state":"OPEN"}</code>')) {
-    failures.push('runtime guide: missing expected PR projection result');
-}
+if (!hops[5]?.body.includes('GET /repos/{owner}/{repo}/pulls/123')) failures.push('how-it-works: hop 6 must name the GitHub request');
+if (hops.slice(0, 5).some(({ kind }) => kind.includes('seq-secret'))) failures.push('how-it-works: no hop before GitHub may carry the credential');
 const whatsNew = await readFile(path.join(outputDirectory, 'whats-new/index.html'), 'utf8');
 const installSection = whatsNew.match(/<section\b[^>]*id="install"[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? '';
 if (!installSection.includes('id="get-latest"') || !installSection.includes('href="/deploy/"')) {
@@ -244,10 +259,10 @@ for (const [old, move] of Object.entries(moves)) {
     }
 }
 const sitemap = await readFile(path.join(outputDirectory, 'sitemap.xml'), 'utf8');
-for (const route of ['/how-it-works/', '/guides/access/', '/guides/runtime/', '/inference/', '/guides/traces/']) {
-    if (!sitemap.includes(route)) failures.push(`sitemap missing ${route}`);
+if (!sitemap.includes('/how-it-works/')) failures.push('sitemap missing /how-it-works/');
+for (const retired of ['/almanac/', '/guides/access/', '/guides/runtime/', '/inference/', '/guides/traces/', '/guides/provider-sdk/']) {
+    if (sitemap.includes(retired)) failures.push(`sitemap contains moved route ${retired}`);
 }
-if (sitemap.includes('/almanac/')) failures.push('sitemap contains retired chapter URLs');
 
 for (const file of htmlFiles) {
     const html = await readFile(file, "utf8");
