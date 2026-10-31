@@ -72,7 +72,7 @@ gh pr view 7 -R owner/repo --json title,state | jq '{title, state}'</code>
 </pre>
 </div>
 <p>The result is an object with <code>title</code> and <code>state</code>, not a file checkout. A missing session grant exits 127; a broker denial exits 126.</p>
-<p>These providers ship separately. Install components compatible with the current <code>provider@0.4.0</code> contract and their required host interfaces; the core image does not bundle them. <a href="/providers/">Build and test a provider</a> · <a href="{{ site.repository }}/blob/main/docs/authorization.md">Configure access</a>
+<p>These providers ship separately. Install components compatible with the current <code>provider@0.4.0</code> contract and their required host interfaces; the core image does not bundle them. <a href="/providers/official/">All official providers</a> · <a href="/providers/">Build and test a provider</a> · <a href="{{ site.repository }}/blob/main/docs/authorization.md">Configure access</a>
 </p>
 <h3>Jobs and reusable skills</h3>
 <p>Routes can opt into bounded background jobs. Installed providers can run child scripts under the caller's existing limits, and agents with a storage grant can save learned skills. <a href="{{ release.sourceUrl }}/crates/dekopon-shell/README.md">See the runtime controls</a>.</p>

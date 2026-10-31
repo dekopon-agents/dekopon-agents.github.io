@@ -11,6 +11,11 @@
 .field-guide section { border-top: 1px solid #dce1ef; padding-top: 28px; margin-top: 32px; scroll-margin-top: 100px; }
 .field-guide a:not(.button), .home-workbench a:not(.button), .home-transports a { color: #5145ca; text-decoration: underline; text-underline-offset: 3px; }
 .guide-jumps { display: flex; gap: 12px 24px; flex-wrap: wrap; padding: 8px 0; font-weight: 650; }
+/* Provider tabs are two links between pages; the current one carries aria-current. */
+.provider-tabs { display: flex; flex-wrap: wrap; gap: 0 8px; margin: 0 0 20px; border-bottom: 1px solid var(--line); font-size: 1rem; line-height: 1.4; }
+.provider-tabs a.provider-tab { margin-bottom: -1px; padding: 10px 12px; border-bottom: 3px solid transparent; color: var(--slate); font-weight: 650; text-decoration: none; }
+.provider-tabs a.provider-tab:hover { color: var(--navy); border-bottom-color: var(--slate-light); }
+.provider-tabs a.provider-tab[aria-current] { color: var(--navy); border-bottom-color: var(--purple); }
 .field-guide code, .home-workbench code, .home-transports code { font-size: .88em; overflow-wrap: anywhere; }
 .field-guide pre, .home-workbench pre { padding: 20px; background: #172338; color: #eaf1ff; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: 14px; margin: 18px 0; }
 .field-guide pre code, .home-workbench pre code { font-size: inherit; }

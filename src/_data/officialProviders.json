@@ -1,0 +1,171 @@
+{
+  "snapshotDate": "31 October 2026",
+  "sourcesNote": "Each entry's sources name the file:line on the provider repository's main branch at the commit given, read on the snapshot date. Release is the newest tag from git ls-remote --tags; oci was checked with an anonymous GHCR manifest request for that version.",
+  "providers": [
+    {
+      "repo": "dekopon-provider-gh",
+      "command": ["gh"],
+      "release": "v0.12.0",
+      "description": "Calls fixed GitHub endpoints for repos, pull requests and issues; no raw API passthrough.",
+      "needs": "A GitHub PAT or App installation token, injected by the broker for api.github.com.",
+      "oci": "ghcr.io/dekopon-agents/provider-gh",
+      "sources": {
+        "commit": "4bbf12a13997",
+        "command": "src/lib.rs:170; README.md:13",
+        "description": "Cargo.toml:9; README.md:5-8",
+        "needs": "README.md:171-189",
+        "oci": "README.md:299; ghcr.io/v2/dekopon-agents/provider-gh/manifests/0.12.0 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-exa-search",
+      "command": ["exa"],
+      "release": "v0.4.0",
+      "description": "Runs Exa web search, contents and answer requests; every call is billable.",
+      "needs": "An Exa API key, injected as a Bearer token for api.exa.ai.",
+      "oci": "ghcr.io/dekopon-agents/provider-exa-search",
+      "sources": {
+        "commit": "4672caad06fa",
+        "command": "src/lib.rs:46; README.md:3",
+        "description": "README.md:3; README.md:23",
+        "needs": "README.md:23",
+        "oci": "ghcr.io/v2/dekopon-agents/provider-exa-search/manifests/0.4.0 200 (README names no OCI path)"
+      }
+    },
+    {
+      "repo": "dekopon-provider-python",
+      "command": ["python"],
+      "release": "v0.10.0",
+      "description": "Runs Python in a fresh RustPython interpreter per call; selected modules, no pip.",
+      "needs": "Nothing for pure scripts; HTTP hosts you allow (no credential), and storage for python sql.",
+      "oci": "ghcr.io/dekopon-agents/provider-python",
+      "sources": {
+        "commit": "6fac468a79bc",
+        "command": "src/lib.rs:82; tests/broker.rs:24; README.md:21-22",
+        "description": "Cargo.toml:9; README.md:5-7; README.md:270-273; README.md:331-332",
+        "needs": "README.md:29-30; README.md:34-38; README.md:153-161",
+        "oci": "ghcr.io/v2/dekopon-agents/provider-python/manifests/0.10.0 200 (README names no OCI path)"
+      }
+    },
+    {
+      "repo": "dekopon-provider-ripgrep",
+      "command": ["rg"],
+      "release": "v0.6.1",
+      "description": "Searches piped stdin with ripgrep-style flags; it opens no files.",
+      "needs": "Nothing: no network, storage or file access.",
+      "oci": "ghcr.io/dekopon-agents/provider-ripgrep",
+      "sources": {
+        "commit": "0129c4ce0bf1",
+        "command": "src/commands.rs:11; src/lib.rs:83; README.md:13",
+        "description": "Cargo.toml:9; README.md:3; README.md:13",
+        "needs": "README.md:3",
+        "oci": "ghcr.io/v2/dekopon-agents/provider-ripgrep/manifests/0.6.1 200 (README names no OCI path)"
+      }
+    },
+    {
+      "repo": "dekopon-provider-curl",
+      "command": ["curl"],
+      "release": "v0.6.1",
+      "description": "Sends one bounded GET to a host you allow; the grant covers every path there.",
+      "needs": "Hosts you allow, no credential; optionally a secret you bind and name by DRN.",
+      "oci": "ghcr.io/dekopon-agents/provider-curl",
+      "sources": {
+        "commit": "26c7e31a7ba0",
+        "command": "src/lib.rs:46; README.md:10",
+        "description": "Cargo.toml:9; README.md:3; README.md:40-42; README.md:52-54; README.md:186",
+        "needs": "README.md:40; README.md:48-49; README.md:154-170",
+        "oci": "README.md:237-238; ghcr.io/v2/dekopon-agents/provider-curl/manifests/0.6.1 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-turso-sql",
+      "command": ["turso"],
+      "release": "v0.7.0",
+      "description": "Runs SQLite-compatible SQL on broker-owned files; trip the write budget and you lose the database.",
+      "needs": "A storage grant: the namespace it opens, its byte budgets and quota.",
+      "oci": "ghcr.io/dekopon-agents/provider-turso-sql",
+      "sources": {
+        "commit": "ff34b895fbaf",
+        "command": "src/component.rs:81; README.md:42",
+        "description": "Cargo.toml:10; README.md:3; README.md:34-40",
+        "needs": "README.md:115-117",
+        "oci": "README.md:245; ghcr.io/v2/dekopon-agents/provider-turso-sql/manifests/0.7.0 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-gpt-image",
+      "command": ["image"],
+      "release": "v0.6.0",
+      "description": "Generates or edits PNG images on a ChatGPT subscription; each call spends quota.",
+      "needs": "A ChatGPT subscription credential for chatgpt.com and an asset attach grant; asset send delivers the image.",
+      "oci": "ghcr.io/dekopon-agents/provider-gpt-image",
+      "sources": {
+        "commit": "49dceff143a3",
+        "command": "src/lib.rs:52; src/commands.rs:9; README.md:42-43",
+        "description": "Cargo.toml:9; README.md:6; README.md:8-9; README.md:48",
+        "needs": "README.md:96-104; README.md:115-130; README.md:64-66",
+        "oci": "README.md:191-192; ghcr.io/v2/dekopon-agents/provider-gpt-image/manifests/0.6.0 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-mediawiki",
+      "command": ["wikipedia"],
+      "release": "v0.8.0",
+      "description": "Searches Wikipedia and reads one bounded lead, outline or section at a time; read-only.",
+      "needs": "One exact Wikipedia host, such as en.wikipedia.org; no credential.",
+      "oci": "ghcr.io/dekopon-agents/provider-mediawiki",
+      "sources": {
+        "commit": "c4280645935a",
+        "command": "src/lib.rs:83; README.md:3; README.md:23",
+        "description": "Cargo.toml:9; README.md:3-11",
+        "needs": "README.md:155; README.md:170; README.md:216",
+        "oci": "README.md:141; ghcr.io/v2/dekopon-agents/provider-mediawiki/manifests/0.8.0 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-openobserve",
+      "command": ["openobserve", "agent", "broker"],
+      "release": "v0.6.1",
+      "description": "Runs fixed, read-only queries on Dekopon telemetry in OpenObserve; the agent can’t write SQL.",
+      "needs": "Your OpenObserve endpoint in provider settings and a Basic credential bound to it.",
+      "oci": "ghcr.io/dekopon-agents/provider-openobserve",
+      "sources": {
+        "commit": "15b1bfa6d818",
+        "command": "crates/dekopon-openobserve-provider/src/lib.rs:129; crates/dekopon-openobserve-provider/tests/component.rs:26; README.md:42-49",
+        "description": "crates/dekopon-openobserve-provider/Cargo.toml:3; README.md:3-4; README.md:42-55",
+        "needs": "README.md:3-6; README.md:14-29",
+        "oci": "README.md:87-90; ghcr.io/v2/dekopon-agents/provider-openobserve/manifests/0.6.1 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-memory-chat",
+      "command": ["memory"],
+      "release": "v0.6.1",
+      "description": "Reads recent turns or literal matches from this chat’s memory; only the broker writes it.",
+      "needs": "Broker-owned JSONL storage and a chat namespace.",
+      "oci": "ghcr.io/dekopon-agents/provider-memory-chat",
+      "sources": {
+        "commit": "285521f953f3",
+        "command": "src/lib.rs:17; src/lib.rs:133; README.md:21",
+        "description": "Cargo.toml:9; README.md:3; README.md:9; README.md:21; README.md:27",
+        "needs": "README.md:11; README.md:33",
+        "oci": "README.md:37; ghcr.io/v2/dekopon-agents/provider-memory-chat/manifests/0.6.1 200"
+      }
+    },
+    {
+      "repo": "dekopon-provider-vm",
+      "command": ["ssh"],
+      "release": "v0.6.0",
+      "description": "Runs literal argv in a vm-runner Firecracker jail you operate; it isn’t SSH.",
+      "needs": "A vm-runner endpoint in provider settings and a bearer secret named by DRN.",
+      "oci": "ghcr.io/dekopon-agents/provider-vm",
+      "sources": {
+        "commit": "165f7e5f28a3",
+        "command": "src/lib.rs:148; src/tests.rs:33; README.md:3",
+        "description": "Cargo.toml:9; README.md:3-4; README.md:13-15",
+        "needs": "README.md:26-31",
+        "oci": "README.md:98-99; ghcr.io/v2/dekopon-agents/provider-vm/manifests/0.6.0 200"
+      }
+    }
+  ]
+}

@@ -81,7 +81,7 @@ const providerSection = homepage.split('id="providers"')[1]?.split('</section>')
 for (const name of ['gh', 'ripgrep', 'python', 'curl', 'turso', 'gpt-image']) {
     if (!providerSection.includes(`>${name}</a>`)) failures.push(`provider comparison missing ${name}`);
 }
-for (const required of ['workbench-flow', '<table>', 'Illustrative script', 'controlled runtime', '/deploy/kubernetes/']) {
+for (const required of ['workbench-flow', '<table>', 'Illustrative script', 'controlled runtime', '/deploy/kubernetes/', 'href="/providers/official/"']) {
     if (!homepage.includes(required)) failures.push(`homepage missing ${required}`);
 }
 if (homepage.includes('provider-ecosystem-card')) failures.push('homepage retains provider card catalog');
@@ -143,7 +143,7 @@ for (const [index, label] of ["Prompt + script tool", "Requested bash command", 
 }
 if (!heroDiagram.includes("Unix socket")) failures.push("index.html: hero must name the Unix socket");
 
-for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "providers/index.html", "providers/ship/index.html"]) {
+for (const relativeFile of ["deploy/index.html", "whats-new/index.html", "providers/index.html", "providers/ship/index.html", "providers/official/index.html"]) {
     const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
     if (!html.includes(release.tag)) {
         failures.push(`${relativeFile}: missing current release ${release.tag}`);
@@ -183,6 +183,47 @@ for (const id of ["actions", "ghcr", "release", "install", "trust"]) {
 }
 const shipWords = shipMain.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length;
 if (shipWords > 1150) failures.push(`ship guide: ${shipWords} words exceeds the 1150-word budget`);
+// The provider tabs are two linked pages. The link to the page you are on is aria-current="page";
+// /providers/ship/ belongs to Build Your Own, so that link marks the section with "true".
+for (const [relativeFile, current] of [
+    ["providers/index.html", { "/providers/": "page" }],
+    ["providers/ship/index.html", { "/providers/": "true" }],
+    ["providers/official/index.html", { "/providers/official/": "page" }]
+]) {
+    const html = await readFile(path.join(outputDirectory, relativeFile), "utf8");
+    const navs = [...html.matchAll(/<nav class="provider-tabs" aria-label="Providers">([\s\S]*?)<\/nav>/g)];
+    if (navs.length !== 1) {
+        failures.push(`${relativeFile}: needs one provider tab nav, found ${navs.length}`);
+        continue;
+    }
+    const tabs = [...navs[0][1].matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g)]
+        .map(([tag, href, label]) => ({ href, label, state: tag.match(/aria-current="([^"]+)"/)?.[1] }));
+    const expected = [["/providers/", "Build Your Own"], ["/providers/official/", "Official Providers"]];
+    if (tabs.map(({ href, label }) => `${href} ${label}`).join("|") !== expected.map((tab) => tab.join(" ")).join("|")) {
+        failures.push(`${relativeFile}: provider tabs must link Build Your Own and Official Providers, in that order`);
+    }
+    for (const { href, state } of tabs) {
+        if (state !== current[href]) failures.push(`${relativeFile}: tab ${href} has aria-current=${state ?? "none"}, expected ${current[href] ?? "none"}`);
+    }
+}
+// The official list renders one row per data entry, each linking its repository and release.
+const officialProviders = JSON.parse(await readFile(path.resolve("src", "_data", "officialProviders.json"), "utf8"));
+const officialMain = (await readFile(path.join(outputDirectory, "providers/official/index.html"), "utf8")).match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] ?? "";
+const officialRows = [...officialMain.matchAll(/<tr data-provider="([^"]+)">([\s\S]*?)<\/tr>/g)];
+if (officialRows.length !== officialProviders.providers.length) {
+    failures.push(`official providers: ${officialRows.length} rows for ${officialProviders.providers.length} data entries`);
+}
+for (const provider of officialProviders.providers) {
+    const repoUrl = `https://github.com/dekopon-agents/${provider.repo}`;
+    const row = officialRows.find(([, name]) => `dekopon-provider-${name}` === provider.repo)?.[2] ?? "";
+    if (!row.includes(`href="${repoUrl}#readme"`)) failures.push(`official providers: ${provider.repo} needs a repository link`);
+    if (!row.includes(`href="${repoUrl}/releases/tag/${provider.release}"`)) failures.push(`official providers: ${provider.repo} needs its ${provider.release} release link`);
+    for (const word of provider.command) {
+        if (!row.includes(`<code>${word}</code>`)) failures.push(`official providers: ${provider.repo} row is missing command ${word}`);
+    }
+}
+if (!officialMain.includes(`Snapshot: ${officialProviders.snapshotDate}`)) failures.push("official providers: missing snapshot date");
+if (!officialMain.includes('href="/providers/ship/#install"')) failures.push("official providers: must link install by digest");
 const guideBoundaries = new Map();
 const guideStack = [];
 for (const tag of guideMain.matchAll(/<div\b[^>]*>|<\/div>/g)) {
@@ -259,7 +300,9 @@ for (const [old, move] of Object.entries(moves)) {
     }
 }
 const sitemap = await readFile(path.join(outputDirectory, 'sitemap.xml'), 'utf8');
-if (!sitemap.includes('/how-it-works/')) failures.push('sitemap missing /how-it-works/');
+for (const route of ['/how-it-works/', '/providers/official/']) {
+    if (!sitemap.includes(`${route}</loc>`)) failures.push(`sitemap missing ${route}`);
+}
 for (const retired of ['/almanac/', '/guides/access/', '/guides/runtime/', '/inference/', '/guides/traces/', '/guides/provider-sdk/']) {
     if (sitemap.includes(retired)) failures.push(`sitemap contains moved route ${retired}`);
 }

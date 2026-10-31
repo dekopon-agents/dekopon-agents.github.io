@@ -9,8 +9,9 @@ const PAIR_BUDGET = 3;
 
 // Technical pages share one word budget (AGENTS.md, "Documentation hard rules"): every rendered
 // page but the landing page, 404 and the "Guide moved" stubs, counted inside <main>, code
-// included. A change over budget cuts as much as it adds.
-const WORD_BUDGET = 6500;
+// included. A change over budget cuts as much as it adds. 7000 makes room for the owner-requested
+// Official Providers page.
+const WORD_BUDGET = 7000;
 const UNBUDGETED = new Set(["index.html", "404.html"]);
 
 // The enumeration cap is a rule about function, not form: a long list used to

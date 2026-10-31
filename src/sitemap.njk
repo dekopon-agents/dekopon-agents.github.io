@@ -20,6 +20,10 @@ eleventyExcludeFromCollections: true
     <loc>{{ site.url }}/providers/ship/</loc>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>{{ site.url }}/providers/official/</loc>
+    <changefreq>monthly</changefreq>
+  </url>
   {% for chapter in almanac.pages %}
   <url>
     <loc>{{ site.url }}{{ chapter.href }}</loc>

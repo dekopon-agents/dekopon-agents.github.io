@@ -1,0 +1,39 @@
+---
+layout: layouts/base.njk
+permalink: providers/official/index.html
+pageTitle: Official providers — Dekopon
+pageDescription: The Wasm providers the Dekopon project releases, with each one's command words, what it does, what it needs and where to get it.
+bodyClass: provider-guide
+providerGuide: true
+ogType: article
+---
+{% set active = "official" %}
+{% set org = "https://github.com/dekopon-agents/" %}
+
+<div class="shell sdk-guide">
+  {% include "components/provider-tabs.njk" %}
+  <header class="sdk-intro">
+    <p class="sdk-baseline">Snapshot: {{ officialProviders.snapshotDate }}</p>
+    <h1>{{ officialProviders.providers | length }} official providers</h1>
+    <p>Each is a separately released Wasm component that the broker runs only for capabilities you grant.</p>
+  </header>
+
+  <div class="sdk-table-scroll" role="region" aria-label="Official providers" tabindex="0">
+    <table class="sdk-table official-table">
+      <thead><tr><th scope="col">Command</th><th scope="col">What it does</th><th scope="col">What it needs</th><th scope="col">Source</th></tr></thead>
+      <tbody>
+        {%- for p in officialProviders.providers %}
+        {%- set name = p.repo | replace("dekopon-provider-", "") %}
+        <tr data-provider="{{ name }}">
+          <th scope="row">{% for word in p.command %}<code>{{ word }}</code>{% if not loop.last %} {% endif %}{% endfor %}</th>
+          <td data-label="What it does">{{ p.description }}</td>
+          <td data-label="What it needs">{{ p.needs }}</td>
+          <td data-label="Source"><a href="{{ org }}{{ p.repo }}#readme">{{ name }} README</a> · <a href="{{ org }}{{ p.repo }}/releases/tag/{{ p.release }}">{{ p.release }}</a>{% if p.oci %}<br><code>{{ p.oci }}:{{ p.release | replace("v", "", 1) }}</code>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p>Install one by its manifest digest, not its tag: <a href="/providers/ship/#install">Install by digest</a>. Inside its grants a provider does what its author wrote, so <a href="/providers/ship/#trust">decide how far to trust it</a> first.</p>
+</div>

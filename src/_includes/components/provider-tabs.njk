@@ -1,0 +1,12 @@
+{#- Two pages, not scripted tabs. Set `active` to "build" or "official" before including.
+    The link to the page you are on is aria-current="page"; on /providers/ship/ the
+    Build Your Own link marks the current section with aria-current="true". -#}
+{%- set providerTabs = [
+  { key: "build", href: "/providers/", label: "Build Your Own" },
+  { key: "official", href: "/providers/official/", label: "Official Providers" }
+] -%}
+<nav class="provider-tabs" aria-label="Providers">
+{%- for tab in providerTabs %}
+  <a class="provider-tab" href="{{ tab.href }}"{% if tab.key == active %} aria-current="{{ 'page' if page.url == tab.href else 'true' }}"{% endif %}>{{ tab.label }}</a>
+{%- endfor %}
+</nav>

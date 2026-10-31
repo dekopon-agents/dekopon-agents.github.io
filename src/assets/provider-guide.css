@@ -61,3 +61,6 @@
   .sdk-table { font-size: 0.95rem; overflow-wrap: anywhere; }
   .sdk-guide pre { padding: 12px; }
 }
+/* The official list gives the source column room for its OCI reference. */
+.official-table th:nth-child(2) { width: 30%; }
+.official-table th:last-child { width: 30%; }

@@ -9,8 +9,10 @@ ogType: article
 ---
 {% set source = release.sourceUrl %}
 {% set example = source ~ "/examples/providers/cli-probe" %}
+{% set active = "build" %}
 
 <div class="shell sdk-guide">
+  {% include "components/provider-tabs.njk" %}
   <header class="sdk-intro">
     <p class="sdk-baseline">Rust · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
     <h1>Build a Wasm provider</h1>

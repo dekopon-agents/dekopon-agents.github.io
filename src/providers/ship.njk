@@ -11,7 +11,9 @@ ogType: article
 {% set workflows = "https://github.com/dekopon-agents/provider-workflows" %}
 {% set repo = ship.owner ~ "/dekopon-provider-" ~ ship.name %}
 {% set image = ship.owner ~ "/provider-" ~ ship.name %}
+{% set active = "build" %}
 <article class="shell field-guide">
+{% include "components/provider-tabs.njk" %}
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/providers/">Providers</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
 <h1>Ship a provider</h1>
