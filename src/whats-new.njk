@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: Both daemons accept --env-file — Dekopon
-pageDescription: The current Dekopon release lets both daemons load a private environment file, stops idle broker rebuilds and patches three Wasmtime advisories.
+pageTitle: One HTTP client for ChatGPT sign-in — Dekopon
+pageDescription: In the current Dekopon release, ChatGPT login and token refresh run on the async HTTP client, and the blocking ureq client is gone from the build.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,25 +10,24 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>Both daemons accept <code>--env-file</code></h1>
-<p>With {{ release.tag }}, <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> each load their secrets from a private file, so a launchd job or service unit starts the binary directly instead of through a wrapper script.</p>
+<h1>One HTTP client for ChatGPT sign-in</h1>
+<p>With {{ release.tag }}, <code>dekopon-gatewayd auth chatgpt</code> and ChatGPT token refresh run on the async HTTP client. The blocking <code>ureq</code> client is gone from the build.</p>
 </header>
 <p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ release.shortRevision }}</a></p>
 
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span><span class="compat-anchor" id="migration" aria-hidden="true"></span><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>Three changes, none needing new configuration</h2>
+<h2>Two changes, none needing new configuration</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Changes in this release">
 <table><thead><tr><th scope="col">Change</th><th scope="col">What you get</th></tr></thead><tbody>
-<tr><th scope="row"><code>--env-file PATH</code></th><td data-label="What you get">The daemon reads literal <code>KEY=VALUE</code> lines before serving; a command-line option or inherited variable wins over the file. It refuses a file that isn't private to the daemon's user, and its errors never print a key or value. <a href="{{ source }}/docs/gatewayd.md#environment-file">File rules ↗</a></td></tr>
-<tr><th scope="row">Quiet reload polls</th><td data-label="What you get">A reload poll that finds nothing changed answers without rebuilding the broker or its Cedar policy, so an idle broker stays idle.</td></tr>
-<tr><th scope="row">Wasmtime advisories</th><td data-label="What you get">Both Wasmtime builds take the fix for RUSTSEC-2026-0422, RUSTSEC-2026-0423 and RUSTSEC-2026-0424.</td></tr>
+<tr><th scope="row">Async ChatGPT sign-in</th><td data-label="What you get">Login and token refresh no longer block a thread on a second, synchronous HTTP stack.</td></tr>
+<tr><th scope="row">Homebrew caveats</th><td data-label="What you get">After <code>brew install</code>, the formula points at the release README's install section.</td></tr>
 </tbody></table>
 </div>
 </section>
 
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
-<h2>An env file keeps its secrets in plain text</h2>
-<p>The file holds literal values on disk, and anything running as that daemon's user can read it. Keep provider credentials in the broker's credential file: the broker reads none from its environment.</p>
+<h2>Rolling back to the previous release needs no undo</h2>
+<p>No configuration, credential file or stored format changed, so swapping both daemons back is the whole rollback. Upgrade and roll back <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> together.</p>
 </section>
 
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>

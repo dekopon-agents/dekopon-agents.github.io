@@ -204,7 +204,7 @@ for (const child of ["policy", "host", "credential"]) {
 const contracts = {
     'how-it-works/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', 'Unix socket', 'agent.prompt', 'endpoint you authorize receives', 'not intent', 'never grants authority', 'identifies the jail, not the VM', 'no multi-tenant transport', 'design.md#constitution', 'authorization.md', 'memory.md#the-ladder', 'design.md#keyless-model-access-for-outside-vms'],
     'deploy/kubernetes/index.html': ['UID 65533', 'UID 65532', 'broker.configDirectory.peers', 'dekopon-gatewayd', 'CHOWN', 'FOWNER', 'seeded once', 'gateway.enabled: true', 'helm upgrade --install'],
-    'whats-new/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', '--env-file', 'RUSTSEC-2026-0422']
+    'whats-new/index.html': ['dekopon-gatewayd', 'dekopon-brokerd', 'auth chatgpt']
 };
 for (const [file, strings] of Object.entries(contracts)) {
     const html = await readFile(path.join(outputDirectory, file), 'utf8');
