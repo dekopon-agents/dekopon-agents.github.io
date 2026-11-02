@@ -126,7 +126,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <li>Scope: <code>repo</code>. A fine-grained token can't read check runs.</li>
 <li>Set an expiration date. Copy the <code>ghp_…</code> token.</li>
 <li>For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token.</li>
-<li><code>repo</code> reaches every repository you can. Dekopon sends only reads, and a <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 keeps them in one organization; whoever steals the token can write.</li>
+<li><code>repo</code> reaches every repository you can. Dekopon sends only reads, which a <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 narrows; whoever steals the token can write.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -252,9 +252,11 @@ when {
 @id("github-reads-stay-in-one-org")
 forbid(principal, action, resource == Dekopon::Provider::"gh")
 when { context has request }
-unless { context.request.url.path like "/repos/replace-with-github-org/*" };
+unless { context.request.url.path like "/repos/replace-with-github-org/*"
+      || (action == Dekopon::Action::"gh.pull-request.read"
+          &amp;&amp; context.request.url.path like "/repositories/*/pulls/*/files") };
 EOF</code></pre>
-<p>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel, and <code>thread</code> can pin a thread; the <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses GitHub requests outside your organization, case-sensitively.</p>
+<p>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel, and <code>thread</code> can pin a thread; the <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses <code>/repos/</code> paths outside your organization, case-sensitively, but admits a pull request's later file pages under any repository ID.</p>
 <h3>agents.yaml</h3>
 <pre aria-label="agents yaml" tabindex="0"><code>cat &gt; agents.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/v1alpha1
@@ -472,7 +474,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <p>Print each job; <code>last exit code</code> shows why launchd relaunches it:</p>
 <pre aria-label="health jobs" tabindex="0"><code>sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
 sudo launchctl print system/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
-<p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to a property list's <code>&lt;dict&gt;</code> and restart that service; a bare <code>debug</code> floods the log and drops records:</p>
+<p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to the <code>&lt;dict&gt;</code> of <code>/Library/LaunchDaemons/dev.dekopon.gateway.plist</code> or its broker twin, then stop both, gateway first, and start them as above; a bare <code>debug</code> floods the log and drops records:</p>
 <pre aria-label="rust log" tabindex="0"><code>&lt;key&gt;EnvironmentVariables&lt;/key&gt;&lt;dict&gt;
   &lt;key&gt;RUST_LOG&lt;/key&gt;&lt;string&gt;info,dekopon=debug&lt;/string&gt;
 &lt;/dict&gt;</code></pre>
