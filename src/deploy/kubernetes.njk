@@ -43,7 +43,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </section>
 <section id="gateway"><span class="compat-anchor" id="pod" aria-hidden="true"></span><span class="compat-anchor" id="security" aria-hidden="true"></span><span class="compat-anchor" id="one-pod" aria-hidden="true"></span><span class="compat-anchor" id="files" aria-hidden="true"></span>
 <h2>Chat starts when the broker maps UID 65533</h2>
-<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. It runs both daemons as one local user, so adapt it to the pod:</p>
+<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. Fence outbound requests with a <a href="{{ release.sourceUrl }}/docs/authorization.md#example"><code>forbid</code> on <code>context.request</code> ↗</a>. The example runs both daemons as one local user, so adapt it to the pod:</p>
 <ul>
 <li>In the broker configuration, set <code>socketPath: /run/dekopon/broker.sock</code> and point the provider at <code>/opt/dekopon/providers/http-probe-provider.wasm</code>, which the image bakes.</li>
 <li>Delete its <code>identities</code> entry: the chart's peers file maps the gateway. To keep that entry's narrow <code>namespaces</code>, set <code>broker.configDirectory.peers: false</code> and change its UID to 65533 instead.</li>
@@ -59,16 +59,16 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 <p>That attestor grant covers every subject namespace: compromise the gateway and it speaks for any sender, with that sender's grants. The chart installs no NetworkPolicy, so the pod reaches whatever your cluster allows.</p>
 <div id="credentials">
 <h3>The ChatGPT credential is seeded once</h3>
-<p>Log in on a workstation with <code>dekopon-gatewayd auth chatgpt login</code>, export the Secret and set <code>gateway.chatgpt</code>. The gateway rotates the refresh token, so after the first refresh your exported Secret is a retired token: never copy it back over the live one. A broker ChatGPT credential needs a second, separate login. <a href="{{ deploy }}#kubernetes">Export and re-seed steps ↗</a></p>
+<p>Log in on a workstation with <code>dekopon-gatewayd auth chatgpt login</code>, export the Secret and set <code>gateway.chatgpt</code>. After the first refresh that Secret is a retired token: never copy it back. <a href="{{ deploy }}#kubernetes">Export and re-seed steps ↗</a></p>
 </div>
 </section>
 <section id="providers"><span class="compat-anchor" id="state" aria-hidden="true"></span>
 <h2>The image ships two probe providers</h2>
-<p>The image carries <code>cli-probe</code> and <code>http-probe</code>; review and install anything else yourself. For a managed provider set, create the state claim first and name it in <code>state.existingClaim</code>, then enable <code>broker.providerSet</code> and <code>broker.providerSync</code>. A hook Job syncs the set before each install and upgrade, and an init container compiles it before the broker starts. A failed sync leaves the old pod serving. Under Argo CD, run the Job as a <code>Sync</code> hook after its ConfigMap. <a href="{{ deploy }}#kubernetes">Hook ordering ↗</a></p>
+<p>The image carries <code>cli-probe</code> and <code>http-probe</code>; review and install anything else yourself. A managed provider set syncs through a hook Job onto <code>state.existingClaim</code>; a failed sync leaves the old pod serving. <a href="{{ deploy }}#kubernetes">Hook ordering, including Argo CD ↗</a></p>
 <p>A digest proves byte identity, not who published the component.</p>
 </section>
 <section id="upgrade">
 <h2>Both daemons upgrade from one release</h2>
-<p>Their protocol has no cross-release negotiation. <code>helm upgrade</code> replaces both in the one pod; <code>configCheck.enabled</code> runs both daemons' <code>check</code> on the new configuration before the release applies. Rolling back undoes no external effect, and <code>helm rollback</code> skips the pre-upgrade hooks. <a href="{{ deploy }}#upgrades">Upgrade and rollback steps ↗</a></p>
+<p><code>helm upgrade</code> replaces both in the one pod. Rolling back undoes no external effect. <a href="{{ deploy }}#upgrades">Upgrade and rollback steps ↗</a></p>
 </section>
 </article>
