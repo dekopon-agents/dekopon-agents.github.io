@@ -8,6 +8,7 @@ ogType: article
 ---
 {% set ghProvider = providers.providers | providerRepo("dekopon-provider-gh") %}
 {% set deploy = site.repository ~ '/blob/main/docs/deploy.md' %}
+{% set core = release.sourceUrl ~ '/docs/' %}
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
@@ -131,7 +132,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <li>Scope: <code>repo</code>. A fine-grained token can't read check runs.</li>
 <li>Set an expiration date. Copy the <code>ghp_…</code> token.</li>
 <li>For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token.</li>
-<li><code>repo</code> can write to every repository you can. The broker sends only GET and Cedar permits only reads, so Dekopon can't write; whoever steals the token can.</li>
+<li><code>repo</code> reaches every repository you can. The broker sends only GET and Cedar permits only reads, so Dekopon can't write; whoever steals the token can. A <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 keeps reads in one organization.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -254,7 +255,16 @@ when {
   &amp;&amp; context.conversation.id == "c0123abc"
   &amp;&amp; (context.conversation.kind == "channel" || context.conversation.kind == "thread")
 };
+
+@id("github-reads-stay-in-one-org")
+forbid(principal, action, resource == Dekopon::Provider::"gh")
+when { context has request }
+unless { context.request.url.path like "/repos/replace-with-github-org/*" };
 EOF</code></pre>
+<ul>
+<li>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel; <code>thread</code> can pin one thread.</li>
+<li>The <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses GitHub requests outside your organization; it compares case.</li>
+</ul>
 <h3>agents.yaml</h3>
 <pre aria-label="agents yaml" tabindex="0"><code>cat &gt; agents.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/v1alpha1
@@ -324,15 +334,16 @@ metering:
         - {kind: rolling, limit: 100000, period: 1d}
 shutdownGraceMs: 120000
 EOF</code></pre>
-<p>With an <code>anthropic/</code> model, add <code>cache: {style: explicitPrefix, ttl: 5m}</code> beside <code>routing</code>; Anthropic caches nothing without it.</p>
-<p>Set the four Slack IDs from step 5 and the model ID from step 6:</p>
+<p>The <a href="{{ core }}design.md#token-budgets">budget ↗</a> counts tokens, cached input in full; the OpenRouter limit caps dollars.</p>
+<p>Set the four Slack IDs from step 5, the model ID from step 6 and your GitHub organization as its URLs spell it:</p>
 <pre aria-label="vars" tabindex="0"><code>TEAM=
 CHANNEL=
 OWNER=
 COLLEAGUE=
-MODEL=</code></pre>
+MODEL=
+ORG=</code></pre>
 <p>Substitute them; the <code>grep</code> prints nothing when no placeholder is left:</p>
-<pre aria-label="fill" tabindex="0"><code>: ${TEAM:?} ${CHANNEL:?} ${OWNER:?} ${COLLEAGUE:?} ${MODEL:?} &amp;&amp; sed -i '' \
+<pre aria-label="fill" tabindex="0"><code>: ${TEAM:?} ${CHANNEL:?} ${OWNER:?} ${COLLEAGUE:?} ${MODEL:?} ${ORG:?} &amp;&amp; sed -i '' \
   -e "s/BROKER_UID/$(id -u _dekopon_broker)/" \
   -e "s/GATEWAY_UID/$(id -u _dekopon_gateway)/" \
   -e "s/t0123abc/$(echo $TEAM | tr A-Z a-z)/g" \
@@ -340,6 +351,7 @@ MODEL=</code></pre>
   -e "s/uownerid/$(echo $OWNER | tr A-Z a-z)/g" \
   -e "s/ucolleagueid/$(echo $COLLEAGUE | tr A-Z a-z)/g" \
   -e "s|replace-with-exact-openrouter-model-id|$MODEL|" \
+  -e "s|replace-with-github-org|$ORG|" \
   broker.yaml policies.cedar gateway.yaml
 grep -n 'BROKER_UID\|GATEWAY_UID\|0123abc\|ownerid\|colleagueid\|replace-with' \
   broker.yaml policies.cedar gateway.yaml</code></pre>
@@ -459,9 +471,20 @@ while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
 <li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. While the gateway is connected, the broker reloads it without a restart.</li>
-<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>. They hold prompts and replies, and launchd never rotates them: keep them private and bound them yourself.</li>
+<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>: JSON lines on stdout at <code>info</code>, holding <a href="{{ core }}design.md#trace-as-audit">every prompt, reply and broker decision ↗</a>. Nothing leaves the Mac unless a <code>telemetry</code> block names an OTLP endpoint. launchd never rotates them: keep them private and bound them yourself.</li>
 <li>When the OpenRouter key reaches its limit, the agent replies that it couldn't complete the request. Raise the limit or wait for the reset.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
+<h3 id="health">When the bot is silent or wrong</h3>
+<p>Probe the broker; it exits 0 with no output while it serves:</p>
+<pre aria-label="health probe" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
+  --socket /usr/local/var/run/dekopon/broker.sock</code></pre>
+<p>Print each job; <code>last exit code</code> shows why launchd relaunches it:</p>
+<pre aria-label="health jobs" tabindex="0"><code>sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
+sudo launchctl print system/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
+<p>For more detail, add <code>RUST_LOG</code> inside a property list's <code>&lt;dict&gt;</code> and restart that service; it isn't a secret. A bare <code>debug</code> floods the log with compiler lines and drops records:</p>
+<pre aria-label="rust log" tabindex="0"><code>&lt;key&gt;EnvironmentVariables&lt;/key&gt;&lt;dict&gt;
+  &lt;key&gt;RUST_LOG&lt;/key&gt;&lt;string&gt;info,dekopon=debug&lt;/string&gt;
+&lt;/dict&gt;</code></pre>
 </section>
 </article>

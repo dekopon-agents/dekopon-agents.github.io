@@ -43,7 +43,7 @@ kubectl --context="$KUBE_CONTEXT" -n dekopon exec deployment/dekopon \
 </section>
 <section id="gateway"><span class="compat-anchor" id="pod" aria-hidden="true"></span><span class="compat-anchor" id="security" aria-hidden="true"></span><span class="compat-anchor" id="one-pod" aria-hidden="true"></span><span class="compat-anchor" id="files" aria-hidden="true"></span>
 <h2>Chat starts when the broker maps UID 65533</h2>
-<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. It runs both daemons as one local user, so adapt it to the pod:</p>
+<p><a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a broker configuration, Cedar policy, gateway configuration and catalog for one Slack sender. Fence each outbound request with a <a href="{{ release.sourceUrl }}/docs/authorization.md#example"><code>forbid</code> on <code>context.request</code> ↗</a>. The example runs both daemons as one local user, so adapt it to the pod:</p>
 <ul>
 <li>In the broker configuration, set <code>socketPath: /run/dekopon/broker.sock</code> and point the provider at <code>/opt/dekopon/providers/http-probe-provider.wasm</code>, which the image bakes.</li>
 <li>Delete its <code>identities</code> entry: the chart's peers file maps the gateway. To keep that entry's narrow <code>namespaces</code>, set <code>broker.configDirectory.peers: false</code> and change its UID to 65533 instead.</li>
