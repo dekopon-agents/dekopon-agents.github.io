@@ -87,15 +87,15 @@ id _dekopon_broker
 id _dekopon_gateway</code></pre>
 <ul><li>Both <code>id</code> lines list <code>dekopon-ipc</code>.</li></ul>
 <p>Create the configuration, socket and log paths:</p>
-<pre aria-label="dirs" tabindex="0"><code>sudo install -d -m 0755 /usr/local/etc/dekopon \
-  /usr/local/var/log/dekopon-broker /usr/local/var/log/dekopon-gateway
-sudo install -d -o _dekopon_broker -g dekopon-ipc -m 0700 /usr/local/etc/dekopon/broker
-sudo install -d -o _dekopon_gateway -g dekopon-ipc -m 0700 /usr/local/etc/dekopon/gateway
+<pre aria-label="dirs" tabindex="0"><code>sudo install -d -m 0755 /usr/local/etc/dekopon
 sudo install -d -o _dekopon_broker -g dekopon-ipc -m 0710 /usr/local/var/run/dekopon
-for d in broker gateway; do for f in stdout stderr; do
-  sudo install -o _dekopon_$d -g dekopon-ipc -m 0600 /dev/null /usr/local/var/log/dekopon-$d/$f.log
-done; done
-ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /usr/local/var/run</code></pre>
+for d in broker gateway; do
+  sudo install -d -o _dekopon_$d -g dekopon-ipc -m 0700 /usr/local/etc/dekopon/$d /usr/local/var/log/dekopon-$d
+  for f in stdout stderr; do
+    sudo install -o _dekopon_$d -g dekopon-ipc -m 0600 /dev/null /usr/local/var/log/dekopon-$d/$f.log
+  done
+done
+ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /usr/local/var/log /usr/local/var/run</code></pre>
 <ul><li>Every <code>ls</code> line shows owner <code>root</code> and no group or other <code>w</code>.</li></ul>
 </section>
 
@@ -386,6 +386,7 @@ sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /
   &lt;key&gt;ProgramArguments&lt;/key&gt;&lt;array&gt;
     &lt;string&gt;/usr/local/lib/dekopon/current/dekopon-brokerd&lt;/string&gt;
     &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/broker/broker.yaml&lt;/string&gt;
+    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;/usr/local/var/log/dekopon-broker/broker.log&lt;/string&gt;
   &lt;/array&gt;
   &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_dekopon_broker&lt;/string&gt;
   &lt;key&gt;GroupName&lt;/key&gt;&lt;string&gt;dekopon-ipc&lt;/string&gt;
@@ -407,6 +408,7 @@ EOF</code></pre>
     &lt;string&gt;/usr/local/lib/dekopon/current/dekopon-gatewayd&lt;/string&gt;
     &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/gateway/gateway.yaml&lt;/string&gt;
     &lt;string&gt;--env-file&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/gateway/credentials.env&lt;/string&gt;
+    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;/usr/local/var/log/dekopon-gateway/gateway.log&lt;/string&gt;
   &lt;/array&gt;
   &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_dekopon_gateway&lt;/string&gt;
   &lt;key&gt;GroupName&lt;/key&gt;&lt;string&gt;dekopon-ipc&lt;/string&gt;
@@ -463,7 +465,7 @@ while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
 <li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>; while the gateway is connected, the broker reloads it.</li>
-<li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. launchd never rotates them: keep them private and bound them yourself.</li>
+<li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the bound <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> prints; <code>stdout.log</code> and <code>stderr.log</code> stay small.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
