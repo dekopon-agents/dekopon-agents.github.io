@@ -14,13 +14,7 @@ ogType: article
 <p class="guide-baseline"><a href="/deploy/">Install options</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · Apple Silicon · pre-production</p>
 <h1>Run Dekopon on a Mac</h1>
 <p><a href="/deploy/kubernetes/">Kubernetes</a> is the preferred deployment; this path is for people moving from OpenClaw or Hermes.</p>
-<p>Twelve steps end with Dekopon on an always-on Apple Silicon Mac:</p>
-<ul>
-<li>You and a colleague mention <code>@dekopon</code> in a private Slack channel and get a PR review in the thread.</li>
-<li>It reads GitHub with your token, which only the broker holds; Dekopon can't write to GitHub.</li>
-<li>It bills one OpenRouter key under a spending limit you set.</li>
-<li>Two launchd services run it at boot under separate accounts.</li>
-</ul>
+<p>Twelve steps end with a Slack agent on an always-on Mac that reviews pull requests for you and a colleague.</p>
 <p>The <a href="{{ deploy }}#mac">core deploy notes ↗</a> give the reason behind each account, file mode and start order.</p>
 </header>
 <nav aria-label="Steps">
@@ -132,7 +126,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <li>Scope: <code>repo</code>. A fine-grained token can't read check runs.</li>
 <li>Set an expiration date. Copy the <code>ghp_…</code> token.</li>
 <li>For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token.</li>
-<li><code>repo</code> reaches every repository you can. The broker sends only GET and Cedar permits only reads, so Dekopon can't write; whoever steals the token can. A <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 keeps reads in one organization.</li>
+<li><code>repo</code> reaches every repository you can. Dekopon sends only reads, and a <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 keeps them in one organization; whoever steals the token can write.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -143,7 +137,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 
 <section id="secrets"><span class="compat-anchor" id="pat" aria-hidden="true"></span>
 <h2>7. Two private secret files</h2>
-<p>The gateway holds the Slack and OpenRouter secrets; the broker holds the GitHub token. Create the gateway's file and open it as its owner (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
+<p>Create the gateway's file and open it as its owner (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
 <pre aria-label="env create" tabindex="0"><code>sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/gateway/credentials.env
 sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
@@ -167,7 +161,6 @@ credentials:
 
 <section id="config">
 <h2>8. Four configuration files</h2>
-<p>Write the four files, fill in your values, then install and check them.</p>
 <h3>broker.yaml</h3>
 <pre aria-label="broker yaml" tabindex="0"><code>cat &gt; broker.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/brokerd/v1alpha1
@@ -261,10 +254,7 @@ forbid(principal, action, resource == Dekopon::Provider::"gh")
 when { context has request }
 unless { context.request.url.path like "/repos/replace-with-github-org/*" };
 EOF</code></pre>
-<ul>
-<li>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel; <code>thread</code> can pin one thread.</li>
-<li>The <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses GitHub requests outside your organization; it compares case.</li>
-</ul>
+<p>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel, and <code>thread</code> can pin a thread; the <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses GitHub requests outside your organization, case-sensitively.</p>
 <h3>agents.yaml</h3>
 <pre aria-label="agents yaml" tabindex="0"><code>cat &gt; agents.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/v1alpha1
@@ -335,7 +325,7 @@ metering:
 shutdownGraceMs: 120000
 EOF</code></pre>
 <p>The <a href="{{ core }}design.md#token-budgets">budget ↗</a> counts tokens, cached input in full; the OpenRouter limit caps dollars.</p>
-<p>Set the four Slack IDs from step 5, the model ID from step 6 and your GitHub organization as its URLs spell it:</p>
+<p>Set the Slack IDs, the model ID and your GitHub organization as its URLs spell it:</p>
 <pre aria-label="vars" tabindex="0"><code>TEAM=
 CHANNEL=
 OWNER=
@@ -378,7 +368,7 @@ sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /
   --config /usr/local/etc/dekopon/gateway/gateway.yaml \
   --env-file /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
 <ul>
-<li>In the review channel, send <code>@dekopon review OWNER/REPO#7</code> with a real repository and PR number; a review arrives in the thread.</li>
+<li>In the review channel, send <code>@dekopon review OWNER/REPO#7</code> for a real PR; a review arrives in the thread.</li>
 <li>Stop the gateway with <kbd>Ctrl</kbd>-<kbd>C</kbd>, then the broker.</li>
 </ul>
 </section>
@@ -470,9 +460,9 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
-<li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. While the gateway is connected, the broker reloads it without a restart.</li>
-<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>: JSON lines on stdout at <code>info</code>, holding <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>. Nothing leaves the Mac unless a <code>telemetry</code> block names an OTLP endpoint. launchd never rotates them: keep them private and bound them yourself.</li>
-<li>When the OpenRouter key reaches its limit, the agent replies that it couldn't complete the request. Raise the limit or wait for the reset.</li>
+<li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>; the broker reloads it.</li>
+<li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. launchd never rotates them: keep them private and bound them yourself.</li>
+<li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
 <h3 id="health">When the bot is silent or wrong</h3>
@@ -482,7 +472,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <p>Print each job; <code>last exit code</code> shows why launchd relaunches it:</p>
 <pre aria-label="health jobs" tabindex="0"><code>sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
 sudo launchctl print system/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
-<p>For more detail, add <code>RUST_LOG</code> inside a property list's <code>&lt;dict&gt;</code> and restart that service; it isn't a secret. A bare <code>debug</code> floods the log with compiler lines and drops records:</p>
+<p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to a property list's <code>&lt;dict&gt;</code> and restart that service; a bare <code>debug</code> floods the log and drops records:</p>
 <pre aria-label="rust log" tabindex="0"><code>&lt;key&gt;EnvironmentVariables&lt;/key&gt;&lt;dict&gt;
   &lt;key&gt;RUST_LOG&lt;/key&gt;&lt;string&gt;info,dekopon=debug&lt;/string&gt;
 &lt;/dict&gt;</code></pre>
