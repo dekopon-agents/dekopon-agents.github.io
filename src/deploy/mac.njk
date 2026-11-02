@@ -471,7 +471,7 @@ while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
 <li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>. While the gateway is connected, the broker reloads it without a restart.</li>
-<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>: JSON lines on stdout at <code>info</code>, holding <a href="{{ core }}design.md#trace-as-audit">every prompt, reply and broker decision ↗</a>. Nothing leaves the Mac unless a <code>telemetry</code> block names an OTLP endpoint. launchd never rotates them: keep them private and bound them yourself.</li>
+<li>Logs are in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code>: JSON lines on stdout at <code>info</code>, holding <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>. Nothing leaves the Mac unless a <code>telemetry</code> block names an OTLP endpoint. launchd never rotates them: keep them private and bound them yourself.</li>
 <li>When the OpenRouter key reaches its limit, the agent replies that it couldn't complete the request. Raise the limit or wait for the reset.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
