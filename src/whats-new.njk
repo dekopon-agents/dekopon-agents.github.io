@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: One HTTP client for ChatGPT sign-in — Dekopon
-pageDescription: In the current Dekopon release, ChatGPT login and token refresh run on the async HTTP client, and the blocking ureq client is gone from the build.
+pageTitle: A script past its deadline reports the deadline — Dekopon
+pageDescription: In the current Dekopon release, a shell script that runs out of time fails with the deadline error instead of a cancellation.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,17 +10,16 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>One HTTP client for ChatGPT sign-in</h1>
-<p>With {{ release.tag }}, <code>dekopon-gatewayd auth chatgpt</code> and ChatGPT token refresh run on the async HTTP client. The blocking <code>ureq</code> client is gone from the build.</p>
+<h1>A script past its deadline reports the deadline</h1>
+<p>With {{ release.tag }}, a script that outlives its timer fails with the deadline error and its timeout in milliseconds. A stopped turn still fails as cancelled, so the error tells a slow script from a stopped one.</p>
 </header>
 <p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ release.shortRevision }}</a></p>
 
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span><span class="compat-anchor" id="migration" aria-hidden="true"></span><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>Two changes, none needing new configuration</h2>
+<h2>One fix, no new configuration</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Changes in this release">
 <table><thead><tr><th scope="col">Change</th><th scope="col">What you get</th></tr></thead><tbody>
-<tr><th scope="row">Async ChatGPT sign-in</th><td data-label="What you get">Login and token refresh run on one async HTTP stack, with no synchronous client beside it.</td></tr>
-<tr><th scope="row">Homebrew caveats</th><td data-label="What you get">After <code>brew install</code>, the formula points at the release README's install section.</td></tr>
+<tr><th scope="row">Deadline, not cancellation</th><td data-label="What you get">The step after the script timer elapses fails with the deadline error, which names the limit that ran out.</td></tr>
 </tbody></table>
 </div>
 </section>

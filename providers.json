@@ -7,18 +7,18 @@
       "command": [
         "gh"
       ],
-      "release": "v0.12.0",
+      "release": "v0.13.0",
       "description": "Calls fixed GitHub endpoints for repos, pull requests and issues; no raw API passthrough.",
       "needs": "A GitHub PAT or App installation token, injected by the broker for api.github.com.",
       "oci": "ghcr.io/dekopon-agents/provider-gh",
       "sources": {
-        "commit": "4bbf12a13997",
-        "command": "src/lib.rs:170; README.md:13",
+        "commit": "edbf41d4e56d",
+        "command": "src/lib.rs:173; README.md:13",
         "description": "Cargo.toml:9; README.md:5-8",
-        "needs": "README.md:171-189",
-        "oci": "README.md:299; ghcr.io/v2/dekopon-agents/provider-gh/manifests/0.12.0 200"
+        "needs": "README.md:172-188",
+        "oci": "README.md:299; ghcr.io/v2/dekopon-agents/provider-gh/manifests/0.13.0 200"
       },
-      "manifestDigest": "sha256:d31da63625c5f3d1e79c3c7295eec6cb054798f10dfe7e9fbb643207c70f0e3b"
+      "manifestDigest": "sha256:48cad066565720782f0dc933cbda4ab6fe7f5ea6ce6e08a1e58673a433582a72"
     },
     {
       "repo": "dekopon-provider-exa-search",
