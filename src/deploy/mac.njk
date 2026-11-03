@@ -145,27 +145,56 @@ sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code
 <pre aria-label="env body" tabindex="0"><code>export DEKOPON_GATEWAYD_SLACK_APP_TOKEN='xapp-…'
 export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-…'
 export OPENROUTER_API_KEY='sk-or-…'</code></pre>
-<p>Create the broker's file the same way:</p>
+<p>Create the broker's token file the same way, then paste the token and press Return; nothing echoes, and no newline reaches the file:</p>
 <pre aria-label="pat create" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 /dev/null \
-  /usr/local/etc/dekopon/broker/broker-credentials.yaml
-sudo -u _dekopon_broker -e /usr/local/etc/dekopon/broker/broker-credentials.yaml</code></pre>
-<p>Enter this, with your token in place of the placeholder:</p>
-<pre aria-label="pat body" tabindex="0"><code>apiVersion: dekopon.dev/broker-credentials/v1alpha1
-credentials:
-  - name: github-pat
-    kind: bearerToken
-    scheme: Bearer
-    destinations: [api.github.com]
-    secret: REPLACE_WITH_GITHUB_TOKEN</code></pre>
+  /usr/local/etc/dekopon/broker/github-token
+read -rs GH_TOKEN &amp;&amp; printf %s "$GH_TOKEN" |
+  sudo -u _dekopon_broker tee /usr/local/etc/dekopon/broker/github-token &gt;/dev/null; unset GH_TOKEN</code></pre>
 </section>
 
 <section id="config">
-<h2>8. Four configuration files</h2>
+<h2>8. Five configuration files</h2>
+<h3>secret-map.yaml</h3>
+<p>The map names the token file, never the token:</p>
+<pre aria-label="secret map" tabindex="0"><code>cat &gt; secret-map.yaml &lt;&lt;'EOF'
+apiVersion: dekopon.dev/secret-map/v1alpha1
+mapRevision: github-pat-1
+secrets:
+  - drn: drn:secret:github/pat
+    destinations: [api.github.com]
+    source: {kind: secureFile, path: /usr/local/etc/dekopon/broker/github-token}
+    bindings:
+      - id: gh-pr-pages
+        capabilities: [gh.pull-request.list, gh.pull-request.status]
+        sink: httpBearer
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET]
+        allowedPaths: [{match: segmentPrefix, path: /repos}]
+        allowQuery: true
+        maxInjections: 10
+      - id: gh-pr-read
+        capabilities: [gh.pull-request.read]
+        sink: httpBearer
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET]
+        allowedPaths:
+          - {match: segmentPrefix, path: /repos}
+          - {match: segmentPrefix, path: /repositories}
+        allowQuery: true
+        maxInjections: 32
+      - id: gh-single-read
+        capabilities: [gh.pull-request.diff, gh.content.read]
+        sink: httpBearer
+        allowedHosts: [api.github.com]
+        allowedMethods: [GET]
+        allowedPaths: [{match: segmentPrefix, path: /repos}]
+        allowQuery: true
+EOF</code></pre>
 <h3>broker.yaml</h3>
 <pre aria-label="broker yaml" tabindex="0"><code>cat &gt; broker.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/brokerd/v1alpha1
 socketPath: /usr/local/var/run/dekopon/broker.sock
-credentialsPath: broker-credentials.yaml
+secretMapPath: secret-map.yaml
 policiesPath: policies.cedar
 strict: true
 providers: [gh-provider.wasm]
@@ -176,19 +205,19 @@ identities:
   - uid: GATEWAY_UID
     principal: dekopon-gatewayd
     actor: {type: service, principal: dekopon-gatewayd}
-    attestor: {namespaces: [slack.t0123abc]}
+    attestor: {namespaces: ["drn:slack:*:t0123abc:*"]}
 principals:
   owner:
-    subjects: [slack.t0123abc.uownerid]
+    subjects: [drn:slack:user:t0123abc:uownerid]
     groups: [pr-reviewers]
   colleague:
-    subjects: [slack.t0123abc.ucolleagueid]
+    subjects: [drn:slack:user:t0123abc:ucolleagueid]
     groups: [pr-reviewers]
   review-room:
-    subjects: [slack.t0123abc.c0123abc]
+    subjects: [drn:slack:channel:t0123abc:c0123abc]
 capabilities:
   gh:
-    credential: github-pat
+    defaultSecretUse: {drn: "drn:secret:github/pat", sink: httpBearer}
     constraints:
       timeoutMs: 30000
       http:
@@ -349,12 +378,12 @@ grep -n 'BROKER_UID\|GATEWAY_UID\|0123abc\|ownerid\|colleagueid\|replace-with' \
   broker.yaml policies.cedar gateway.yaml</code></pre>
 <p>Install the files and check them as their owners:</p>
 <pre aria-label="place" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 \
-  broker.yaml policies.cedar gh-provider.wasm /usr/local/etc/dekopon/broker/
+  broker.yaml secret-map.yaml policies.cedar gh-provider.wasm /usr/local/etc/dekopon/broker/
 sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 \
   agents.yaml gateway.yaml /usr/local/etc/dekopon/gateway/</code></pre>
 <pre aria-label="check" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd check /usr/local/etc/dekopon/broker/broker.yaml
 sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /usr/local/etc/dekopon/gateway/gateway.yaml</code></pre>
-<ul><li>Each check ends with <code>ok</code>; its warnings about <code>github-pat</code>, the journal and the three environment variables are expected.</li></ul>
+<ul><li>Each check ends with <code>ok</code>; its warnings about the attestor scope, the journal and the three environment variables are expected.</li></ul>
 <p>Confirm the model ID and key with one paid request:</p>
 <pre aria-label="probe" tabindex="0"><code>sudo -u _dekopon_gateway /bin/sh -c '. /usr/local/etc/dekopon/gateway/credentials.env &amp;&amp;
   exec /usr/local/lib/dekopon/current/dekopon-gatewayd check --probe /usr/local/etc/dekopon/gateway/gateway.yaml'</code></pre>
@@ -464,7 +493,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
-<li>Rotate the GitHub token by editing <code>broker-credentials.yaml</code> with <code>sudo -u _dekopon_broker -e</code>; while the gateway is connected, the broker reloads it.</li>
+<li>Rotate the GitHub token by rewriting <code>github-token</code> as in step 7; the broker reads it on each use.</li>
 <li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the bound <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> prints; <code>stdout.log</code> and <code>stderr.log</code> stay small.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>

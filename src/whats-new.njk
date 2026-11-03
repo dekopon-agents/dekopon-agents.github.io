@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
-pageTitle: A script past its deadline reports the deadline — Dekopon
-pageDescription: In the current Dekopon release, a shell script that runs out of time fails with the deadline error instead of a cancellation.
+pageTitle: Both log files carry the trace ID — Dekopon
+pageDescription: In the current Dekopon release, gateway and broker log records carry trace and span IDs without a telemetry block, so one message can be followed across both logs.
 bodyClass: technical-page
 technicalPage: true
 ogType: article
@@ -10,23 +10,24 @@ ogType: article
 <article class="shell field-guide">
 <header class="guide-intro">
 <p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
-<h1>A script past its deadline reports the deadline</h1>
-<p>With {{ release.tag }}, a script that outlives its timer fails with the deadline error and its timeout in milliseconds. A stopped turn still fails as cancelled, so the error tells a slow script from a stopped one.</p>
+<h1>Both log files carry the trace ID</h1>
+<p>With {{ release.tag }}, console records from <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> carry <code>trace_id</code> and <code>span_id</code>, with or without a <code>telemetry</code> block. Search both log files for one ID to follow a message from chat to capability decision.</p>
 </header>
 <p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ release.shortRevision }}</a></p>
 
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span><span class="compat-anchor" id="migration" aria-hidden="true"></span><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
-<h2>One fix, no new configuration</h2>
+<h2>Two changes, no new configuration</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Changes in this release">
 <table><thead><tr><th scope="col">Change</th><th scope="col">What you get</th></tr></thead><tbody>
-<tr><th scope="row">Deadline, not cancellation</th><td data-label="What you get">The step after the script timer elapses fails with the deadline error, which names the limit that ran out.</td></tr>
+<tr><th scope="row">Trace IDs without an exporter</th><td data-label="What you get">A Mac with no collector can still join a gateway record to the broker decision it caused. The log level stays where you set it.</td></tr>
+<tr><th scope="row">Non-DRN wake lines stop the gateway</th><td data-label="What you get">A wake store line whose subject isn't a DRN fails the gateway at start with its line number, as any corrupt line does.</td></tr>
 </tbody></table>
 </div>
 </section>
 
 <section id="limits"><span class="compat-anchor" id="release-scope-title" aria-hidden="true"></span>
 <h2>A rollback is a binary swap</h2>
-<p>No configuration, credential file or stored format changed, so swapping both daemons back is the whole rollback. Upgrade and roll back <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> together.</p>
+<p>No configuration or stored format changed, so swapping both daemons back is the whole rollback. Upgrade and roll back <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> together.</p>
 </section>
 
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
