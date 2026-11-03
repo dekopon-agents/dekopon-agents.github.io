@@ -490,7 +490,7 @@ until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd pro
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
 <li>After you edit <code>credentials.env</code>, <code>gateway.yaml</code> or <code>agents.yaml</code>, stop and start both as above.</li>
-<li>Rotate the GitHub token by rewriting <code>github-token</code> as in step 7; the broker reads it on each use.</li>
+<li>Rotate the GitHub token by running step 7's <code>read</code> line again; the broker reads the file on each use.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> bound.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
