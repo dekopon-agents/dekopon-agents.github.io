@@ -493,7 +493,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
-<li>Rotate the GitHub token by rewriting <code>github-token</code> as in step 7; the broker reads it on each use.</li>
+<li>Rotate the GitHub token by running step 7's <code>read</code> line again; the broker reads the file on each use.</li>
 <li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the bound <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> prints; <code>stdout.log</code> and <code>stderr.log</code> stay small.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
