@@ -488,16 +488,17 @@ while pgrep -U "$(id -u _dekopon_broker)" &gt;/dev/null; do sleep 1; done</code>
 until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
   --socket /usr/local/var/run/dekopon/broker.sock; do sleep 2; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
-<p>Restart the gateway after you edit <code>credentials.env</code>, <code>gateway.yaml</code> or <code>agents.yaml</code>:</p>
-<pre aria-label="restart gateway" tabindex="0"><code>sudo launchctl bootout system/dev.dekopon.gateway
-while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
-sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
 <ul>
+<li>After you edit <code>credentials.env</code>, <code>gateway.yaml</code> or <code>agents.yaml</code>, stop and start both as above.</li>
 <li>Rotate the GitHub token by rewriting <code>github-token</code> as in step 7; the broker reads it on each use.</li>
-<li>Logs in <code>/usr/local/var/log/dekopon-broker/</code> and <code>/usr/local/var/log/dekopon-gateway/</code> hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the bound <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> prints; <code>stdout.log</code> and <code>stderr.log</code> stay small.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
+<li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. The daemons rotate <code>broker.log</code> and <code>gateway.log</code> within the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> bound.</li>
 <li>Upgrade or roll back both daemons together: <a href="{{ deploy }}#upgrades">upgrade steps ↗</a>.</li>
 </ul>
+<p>Follow one message through both logs by its text or Slack ts; its records share a <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a>:</p>
+<pre aria-label="follow message" tabindex="0"><code>cd /usr/local/var/log
+T=$(sudo grep -m1 'OWNER/REPO#7' dekopon-gateway/gateway.log | grep -o '"trace_id":"[0-9a-f]*"')
+sudo grep -hF "$T" dekopon-gateway/gateway.log dekopon-broker/broker.log | jq .</code></pre>
 <h3 id="health">When the bot is silent or wrong</h3>
 <p>Probe the broker; it exits 0 with no output while it serves:</p>
 <pre aria-label="health probe" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
@@ -505,7 +506,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <p>Print each job; <code>last exit code</code> shows why launchd relaunches it:</p>
 <pre aria-label="health jobs" tabindex="0"><code>sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
 sudo launchctl print system/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
-<p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to the <code>&lt;dict&gt;</code> of <code>/Library/LaunchDaemons/dev.dekopon.gateway.plist</code> or its broker twin, then stop both, gateway first, and start them as above; a bare <code>debug</code> floods the log and drops records:</p>
+<p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to either plist's <code>&lt;dict&gt;</code>, then stop and start both as above; a bare <code>debug</code> floods the log and drops records:</p>
 <pre aria-label="rust log" tabindex="0"><code>&lt;key&gt;EnvironmentVariables&lt;/key&gt;&lt;dict&gt;
   &lt;key&gt;RUST_LOG&lt;/key&gt;&lt;string&gt;info,dekopon=debug&lt;/string&gt;
 &lt;/dict&gt;</code></pre>
