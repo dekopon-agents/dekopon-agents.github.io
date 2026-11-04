@@ -111,7 +111,7 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 <section id="slack">
 <h2>5. One Slack app with two tokens</h2>
 <ol>
-<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml"><code>manifest-agent.yaml</code> ↗</a>. To rename the bot, change both <code>name</code> and <code>display_name</code> in it first.</li>
+<li>At <a href="https://api.slack.com/apps">api.slack.com/apps</a>, choose <strong>Create New App → From a manifest</strong>, pick the workspace and paste <a href="{{ release.sourceUrl }}/examples/slack/manifest-agent.yaml"><code>manifest-agent.yaml</code> ↗</a>.</li>
 <li>Under <strong>Basic Information → App-Level Tokens → Generate Token and Scopes</strong>, name it <code>dekopon</code> with scope <code>connections:write</code>. Copy the <code>xapp-…</code> token.</li>
 <li>Choose <strong>Install App → Install to Workspace → Allow</strong>. Copy the <strong>Bot User OAuth Token</strong> (<code>xoxb-…</code>) from <strong>OAuth &amp; Permissions</strong>.</li>
 <li>In the review channel, send <code>/invite @dekopon</code>.</li>
@@ -121,10 +121,10 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 
 <section id="keys"><span class="compat-anchor" id="slack-model" aria-hidden="true"></span>
 <h2>6. A GitHub token and a capped OpenRouter key</h2>
-<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens</strong>, set an expiration date, and copy it. Pick one of two postures:</p>
+<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens → Generate new token</strong>, with an expiration date:</p>
 <ul>
-<li><strong>Least privilege.</strong> Under <strong>Fine-grained tokens</strong>, set the resource owner to your organization, select the repositories, and grant read-only <strong>Pull requests</strong>, <strong>Contents</strong>, <strong>Actions</strong> and <strong>Commit statuses</strong>, the <a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/{{ ghProvider.release }}/README.md#credentials-and-authentication-status">permissions step 8's capabilities need ↗</a>. This token can't read check runs, so <code>gh pr checks</code> fails. It reaches one resource owner; a second organization needs a second token.</li>
-<li><strong>Pragmatist.</strong> Under <strong>Tokens (classic)</strong>, grant scope <code>repo</code>: what you need today and might want tomorrow. For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token. Step 8's <code>forbid</code> narrows what the broker sends, and <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">all the downscoping controls ↗</a> with a <a href="{{ core }}authorization.md#example">worked example ↗</a> are in the core docs. <code>repo</code> reaches every repository you can, and whoever steals the token can write.</li>
+<li><strong>Best practice: fine-grained.</strong> Resource owner your organization, repositories selected, read-only <strong>Pull requests</strong> and <strong>Contents</strong> (<a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/{{ ghProvider.release }}/README.md#credentials-and-authentication-status">what step 8 needs ↗</a>); an owner approves if required. It has no Checks permission, so <code>gh pr checks</code> fails; one token reaches one owner.</li>
+<li><strong>Pragmatist: classic.</strong> Scope <code>repo</code>; for SSO, choose <strong>Configure SSO → Authorize</strong>. Step 8's <a href="#config"><code>forbid</code></a> is the worked example; <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">all the downscoping controls ↗</a> and <a href="{{ core }}authorization.md#example">core's example ↗</a> are in core docs. <code>repo</code> reaches every repository you can; whoever steals the token can write.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -283,7 +283,7 @@ unless { context.request.url.path like "/repos/replace-with-github-org/*"
       || (action == Dekopon::Action::"gh.pull-request.read"
           &amp;&amp; context.request.url.path like "/repositories/*/pulls/*/files") };
 EOF</code></pre>
-<p>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel, and <code>thread</code> can pin a thread; the <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses <code>/repos/</code> paths outside your organization, case-sensitively, but admits a pull request's later file pages under any repository ID.</p>
+<p>The <a href="{{ core }}authorization.md#conversation-attributes"><code>context.conversation</code> lines ↗</a> pin the team and channel; the <a href="{{ core }}authorization.md#example"><code>forbid</code> ↗</a> refuses <code>/repos/</code> paths outside your organization, case-sensitively, but admits a pull request's later file pages under any repository ID.</p>
 <h3>agents.yaml</h3>
 <pre aria-label="agents yaml" tabindex="0"><code>cat &gt; agents.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/v1alpha1
@@ -490,7 +490,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <li>After editing <code>credentials.env</code>, <code>gateway.yaml</code> or <code>agents.yaml</code>, restart both as above.</li>
 <li>Rotate the GitHub token by running step 7's <code>read</code> line again; the broker reads the file on each use.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
-<li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac. Each daemon rotates its log within the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/log_file.rs"><code>--help</code> ↗</a> bound.</li>
+<li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac.</li>
 <li><a href="{{ deploy }}#upgrades">Upgrade or roll back both daemons together ↗</a>.</li>
 </ul>
 <p>A message's <a href="{{ release.sourceUrl }}/crates/dekopon-gatewayd/src/collection.rs#L321">received record ↗</a>, found by text or Slack ts, holds the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a> its records share; rotated files are skipped:</p>
