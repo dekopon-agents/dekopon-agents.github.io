@@ -120,13 +120,11 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 </section>
 
 <section id="keys"><span class="compat-anchor" id="slack-model" aria-hidden="true"></span>
-<h2>6. A classic GitHub token and a capped OpenRouter key</h2>
-<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)</strong>:</p>
+<h2>6. A GitHub token and a capped OpenRouter key</h2>
+<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens</strong>, set an expiration date, and copy it. Pick one of two postures:</p>
 <ul>
-<li>Scope: <code>repo</code>. A fine-grained token can't read check runs.</li>
-<li>Set an expiration date. Copy the <code>ghp_…</code> token.</li>
-<li>For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token.</li>
-<li><code>repo</code> reaches every repository you can. Dekopon sends only reads, which a <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">request <code>forbid</code> ↗</a> in step 8 narrows; whoever steals the token can write.</li>
+<li><strong>Least privilege.</strong> Under <strong>Fine-grained tokens</strong>, set the resource owner to your organization, select the repositories, and grant read-only <strong>Pull requests</strong>, <strong>Contents</strong>, <strong>Actions</strong> and <strong>Commit statuses</strong>, the <a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/{{ ghProvider.release }}/README.md#credentials-and-authentication-status">permissions step 8's capabilities need ↗</a>. This token can't read check runs, so <code>gh pr checks</code> fails. It reaches one resource owner; a second organization needs a second token.</li>
+<li><strong>Pragmatist.</strong> Under <strong>Tokens (classic)</strong>, grant scope <code>repo</code>: what you need today and might want tomorrow. For an organization that uses SSO, choose <strong>Configure SSO → Authorize</strong> beside the token. Step 8's <code>forbid</code> narrows what the broker sends, and <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">all the downscoping controls ↗</a> with a <a href="{{ core }}authorization.md#example">worked example ↗</a> are in the core docs. <code>repo</code> reaches every repository you can, and whoever steals the token can write.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
