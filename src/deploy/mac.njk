@@ -121,10 +121,10 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 
 <section id="keys"><span class="compat-anchor" id="slack-model" aria-hidden="true"></span>
 <h2>6. A GitHub token and a capped OpenRouter key</h2>
-<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens → Generate new token</strong>, with an expiration date:</p>
+<p>Create the token at <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</strong> or <strong>Tokens (classic) → Generate new token</strong>, set an expiration date, and copy it:</p>
 <ul>
-<li><strong>Best practice: fine-grained.</strong> Resource owner your organization, repositories selected, read-only <strong>Pull requests</strong> and <strong>Contents</strong> (<a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/{{ ghProvider.release }}/README.md#credentials-and-authentication-status">what step 8 needs ↗</a>); an owner approves if required. It has no Checks permission, so <code>gh pr checks</code> fails; one token reaches one owner.</li>
-<li><strong>Pragmatist: classic.</strong> Scope <code>repo</code>; for SSO, choose <strong>Configure SSO → Authorize</strong>. Step 8's <a href="#config"><code>forbid</code></a> is the worked example; <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">all the downscoping controls ↗</a> and <a href="{{ core }}authorization.md#example">core's example ↗</a> are in core docs. <code>repo</code> reaches every repository you can; whoever steals the token can write.</li>
+<li><strong>Best practice: fine-grained.</strong> Set the resource owner to your organization, select the repositories, and grant read-only <strong>Pull requests</strong> and <strong>Contents</strong> (<a href="https://github.com/dekopon-agents/dekopon-provider-gh/blob/{{ ghProvider.release }}/README.md#credentials-and-authentication-status">what step 8 needs ↗</a>); an organization owner approves it if required. It has no Checks permission, so <code>gh pr checks</code> fails; one token reaches one owner.</li>
+<li><strong>Pragmatist: classic.</strong> Scope <code>repo</code>; for SSO, choose <strong>Configure SSO → Authorize</strong>. Step 8's <a href="#config"><code>forbid</code></a> narrows what the broker sends, a worked example; <a href="{{ core }}authorization.md#each-outbound-request-is-checked-again">all the downscoping controls ↗</a> and <a href="{{ core }}authorization.md#example">an example policy ↗</a> are in core docs. <code>repo</code> reaches every repository you can; whoever steals the token can write.</li>
 </ul>
 <p>Create the key at <strong>OpenRouter → Keys → Create</strong>:</p>
 <ul>
@@ -381,7 +381,7 @@ sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 \
   agents.yaml gateway.yaml /usr/local/etc/dekopon/gateway/</code></pre>
 <pre aria-label="check" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd check /usr/local/etc/dekopon/broker/broker.yaml
 sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /usr/local/etc/dekopon/gateway/gateway.yaml</code></pre>
-<ul><li>Each check ends with <code>ok</code>; its warnings about the attestor scope, the journal and the three environment variables are expected.</li></ul>
+<ul><li>Each check ends with <code>ok</code>; warnings are expected.</li></ul>
 <p>Confirm the model ID and key with one paid request:</p>
 <pre aria-label="probe" tabindex="0"><code>sudo -u _dekopon_gateway /bin/sh -c '. /usr/local/etc/dekopon/gateway/credentials.env &amp;&amp;
   exec /usr/local/lib/dekopon/current/dekopon-gatewayd check --probe /usr/local/etc/dekopon/gateway/gateway.yaml'</code></pre>
@@ -468,7 +468,6 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <li>You and your colleague each mention <code>@dekopon</code> with a PR and get a review in the thread.</li>
 <li>A follow-up in your thread gets an answer without a new mention.</li>
 <li>A channel member missing from <code>broker.yaml</code> gets a fixed refusal, and OpenRouter shows no request for it.</li>
-<li>A request to approve, merge or comment changes nothing on GitHub.</li>
 <li>After the Mac restarts, a new mention gets a review.</li>
 </ul>
 <p>Direct messages get no answer: the only route is the review channel.</p>
