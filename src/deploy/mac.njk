@@ -33,7 +33,7 @@ ogType: article
 <tr>
 <th scope="row">One account</th>
 <td data-label="Runs as">You, as LaunchAgents from Homebrew, while you're logged in</td>
-<td data-label="Edits">In a folder you own, then a restart</td>
+<td data-label="Edits">In a folder you own</td>
 </tr>
 <tr>
 <th scope="row">Separate accounts</th>
@@ -43,7 +43,7 @@ ogType: article
 </tbody>
 </table>
 </div>
-<p>With one account, the gateway and anything else running as you can read the GitHub token; Cedar and the broker still decide what the agent does with it.</p>
+<p>With one account, the gateway and anything else running as you can read the GitHub token and rewrite the policy; Cedar and the broker still decide what the agent does with it.</p>
 <p>Neither shape opens an inbound port: Slack Socket Mode is an outbound WebSocket, model and GitHub calls are outbound HTTPS, and the daemons talk over a local Unix socket.</p>
 </section>
 <nav aria-label="Steps">
@@ -181,7 +181,7 @@ export OPENROUTER_API_KEY='sk-or-…'</code></pre>
 <p>Each <code>read</code> below waits for you to paste the GitHub token and press Return; nothing echoes, and no newline reaches the file.</p>
 <h3>One account</h3>
 <pre aria-label="secrets one account" tabindex="0"><code>(umask 077 &amp;&amp; touch private/credentials.env private/github-token)
-${EDITOR:-vi} private/credentials.env
+eval "${EDITOR:-vi} private/credentials.env"
 read -rs GH_TOKEN &amp;&amp; printf %s "$GH_TOKEN" &gt; private/github-token; unset GH_TOKEN</code></pre>
 <h3>Separate accounts</h3>
 <p>Create each file as its daemon's account, then edit it as that account (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
@@ -558,7 +558,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <section id="operate">
 <h2>12. Day-to-day commands</h2>
 <ul>
-<li>The broker rereads an edited <code>secret-map.yaml</code> without a restart and reads <code>github-token</code> on each use, so step 7's <code>read</code> line rotates the token. Any other edit takes a restart of both daemons.</li>
+<li>The broker rereads an edited <code>secret-map.yaml</code> without a restart and reads <code>github-token</code> on each use, so step 7's <code>read</code> line rotates the token. Policy, principals, routes, models and <code>agents.yaml</code> also <a href="{{ deploy }}#mac">reload within seconds of a save ↗</a>; <code>credentials.env</code> and the rest wait for a restart.</li>
 <li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
 <li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac.</li>
 <li><a href="{{ deploy }}#upgrades">Upgrade or roll back both daemons together ↗</a>.</li>
@@ -569,10 +569,9 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <pre aria-label="brew upgrade" tabindex="0"><code>brew unpin dekopon &amp;&amp; brew upgrade dekopon &amp;&amp; brew pin dekopon
 ./restart</code></pre>
 <p><code>brew upgrade</code> deletes the previous version; keep its release archive to roll back. The logs in <code>private/logs</code> need no <code>sudo</code>:</p>
-<pre aria-label="follow message one account" tabindex="0"><code>cd private/logs
-T=$(grep 'OWNER/REPO#7' gateway.log | grep -m1 '"audit.event":"gateway.message.received"' |
+<pre aria-label="follow message one account" tabindex="0"><code>T=$(grep 'OWNER/REPO#7' private/logs/gateway.log | grep -m1 '"audit.event":"gateway.message.received"' |
   grep -o '"trace_id":"[0-9a-f]*"')
-[ -n "$T" ] &amp;&amp; grep -hF "$T" gateway.log broker.log | jq .</code></pre>
+[ -n "$T" ] &amp;&amp; grep -hF "$T" private/logs/gateway.log private/logs/broker.log | jq .</code></pre>
 <h3>Separate accounts</h3>
 <p>Stop both services, gateway first:</p>
 <pre aria-label="stop" tabindex="0"><code>sudo launchctl bootout system/dev.dekopon.gateway
