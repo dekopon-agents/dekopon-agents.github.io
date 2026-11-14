@@ -1,9 +1,6 @@
-const repository = "dekopon-agents/dekopon";
-const github = `https://api.github.com/repos/${repository}`;
-const source = `https://raw.githubusercontent.com/${repository}`;
-const registryRepository = "dekopon-agents/charts/dekopon";
-const tapFormula = "https://raw.githubusercontent.com/dekopon-agents/homebrew-tap/main/Formula/dekopon.rb";
-const semver = /^\d+\.\d+\.\d+$/;
+import { chartMetadata, releaseSources, repository, semver, witPaths } from "./release-sources.mjs";
+
+export { chartMetadata };
 
 export function checkRelease(release) {
     const failures = [];
@@ -32,79 +29,48 @@ export function checkRelease(release) {
     return failures;
 }
 
-// These are scalar fields in the project's Chart.yaml, not a general YAML parser.
-export function chartMetadata(yaml) {
-    return Object.fromEntries(["version", "appVersion"].map((field) => {
-        const value = yaml.match(new RegExp(`^${field}:\\s*["']?([^\\s"'#]+)["']?\\s*(?:#.*)?$`, "m"))?.[1];
-        return [field, value];
-    }));
-}
-
 export async function checkRemoteRelease(release, sdk, { request = fetch, token = process.env.GITHUB_TOKEN } = {}) {
+    const sources = releaseSources({ request, token });
     const failures = [];
-    const get = async (url, headers = {}, kind = "json") => {
-        const response = await request(url, {
-            headers: { "User-Agent": "dekopon-site-release-check", ...headers },
-            signal: AbortSignal.timeout(30_000)
-        });
-        if (!response.ok) throw new Error(`${url}: ${response.status} ${response.statusText}`);
-        return response[kind]();
-    };
-    const api = (path) => get(`${github}/${path}`, {
-        Accept: "application/vnd.github+json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-    });
-    const raw = (path) => get(`${source}/${release.revision}/${path}`, {}, "text");
     const run = async (name, check) => {
         try { await check(); } catch (error) { failures.push(`${name}: ${error.message}`); }
     };
     const expect = (condition, message) => { if (!condition) failures.push(message); };
     await Promise.all([
         run("GitHub release", async () => {
-            const latest = await api("releases/latest");
+            const latest = await sources.latestRelease();
             expect(latest.tag_name === release.tag, `site pins ${release.tag}, but GitHub latest is ${latest.tag_name}`);
             expect(latest.published_at?.slice(0, 10) === release.dateIso, `site date ${release.dateIso} does not match GitHub publication ${latest.published_at}`);
         }),
         run("Git tag", async () => {
-            let { object } = await api(`git/ref/tags/${encodeURIComponent(release.tag)}`);
-            for (let depth = 0; object?.type === "tag" && depth < 5; depth += 1) {
-                ({ object } = await api(`git/tags/${object.sha}`));
-            }
-            expect(object?.type === "commit" && object.sha === release.revision, `tag ${release.tag} does not resolve to pinned commit ${release.revision}`);
+            const commit = await sources.tagCommit(release.tag);
+            expect(commit === release.revision, `tag ${release.tag} does not resolve to pinned commit ${release.revision}`);
         }),
         run("Source chart", async () => {
-            const chart = chartMetadata(await raw("charts/dekopon/Chart.yaml"));
+            const chart = await sources.sourceChart(release.revision);
             expect(chart.version === release.chart.sourceVersion, `source chart version ${chart.version} differs from ${release.chart.sourceVersion}`);
             expect(chart.appVersion === release.chart.sourceAppVersion, `source chart appVersion ${chart.appVersion} differs from ${release.chart.sourceAppVersion}`);
         }),
         run("Published OCI chart", async () => {
-            const auth = await get(`https://ghcr.io/token?service=ghcr.io&scope=repository:${registryRepository}:pull`);
-            if (!auth.token) throw new Error("registry did not return an anonymous pull token");
-            const headers = { Authorization: `Bearer ${auth.token}`, Accept: "application/vnd.oci.image.manifest.v1+json" };
-            const manifest = await get(`https://ghcr.io/v2/${registryRepository}/manifests/${release.chart.publishedVersion}`, headers);
-            if (manifest.config?.mediaType !== "application/vnd.cncf.helm.config.v1+json") throw new Error("published artifact is not a Helm chart");
-            if (!/^sha256:[a-f0-9]{64}$/.test(manifest.config.digest)) throw new Error("chart config has no SHA-256 digest");
-            const chart = await get(`https://ghcr.io/v2/${registryRepository}/blobs/${manifest.config.digest}`, headers);
+            const chart = await sources.publishedChart(release.chart.publishedVersion);
             expect(chart.name === "dekopon", "published chart name must be dekopon");
             expect(chart.version === release.chart.publishedVersion, `published chart version ${chart.version} differs from ${release.chart.publishedVersion}`);
             expect(chart.appVersion === release.chart.publishedAppVersion, `published chart appVersion ${chart.appVersion} differs from ${release.chart.publishedAppVersion}`);
         }),
+        ...(release.imageDigest === undefined ? [] : [run("Container image", async () => {
+            const digest = await sources.imageDigest(release.tag);
+            expect(digest === release.imageDigest, `image ${release.tag} is ${digest}, not pinned ${release.imageDigest}`);
+        })]),
         run("Homebrew tap", async () => {
             const archive = `https://github.com/${repository}/releases/download/${release.tag}/dekopon-${release.version}-aarch64-apple-darwin.tar.gz`;
-            expect((await get(tapFormula, {}, "text")).includes(`url "${archive}"`), `Homebrew tap formula does not install ${archive}`);
+            expect((await sources.tapFormula()).includes(`url "${archive}"`), `Homebrew tap formula does not install ${archive}`);
         }),
         run("SDK toolchain", async () => {
-            const [rust, tools] = await Promise.all([raw("rust-toolchain.toml"), raw("ci/toolchain.env")]);
-            const rustVersion = rust.match(/^channel\s*=\s*"([^"]+)"/m)?.[1];
-            const wasmToolsVersion = tools.match(/^WASM_TOOLS_VERSION=([^\s]+)$/m)?.[1];
-            expect(sdk.versions.rust === rustVersion, `SDK Rust pin ${sdk.versions.rust} differs from ${rustVersion}`);
-            expect(sdk.versions.wasmTools === wasmToolsVersion, `SDK wasm-tools pin ${sdk.versions.wasmTools} differs from ${wasmToolsVersion}`);
-            await Promise.all(Object.entries({
-                provider: "crates/dekopon-provider-sdk/wit/provider.wit",
-                stdio: "wit/stdio/stdio.wit",
-                http: "wit/http/http.wit"
-            }).map(async ([name, path]) => {
-                const wit = await raw(path);
+            const toolchain = await sources.toolchain(release.revision);
+            expect(sdk.versions.rust === toolchain.rust, `SDK Rust pin ${sdk.versions.rust} differs from ${toolchain.rust}`);
+            expect(sdk.versions.wasmTools === toolchain.wasmTools, `SDK wasm-tools pin ${sdk.versions.wasmTools} differs from ${toolchain.wasmTools}`);
+            await Promise.all(Object.keys(witPaths).map(async (name) => {
+                const wit = await sources.wit(release.revision, name);
                 const pin = sdk.interfaces?.[name];
                 const match = pin?.match(/^(dekopon:[\w-]+)\/([\w-]+)@(\d+\.\d+\.\d+)$/);
                 const packageName = wit.match(/^package\s+([^;]+);/m)?.[1];

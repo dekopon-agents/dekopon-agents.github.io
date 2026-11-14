@@ -46,10 +46,11 @@ Everything else is the code, `check` and `--help`; link it.
 - **No indexes.** The site navigation is the only list of pages; a page links what its reader
   needs next, not everything related.
 - **No history.** Dekopon is pre-1.0 and keeps no backwards compatibility. `/whats-new/` covers
-  the pinned release only, as release notes. No "previously", migration steps, version minimums
+  the release in `src/_data/whatsNew.json`, as release notes; a rewrite bumps that file. No "previously", migration steps, version minimums
   or compatibility guidance; name the current key, never the old one.
 - **Versions live only in data.** `src/_data/release.json` (core), `src/_data/providerSdk.json`
-  (SDK and contract pins) and `providers.json` (providers); `check-site` fails on a version typed
+  (SDK and contract pins; both written only by `scripts/repin.mjs`, which `pages.yml` runs on
+  every core release and daily) and `providers.json` (providers); `check-site` fails on a version typed
   into a template.
 - **`providers.json` is the official provider list.** It sits at the repository root and feeds
   `/providers/official/`, the ship guide and the Mac page. Keep it current: when a listed provider
@@ -71,8 +72,9 @@ Everything else is the code, `check` and `--help`; link it.
 - **The landing page keeps its own voice.** `src/index.njk`, `src/_includes/sections/*` and
   `src/_data/home.json` stay conversational, witty, playful and fun rather than terse reference
   prose; voice rules 1–9 and the other hard rules still apply.
-- **Re-pin checks anchors.** Core links pin `release.sourceUrl`; when it moves, confirm every
-  pinned core anchor still exists. Links to core `main` must be fixed whenever core renames one.
+- **Re-pin checks anchors.** Core links pin `release.sourceUrl`; `scripts/check-pinned-links.mjs`
+  fails a re-pin whose linked path is gone. Cite files, not line numbers: a re-pin moves lines.
+  Links to core `main` must be fixed whenever core renames one.
 
 ## Technical guides: understanding per screen
 
@@ -222,8 +224,7 @@ defended, don't reach for "I."
 
 - **The receipts.** `1 pod · 2 daemon containers · 0 default Services ·
   0660 socket`. Two executables. Two HTTP calls for the PR-comment example.
-  Release-specific archive measurements belong in `release.json`; don’t copy
-  an old size or provider count into a new release’s prose.
+  Don’t copy an old size or provider count into a new release’s prose.
 - **Real names.** `api.github.com`, Cedar, `gh.pull-request.comment`,
   `slack.example.u123`, RustPython, `dekopon-provider-sdk-testkit`. Never
   translate one of these into a category noun.

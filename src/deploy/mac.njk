@@ -563,7 +563,7 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 <li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac.</li>
 <li><a href="{{ deploy }}#upgrades">Upgrade or roll back both daemons together ↗</a>.</li>
 </ul>
-<p>A message's <a href="{{ release.sourceUrl }}/crates/dekopon-gatewayd/src/collection.rs#L321">received record ↗</a>, found by text or Slack ts, holds the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a> its records share; the commands below skip rotated files.</p>
+<p>A message's <a href="{{ release.sourceUrl }}/crates/dekopon-gatewayd/src/collection.rs">received record ↗</a>, found by text or Slack ts, holds the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a> its records share; the commands below skip rotated files.</p>
 <h3>One account</h3>
 <p>Edit in the folder, then run <code>./restart</code>; it stops nothing until both checks pass. Upgrade the same way:</p>
 <pre aria-label="brew upgrade" tabindex="0"><code>brew unpin dekopon &amp;&amp; brew upgrade dekopon &amp;&amp; brew pin dekopon
