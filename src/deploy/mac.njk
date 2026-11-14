@@ -17,11 +17,40 @@ ogType: article
 <p>Twelve steps end with a Slack agent on an always-on Mac that reviews pull requests for you and a colleague.</p>
 <p>The <a href="{{ deploy }}#mac">core deploy notes ↗</a> give the reason behind each account, file mode and start order.</p>
 </header>
+<section id="shapes">
+<h2>Run both daemons as you, or as two hidden accounts</h2>
+<p>Each daemon trusts a file only when its own UID owns it, so the shape decides who edits:</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Shape comparison">
+<table>
+<thead>
+<tr>
+<th scope="col">Shape</th>
+<th scope="col">Runs as</th>
+<th scope="col">Edits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">One account</th>
+<td data-label="Runs as">You, as LaunchAgents from Homebrew, while you're logged in</td>
+<td data-label="Edits">In a folder you own</td>
+</tr>
+<tr>
+<th scope="row">Separate accounts</th>
+<td data-label="Runs as"><code>_dekopon_broker</code> and <code>_dekopon_gateway</code>, as LaunchDaemons from a root-owned archive</td>
+<td data-label="Edits">Through <code>sudo</code>, like every check and log read</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>With one account, the gateway and anything else running as you can read the GitHub token and rewrite the policy; Cedar and the broker still decide what the agent does with it.</p>
+<p>Neither shape opens an inbound port: Slack Socket Mode is an outbound WebSocket, model and GitHub calls are outbound HTTPS, and the daemons talk over a local Unix socket.</p>
+</section>
 <nav aria-label="Steps">
 <ol>
 <li><a href="#before">Before you start</a></li>
 <li><a href="#install">Install the binaries</a></li>
-<li><a href="#accounts">Create the service accounts</a></li>
+<li><a href="#accounts">Create the folder or the accounts</a></li>
 <li><a href="#provider">Download the GitHub provider</a></li>
 <li><a href="#slack">Create the Slack app</a></li>
 <li><a href="#keys">Create the GitHub token and OpenRouter key</a></li>
@@ -37,20 +66,26 @@ ogType: article
 <section id="before">
 <h2>1. What you need: a Mac, Slack, GitHub and OpenRouter</h2>
 <ul>
-<li>An Apple Silicon Mac with <a href="https://brew.sh">Homebrew</a> and an administrator account.</li>
+<li>An Apple Silicon Mac with <a href="https://brew.sh">Homebrew</a>, and an administrator account for separate accounts.</li>
 <li>A paid Slack workspace where you can create apps, and a private channel with you and your colleague.</li>
 <li>A GitHub account that can read the repositories to review.</li>
 <li>An OpenRouter account with prepaid credit.</li>
 </ul>
-<p>Install <code>gh</code> and create the setup folder; run every later command in it:</p>
+<p>Install <code>gh</code> and create the folder; run every later command in it. With one account it holds the live configuration and can be a git checkout:</p>
 <pre aria-label="setup" tabindex="0"><code>brew install gh
 gh auth login
-mkdir ~/dekopon-setup
-cd ~/dekopon-setup</code></pre>
+mkdir ~/dekopon
+cd ~/dekopon</code></pre>
 </section>
 
 <section id="install">
 <h2>2. dekopon-brokerd and dekopon-gatewayd {{ release.version }}</h2>
+<h3>One account</h3>
+<p>The pin keeps <code>brew upgrade</code> away from running services:</p>
+<pre aria-label="brew install" tabindex="0"><code>brew install dekopon-agents/tap/dekopon
+brew pin dekopon
+dekopon-gatewayd --version</code></pre>
+<h3>Separate accounts</h3>
 <p>Verify the archive and install both daemons:</p>
 <pre aria-label="install" tabindex="0"><code>v={{ release.version }}
 gh release download v$v -R dekopon-agents/dekopon -p "dekopon-$v-aarch64-apple-darwin.tar.gz*"
@@ -66,7 +101,11 @@ sudo ln -sfh /usr/local/lib/dekopon/$v /usr/local/lib/dekopon/current
 </section>
 
 <section id="accounts">
-<h2>3. Two hidden accounts and one group: _dekopon_broker, _dekopon_gateway, dekopon-ipc</h2>
+<h2>3. A private folder, or _dekopon_broker, _dekopon_gateway and dekopon-ipc</h2>
+<h3>One account</h3>
+<p>Secrets, the socket and logs go in <code>private/</code>; in a git checkout, add <code>/private/</code> to <code>.gitignore</code>. Keep the folder's path short: the socket's must stay under 104 bytes.</p>
+<pre aria-label="private" tabindex="0"><code>(umask 077 &amp;&amp; mkdir -p private/run private/logs)</code></pre>
+<h3>Separate accounts</h3>
 <p>Check that IDs 460–462 are free; both commands print nothing:</p>
 <pre aria-label="ids" tabindex="0"><code>dscl . -list /Users UniqueID | awk '$2 &gt;= 460 &amp;&amp; $2 &lt;= 462'
 dscl . -list /Groups PrimaryGroupID | awk '$2 &gt;= 460 &amp;&amp; $2 &lt;= 462'</code></pre>
@@ -101,7 +140,7 @@ ls -ld / /usr /usr/local /usr/local/etc /usr/local/etc/dekopon /usr/local/var /u
 
 <section id="provider">
 <h2>4. One attested GitHub provider component</h2>
-<p>Download and verify the provider; step 8 installs it:</p>
+<p>Download and verify the provider; step 8 uses it:</p>
 <pre aria-label="provider" tabindex="0"><code>gh release download {{ ghProvider.release }} -R dekopon-agents/dekopon-provider-gh -p 'gh-provider.wasm*'
 shasum -a 256 -c gh-provider.wasm.sha256
 gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
@@ -134,16 +173,21 @@ gh attestation verify --repo dekopon-agents/dekopon-provider-gh \
 </section>
 
 <section id="secrets"><span class="compat-anchor" id="pat" aria-hidden="true"></span>
-<h2>7. Two private secret files</h2>
-<p>Create the gateway's file and open it as its owner (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
-<pre aria-label="env create" tabindex="0"><code>sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 /dev/null \
-  /usr/local/etc/dekopon/gateway/credentials.env
-sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
-<p>Enter these lines with your values:</p>
+<h2>7. Two 0600 secret files: credentials.env and github-token</h2>
+<p>The gateway's <code>credentials.env</code> holds these lines with your values:</p>
 <pre aria-label="env body" tabindex="0"><code>export DEKOPON_GATEWAYD_SLACK_APP_TOKEN='xapp-…'
 export DEKOPON_GATEWAYD_SLACK_BOT_TOKEN='xoxb-…'
 export OPENROUTER_API_KEY='sk-or-…'</code></pre>
-<p>Create the broker's token file the same way, then paste the token and press Return; nothing echoes, and no newline reaches the file:</p>
+<p>Each <code>read</code> below waits for you to paste the GitHub token and press Return; nothing echoes, and no newline reaches the file.</p>
+<h3>One account</h3>
+<pre aria-label="secrets one account" tabindex="0"><code>(umask 077 &amp;&amp; touch private/credentials.env private/github-token)
+eval "${EDITOR:-vi} private/credentials.env"
+read -rs GH_TOKEN &amp;&amp; printf %s "$GH_TOKEN" &gt; private/github-token; unset GH_TOKEN</code></pre>
+<h3>Separate accounts</h3>
+<p>Create each file as its daemon's account, then edit it as that account (in <code>vi</code> unless <code>EDITOR</code> is set):</p>
+<pre aria-label="env create" tabindex="0"><code>sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 /dev/null \
+  /usr/local/etc/dekopon/gateway/credentials.env
+sudo -u _dekopon_gateway -e /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
 <pre aria-label="pat create" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 /dev/null \
   /usr/local/etc/dekopon/broker/github-token
 read -rs GH_TOKEN &amp;&amp; printf %s "$GH_TOKEN" |
@@ -160,7 +204,7 @@ mapRevision: github-pat-1
 secrets:
   - drn: drn:secret:github/pat
     destinations: [api.github.com]
-    source: {kind: secureFile, path: /usr/local/etc/dekopon/broker/github-token}
+    source: {kind: secureFile, path: TOKEN_FILE}
     bindings:
       - id: gh-pr-pages
         capabilities: [gh.pull-request.list, gh.pull-request.status]
@@ -191,15 +235,13 @@ EOF</code></pre>
 <h3>broker.yaml</h3>
 <pre aria-label="broker yaml" tabindex="0"><code>cat &gt; broker.yaml &lt;&lt;'EOF'
 apiVersion: dekopon.dev/brokerd/v1alpha1
-socketPath: /usr/local/var/run/dekopon/broker.sock
+socketPath: SOCKET_PATH
 secretMapPath: secret-map.yaml
 policiesPath: policies.cedar
 strict: true
 providers: [gh-provider.wasm]
 identities:
-  - uid: BROKER_UID
-    principal: broker-operator
-    actor: {type: service, principal: broker-operator}
+  - {uid: BROKER_UID, principal: broker-operator, actor: {type: service, principal: broker-operator}}
   - uid: GATEWAY_UID
     principal: dekopon-gatewayd
     actor: {type: service, principal: dekopon-gatewayd}
@@ -306,7 +348,7 @@ EOF</code></pre>
 apiVersion: dekopon.dev/gatewayd/v1alpha1
 catalogPath: agents.yaml
 broker:
-  socketPath: /usr/local/var/run/dekopon/broker.sock
+  socketPath: SOCKET_PATH
   serverUid: BROKER_UID
 transports:
   - name: review-slack
@@ -363,8 +405,6 @@ MODEL=
 ORG=</code></pre>
 <p>Substitute them; the <code>grep</code> prints nothing when no placeholder is left:</p>
 <pre aria-label="fill" tabindex="0"><code>: ${TEAM:?} ${CHANNEL:?} ${OWNER:?} ${COLLEAGUE:?} ${MODEL:?} ${ORG:?} &amp;&amp; sed -i '' \
-  -e "s/BROKER_UID/$(id -u _dekopon_broker)/" \
-  -e "s/GATEWAY_UID/$(id -u _dekopon_gateway)/" \
   -e "s/t0123abc/$(echo $TEAM | tr A-Z a-z)/g" \
   -e "s/c0123abc/$(echo $CHANNEL | tr A-Z a-z)/g" \
   -e "s/uownerid/$(echo $OWNER | tr A-Z a-z)/g" \
@@ -372,9 +412,23 @@ ORG=</code></pre>
   -e "s|replace-with-exact-openrouter-model-id|$MODEL|" \
   -e "s|replace-with-github-org|$ORG|" \
   broker.yaml policies.cedar gateway.yaml
-grep -n 'BROKER_UID\|GATEWAY_UID\|0123abc\|ownerid\|colleagueid\|replace-with' \
+grep -n '0123abc\|ownerid\|colleagueid\|replace-with' \
   broker.yaml policies.cedar gateway.yaml</code></pre>
-<p>Install the files and check them as their owners:</p>
+<h3>One account</h3>
+<p>Map only your UID, as the gateway, and move the secret map into <code>private/</code>: the broker refuses one that others can read. Relative paths resolve against the configuration file's folder; the token path must be absolute. Then check, and confirm the model ID and key with one paid request:</p>
+<pre aria-label="fill one account" tabindex="0"><code>sed -i '' -e '/BROKER_UID/d' -e "s/GATEWAY_UID/$(id -u)/" \
+  -e 's|SOCKET_PATH|private/run/broker.sock|' -e 's|: secret-map|: private/secret-map|' \
+  -e "s|TOKEN_FILE|$PWD/private/github-token|" broker.yaml gateway.yaml secret-map.yaml
+mv secret-map.yaml private/ &amp;&amp; chmod 600 private/secret-map.yaml
+dekopon-brokerd check broker.yaml
+dekopon-gatewayd check gateway.yaml
+(. private/credentials.env &amp;&amp; dekopon-gatewayd check --probe gateway.yaml)</code></pre>
+<h3>Separate accounts</h3>
+<pre aria-label="fill separate" tabindex="0"><code>sed -i '' -e "s/BROKER_UID/$(id -u _dekopon_broker)/" -e "s/GATEWAY_UID/$(id -u _dekopon_gateway)/" \
+  -e 's|SOCKET_PATH|/usr/local/var/run/dekopon/broker.sock|' \
+  -e 's|TOKEN_FILE|/usr/local/etc/dekopon/broker/github-token|' \
+  broker.yaml gateway.yaml secret-map.yaml</code></pre>
+<p>Install the files and check them as their owners. Each daemon refuses a file its own UID doesn't own, so every later edit goes through <code>sudo install</code> too:</p>
 <pre aria-label="place" tabindex="0"><code>sudo install -o _dekopon_broker -g dekopon-ipc -m 0600 \
   broker.yaml secret-map.yaml policies.cedar gh-provider.wasm /usr/local/etc/dekopon/broker/
 sudo install -o _dekopon_gateway -g dekopon-ipc -m 0600 \
@@ -389,65 +443,97 @@ sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd check /
 
 <section id="foreground">
 <h2>9. One test run in two terminals</h2>
-<p>Start the broker in one terminal:</p>
+<p>Start the broker in one terminal and the gateway in a second. In the review channel, send <code>@dekopon review OWNER/REPO#7</code> for a real PR; a review arrives in the thread. Stop the gateway with <kbd>Ctrl</kbd>-<kbd>C</kbd>, then the broker.</p>
+<h3>One account</h3>
+<pre aria-label="fg one account" tabindex="0"><code>dekopon-brokerd --config broker.yaml
+dekopon-gatewayd --config gateway.yaml --env-file private/credentials.env</code></pre>
+<h3>Separate accounts</h3>
 <pre aria-label="fg broker" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd \
   --config /usr/local/etc/dekopon/broker/broker.yaml</code></pre>
-<p>Start the gateway in a second:</p>
 <pre aria-label="fg gateway" tabindex="0"><code>sudo -u _dekopon_gateway /usr/local/lib/dekopon/current/dekopon-gatewayd \
   --config /usr/local/etc/dekopon/gateway/gateway.yaml \
   --env-file /usr/local/etc/dekopon/gateway/credentials.env</code></pre>
-<ul>
-<li>In the review channel, send <code>@dekopon review OWNER/REPO#7</code> for a real PR; a review arrives in the thread.</li>
-<li>Stop the gateway with <kbd>Ctrl</kbd>-<kbd>C</kbd>, then the broker.</li>
-</ul>
 </section>
 
 <section id="launchd">
-<h2>10. Two launchd services that start at boot</h2>
+<h2>10. Two launchd services</h2>
+<ul>
+<li>In <strong>System Settings → Energy</strong>, turn on <strong>Prevent automatic sleeping when the display is off</strong> and <strong>Start up automatically after a power failure</strong>.</li>
+<li>With FileVault on, a restart after a power cut waits for your password before Dekopon starts.</li>
+<li>LaunchAgents run only while you're logged in; without FileVault, one account needs automatic login.</li>
+</ul>
+<h3>One account</h3>
+<p>Write both LaunchAgents with this folder's paths:</p>
+<pre aria-label="launch agents" tabindex="0"><code>bin=$(brew --prefix)/opt/dekopon/bin
+mkdir -p ~/Library/LaunchAgents
+for d in broker gateway; do
+  env=; [ $d = gateway ] &amp;&amp; env="&lt;string&gt;--env-file&lt;/string&gt;&lt;string&gt;$PWD/private/credentials.env&lt;/string&gt;"
+  cat &gt; ~/Library/LaunchAgents/dev.dekopon.$d.plist &lt;&lt;EOF
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;&lt;dict&gt;
+  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;dev.dekopon.$d&lt;/string&gt;
+  &lt;key&gt;ProgramArguments&lt;/key&gt;&lt;array&gt;
+    &lt;string&gt;$bin/dekopon-${d}d&lt;/string&gt;
+    &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;$PWD/$d.yaml&lt;/string&gt;$env
+    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;$PWD/private/logs/$d.log&lt;/string&gt;
+  &lt;/array&gt;
+  &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
+  &lt;key&gt;KeepAlive&lt;/key&gt;&lt;true/&gt;
+  &lt;key&gt;ThrottleInterval&lt;/key&gt;&lt;integer&gt;30&lt;/integer&gt;
+  &lt;key&gt;ExitTimeOut&lt;/key&gt;&lt;integer&gt;150&lt;/integer&gt;
+  &lt;key&gt;Umask&lt;/key&gt;&lt;integer&gt;63&lt;/integer&gt;
+  &lt;key&gt;StandardOutPath&lt;/key&gt;&lt;string&gt;$PWD/private/logs/$d.stdout.log&lt;/string&gt;
+  &lt;key&gt;StandardErrorPath&lt;/key&gt;&lt;string&gt;$PWD/private/logs/$d.stderr.log&lt;/string&gt;
+&lt;/dict&gt;&lt;/plist&gt;
+EOF
+done
+plutil -lint ~/Library/LaunchAgents/dev.dekopon.*.plist</code></pre>
+<p>The <code>restart</code> script checks both configurations, stops the gateway then the broker, and starts them in the other order. It waits out each <code>bootout</code>, which returns before the job is gone:</p>
+<pre aria-label="restart" tabindex="0"><code>cat &gt; restart &lt;&lt;'EOF'
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+bin=$(brew --prefix)/opt/dekopon/bin
+d=gui/$(id -u)
+"$bin/dekopon-brokerd" check broker.yaml
+"$bin/dekopon-gatewayd" check gateway.yaml
+for s in gateway broker; do
+  launchctl bootout $d/dev.dekopon.$s 2&gt;/dev/null || true
+  while launchctl print $d/dev.dekopon.$s &gt;/dev/null 2&gt;&amp;1; do sleep 1; done
+done
+launchctl bootstrap $d ~/Library/LaunchAgents/dev.dekopon.broker.plist
+until "$bin/dekopon-brokerd" probe --socket private/run/broker.sock; do sleep 1; done
+launchctl bootstrap $d ~/Library/LaunchAgents/dev.dekopon.gateway.plist
+EOF
+chmod +x restart
+./restart</code></pre>
+<h3>Separate accounts</h3>
 <p>Create both property lists:</p>
-<pre aria-label="broker plist" tabindex="0"><code>cat &gt; dev.dekopon.broker.plist &lt;&lt;'EOF'
+<pre aria-label="launch daemons" tabindex="0"><code>for d in broker gateway; do
+  env=; [ $d = gateway ] &amp;&amp; env="&lt;string&gt;--env-file&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/gateway/credentials.env&lt;/string&gt;"
+  cat &gt; dev.dekopon.$d.plist &lt;&lt;EOF
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
 &lt;plist version="1.0"&gt;&lt;dict&gt;
-  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;dev.dekopon.broker&lt;/string&gt;
+  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;dev.dekopon.$d&lt;/string&gt;
   &lt;key&gt;ProgramArguments&lt;/key&gt;&lt;array&gt;
-    &lt;string&gt;/usr/local/lib/dekopon/current/dekopon-brokerd&lt;/string&gt;
-    &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/broker/broker.yaml&lt;/string&gt;
-    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;/usr/local/var/log/dekopon-broker/broker.log&lt;/string&gt;
+    &lt;string&gt;/usr/local/lib/dekopon/current/dekopon-${d}d&lt;/string&gt;
+    &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/$d/$d.yaml&lt;/string&gt;$env
+    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;/usr/local/var/log/dekopon-$d/$d.log&lt;/string&gt;
   &lt;/array&gt;
-  &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_dekopon_broker&lt;/string&gt;
+  &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_dekopon_$d&lt;/string&gt;
   &lt;key&gt;GroupName&lt;/key&gt;&lt;string&gt;dekopon-ipc&lt;/string&gt;
   &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
   &lt;key&gt;KeepAlive&lt;/key&gt;&lt;true/&gt;
   &lt;key&gt;ThrottleInterval&lt;/key&gt;&lt;integer&gt;30&lt;/integer&gt;
   &lt;key&gt;ExitTimeOut&lt;/key&gt;&lt;integer&gt;150&lt;/integer&gt;
   &lt;key&gt;Umask&lt;/key&gt;&lt;integer&gt;63&lt;/integer&gt;
-  &lt;key&gt;StandardOutPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-broker/stdout.log&lt;/string&gt;
-  &lt;key&gt;StandardErrorPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-broker/stderr.log&lt;/string&gt;
+  &lt;key&gt;StandardOutPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-$d/stdout.log&lt;/string&gt;
+  &lt;key&gt;StandardErrorPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-$d/stderr.log&lt;/string&gt;
 &lt;/dict&gt;&lt;/plist&gt;
-EOF</code></pre>
-<pre aria-label="gateway plist" tabindex="0"><code>cat &gt; dev.dekopon.gateway.plist &lt;&lt;'EOF'
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
-&lt;plist version="1.0"&gt;&lt;dict&gt;
-  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;dev.dekopon.gateway&lt;/string&gt;
-  &lt;key&gt;ProgramArguments&lt;/key&gt;&lt;array&gt;
-    &lt;string&gt;/usr/local/lib/dekopon/current/dekopon-gatewayd&lt;/string&gt;
-    &lt;string&gt;--config&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/gateway/gateway.yaml&lt;/string&gt;
-    &lt;string&gt;--env-file&lt;/string&gt;&lt;string&gt;/usr/local/etc/dekopon/gateway/credentials.env&lt;/string&gt;
-    &lt;string&gt;--log-file&lt;/string&gt;&lt;string&gt;/usr/local/var/log/dekopon-gateway/gateway.log&lt;/string&gt;
-  &lt;/array&gt;
-  &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_dekopon_gateway&lt;/string&gt;
-  &lt;key&gt;GroupName&lt;/key&gt;&lt;string&gt;dekopon-ipc&lt;/string&gt;
-  &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
-  &lt;key&gt;KeepAlive&lt;/key&gt;&lt;true/&gt;
-  &lt;key&gt;ThrottleInterval&lt;/key&gt;&lt;integer&gt;30&lt;/integer&gt;
-  &lt;key&gt;ExitTimeOut&lt;/key&gt;&lt;integer&gt;150&lt;/integer&gt;
-  &lt;key&gt;Umask&lt;/key&gt;&lt;integer&gt;63&lt;/integer&gt;
-  &lt;key&gt;StandardOutPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-gateway/stdout.log&lt;/string&gt;
-  &lt;key&gt;StandardErrorPath&lt;/key&gt;&lt;string&gt;/usr/local/var/log/dekopon-gateway/stderr.log&lt;/string&gt;
-&lt;/dict&gt;&lt;/plist&gt;
-EOF</code></pre>
+EOF
+done</code></pre>
 <p>Install them and start the broker, then the gateway:</p>
 <pre aria-label="bootstrap" tabindex="0"><code>plutil -lint dev.dekopon.broker.plist dev.dekopon.gateway.plist
 sudo install -o root -g wheel -m 0644 dev.dekopon.broker.plist dev.dekopon.gateway.plist \
@@ -456,10 +542,6 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.broker.plist
 until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
   --socket /usr/local/var/run/dekopon/broker.sock; do sleep 2; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
-<ul>
-<li>In <strong>System Settings → Energy</strong>, turn on <strong>Prevent automatic sleeping when the display is off</strong> and <strong>Start up automatically after a power failure</strong>.</li>
-<li>With FileVault on, a restart after a power cut waits for your password before Dekopon starts.</li>
-</ul>
 </section>
 
 <section id="verify">
@@ -475,6 +557,22 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist
 
 <section id="operate">
 <h2>12. Day-to-day commands</h2>
+<ul>
+<li>The broker rereads an edited <code>secret-map.yaml</code> without a restart and reads <code>github-token</code> on each use, so step 7's <code>read</code> line rotates the token. Policy, principals, routes, models and <code>agents.yaml</code> also <a href="{{ deploy }}#mac">reload within seconds of a save ↗</a>; <code>credentials.env</code> and the rest wait for a restart.</li>
+<li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
+<li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac.</li>
+<li><a href="{{ deploy }}#upgrades">Upgrade or roll back both daemons together ↗</a>.</li>
+</ul>
+<p>A message's <a href="{{ release.sourceUrl }}/crates/dekopon-gatewayd/src/collection.rs#L321">received record ↗</a>, found by text or Slack ts, holds the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a> its records share; the commands below skip rotated files.</p>
+<h3>One account</h3>
+<p>Edit in the folder, then run <code>./restart</code>; it stops nothing until both checks pass. Upgrade the same way:</p>
+<pre aria-label="brew upgrade" tabindex="0"><code>brew unpin dekopon &amp;&amp; brew upgrade dekopon &amp;&amp; brew pin dekopon
+./restart</code></pre>
+<p><code>brew upgrade</code> deletes the previous version; keep its release archive to roll back. The logs in <code>private/logs</code> need no <code>sudo</code>:</p>
+<pre aria-label="follow message one account" tabindex="0"><code>T=$(grep 'OWNER/REPO#7' private/logs/gateway.log | grep -m1 '"audit.event":"gateway.message.received"' |
+  grep -o '"trace_id":"[0-9a-f]*"')
+[ -n "$T" ] &amp;&amp; grep -hF "$T" private/logs/gateway.log private/logs/broker.log | jq .</code></pre>
+<h3>Separate accounts</h3>
 <p>Stop both services, gateway first:</p>
 <pre aria-label="stop" tabindex="0"><code>sudo launchctl bootout system/dev.dekopon.gateway
 while pgrep -U "$(id -u _dekopon_gateway)" &gt;/dev/null; do sleep 1; done
@@ -485,24 +583,24 @@ while pgrep -U "$(id -u _dekopon_broker)" &gt;/dev/null; do sleep 1; done</code>
 until sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
   --socket /usr/local/var/run/dekopon/broker.sock; do sleep 2; done
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.dekopon.gateway.plist</code></pre>
-<ul>
-<li>After editing <code>credentials.env</code>, <code>gateway.yaml</code> or <code>agents.yaml</code>, restart both as above.</li>
-<li>Rotate the GitHub token by running step 7's <code>read</code> line again; the broker reads the file on each use.</li>
-<li>At the OpenRouter limit, the agent says it couldn't complete the request; raise the limit or wait.</li>
-<li>The logs hold, at <code>info</code>, <a href="{{ core }}design.md#trace-as-audit">every prompt, reply, capability decision and refusal ↗</a>; only a <code>telemetry</code> block sends them off the Mac.</li>
-<li><a href="{{ deploy }}#upgrades">Upgrade or roll back both daemons together ↗</a>.</li>
-</ul>
-<p>A message's <a href="{{ release.sourceUrl }}/crates/dekopon-gatewayd/src/collection.rs#L321">received record ↗</a>, found by text or Slack ts, holds the <a href="{{ release.sourceUrl }}/crates/dekopon-telemetry/src/install.rs"><code>trace_id</code> ↗</a> its records share; rotated files are skipped:</p>
+<p>A plist in <code>/Library/LaunchDaemons</code> is root's, so editing one takes <code>sudo</code> as well. To upgrade, run step 2 with <code>v</code> set to the new release, minus its last two lines, and check with the new binaries before you stop anything:</p>
+<pre aria-label="upgrade check" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/$v/dekopon-brokerd check /usr/local/etc/dekopon/broker/broker.yaml
+sudo -u _dekopon_gateway /usr/local/lib/dekopon/$v/dekopon-gatewayd check /usr/local/etc/dekopon/gateway/gateway.yaml</code></pre>
+<p>Stop both, point <code>current</code> at the new release, and start both. To roll back, point it at the old one, which stays installed:</p>
+<pre aria-label="upgrade switch" tabindex="0"><code>sudo ln -sfh /usr/local/lib/dekopon/$v /usr/local/lib/dekopon/current</code></pre>
 <pre aria-label="follow message" tabindex="0"><code>cd /usr/local/var/log
 T=$(sudo grep 'OWNER/REPO#7' dekopon-gateway/gateway.log | grep -m1 '"audit.event":"gateway.message.received"' |
   grep -o '"trace_id":"[0-9a-f]*"')
 [ -n "$T" ] &amp;&amp; sudo grep -hF "$T" dekopon-gateway/gateway.log dekopon-broker/broker.log | jq .</code></pre>
 <h3 id="health">When the bot is silent or wrong</h3>
-<p>Probe the broker; it exits 0 with no output while it serves:</p>
-<pre aria-label="health probe" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
-  --socket /usr/local/var/run/dekopon/broker.sock</code></pre>
-<p>Print each job; <code>last exit code</code> shows why launchd relaunches it:</p>
-<pre aria-label="health jobs" tabindex="0"><code>sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
+<p>The probe exits 0 with no output while the broker serves; <code>last exit code</code> shows why launchd relaunches a job. With one account:</p>
+<pre aria-label="health one account" tabindex="0"><code>dekopon-brokerd probe --socket private/run/broker.sock
+launchctl print gui/$UID/dev.dekopon.broker | grep -E 'state =|last exit code'
+launchctl print gui/$UID/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
+<p>With separate accounts:</p>
+<pre aria-label="health separate" tabindex="0"><code>sudo -u _dekopon_broker /usr/local/lib/dekopon/current/dekopon-brokerd probe \
+  --socket /usr/local/var/run/dekopon/broker.sock
+sudo launchctl print system/dev.dekopon.broker | grep -E 'state =|last exit code'
 sudo launchctl print system/dev.dekopon.gateway | grep -E 'state =|last exit code'</code></pre>
 <p>For detail, add <code>RUST_LOG</code>, which isn't a secret, to either plist's <code>&lt;dict&gt;</code>, then restart both as above; a bare <code>debug</code> floods the log and drops records:</p>
 <pre aria-label="rust log" tabindex="0"><code>&lt;key&gt;EnvironmentVariables&lt;/key&gt;&lt;dict&gt;

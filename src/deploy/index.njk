@@ -16,10 +16,10 @@ ogType: article
 <a class="button button-primary" href="/deploy/mac/">Run on a Mac <span aria-hidden="true">→</span></a>
 </div>
 <p>Kubernetes is the preferred deployment; the Mac path is for people moving from OpenClaw or Hermes.</p>
-<p>Every path runs <code>dekopon-brokerd</code>, which holds policy and provider credentials, and <code>dekopon-gatewayd</code>, which holds chat and model credentials, under separate UIDs joined by one Unix socket.</p>
+<p>Every path runs <code>dekopon-brokerd</code>, which holds policy and provider credentials, and <code>dekopon-gatewayd</code>, which holds chat and model credentials, joined by one Unix socket. Kubernetes gives each its own UID; on a Mac you choose.</p>
 </header>
 <section id="options">
-<h2>Linux hosts use the same release</h2>
+<h2>A Mac, Linux or container host runs the same release</h2>
 <div class="guide-table" tabindex="0" role="region" aria-label="Environment comparison">
 <table>
 <thead>
@@ -30,6 +30,11 @@ ogType: article
 </tr>
 </thead>
 <tbody>
+<tr>
+<th scope="row">Mac</th>
+<td data-label="Get the application"><code>brew install dekopon-agents/tap/dekopon</code>, or the attested Apple Silicon release archive.</td>
+<td data-label="Next step">Follow the <a href="/deploy/mac/">Mac guide</a>: both daemons as your login, or under two hidden accounts.</td>
+</tr>
 <tr>
 <th scope="row">Linux</th>
 <td data-label="Get the application">An attested <a href="{{ release.url }}">release archive</a> for arm64 or x86_64.</td>
@@ -48,6 +53,6 @@ ogType: article
 <h2>The broker runs nothing until you grant it</h2>
 <p>Release archives carry no providers, and the image carries only <code>cli-probe</code> and <code>http-probe</code>. Install reviewed providers yourself, or <a href="/providers/">write one</a>. <a href="{{ site.repository }}/tree/main/examples/conditional-write">examples/conditional-write ↗</a> has a complete broker and gateway configuration for one Slack sender.</p>
 <p>Set up <a href="/how-it-works/#trace">telemetry collection</a> before you grant the agent useful access: the audit record lives only in the trace.</p>
-<p>Check both configurations before you start either daemon: <code>dekopon-brokerd check broker.yaml</code> and <code>dekopon-gatewayd check gatewayd.yaml</code>. Neither check opens the socket or proves a credential works.</p>
+<p>Check both configurations before you start either daemon: <code>dekopon-brokerd check broker.yaml</code> and <code>dekopon-gatewayd check gateway.yaml</code>. Neither check opens the socket or proves a credential works.</p>
 </section>
 </article>
