@@ -1,26 +1,20 @@
 {
-  "version": "0.84.2",
-  "tag": "v0.84.2",
-  "date": "4 November 2026",
-  "dateShort": "4 Nov 2026",
-  "dateIso": "2026-11-04",
-  "revision": "cab962620898b7e53a9a29824252c44acee1314d",
-  "shortRevision": "cab9626",
-  "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.84.2",
-  "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/cab962620898b7e53a9a29824252c44acee1314d",
-  "imageReference": "ghcr.io/dekopon-agents/dekopon:v0.84.2",
-  "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.84.2",
-  "archive": {
-    "target": "aarch64-unknown-linux-gnu",
-    "size": "25.1 MiB",
-    "gatewaySize": "21.3 MiB",
-    "brokerSize": "28.2 MiB"
-  },
+  "version": "0.88.0",
+  "tag": "v0.88.0",
+  "date": "6 November 2026",
+  "dateShort": "6 Nov 2026",
+  "dateIso": "2026-11-06",
+  "revision": "44953a14a3d151d2747fd51f0e9d538d3a2be39d",
+  "shortRevision": "44953a1",
+  "url": "https://github.com/dekopon-agents/dekopon/releases/tag/v0.88.0",
+  "sourceUrl": "https://github.com/dekopon-agents/dekopon/tree/44953a14a3d151d2747fd51f0e9d538d3a2be39d",
+  "imageReference": "ghcr.io/dekopon-agents/dekopon:v0.88.0",
+  "installCommand": "docker pull ghcr.io/dekopon-agents/dekopon:v0.88.0",
   "chart": {
-    "publishedVersion": "0.71.2",
-    "publishedAppVersion": "0.84.2",
-    "sourceVersion": "0.71.2",
-    "sourceAppVersion": "0.84.2"
+    "publishedVersion": "0.75.0",
+    "publishedAppVersion": "0.88.0",
+    "sourceVersion": "0.75.0",
+    "sourceAppVersion": "0.88.0"
   },
-  "imageDigest": "sha256:252d8c3e7373ff1c5c996e1a6a10a56f8c275fbba5f9a044351a80e60608d9b9"
+  "imageDigest": "sha256:6b5c8893ec262fecb1c2bffba915d8ab3de865beb22f18cc35352f80a0929454"
 }
