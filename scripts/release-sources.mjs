@@ -70,7 +70,13 @@ export function releaseSources({ request = fetch, token = process.env.GITHUB_TOK
         },
         async latestPublishedChartVersion(atMost) {
             const headers = { Authorization: `Bearer ${await registryToken(chartRepository)}` };
-            const { tags = [] } = await get(`https://ghcr.io/v2/${chartRepository}/tags/list?n=1000`, headers);
+            const tags = [];
+            for (let url = `https://ghcr.io/v2/${chartRepository}/tags/list?n=1000`; url;) {
+                const response = await fetchOk(url, headers);
+                tags.push(...((await response.json()).tags ?? []));
+                const next = response.headers.get("link")?.match(/<([^>]+)>;\s*rel="next"/)?.[1];
+                url = next ? new URL(next, "https://ghcr.io").href : undefined;
+            }
             const versions = tags.filter((tag) => semver.test(tag) && compareSemver(tag, atMost) <= 0).sort(compareSemver);
             if (versions.length === 0) throw new Error(`registry lists no published chart at or below ${atMost}`);
             return versions.at(-1);

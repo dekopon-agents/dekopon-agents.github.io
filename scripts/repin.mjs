@@ -18,6 +18,7 @@ export async function derivePin(tag, current, sources) {
         sources.imageDigest(tag),
         sources.toolchain(revision)
     ]);
+    if (!toolchain.rust || !toolchain.wasmTools) throw new Error(`could not read the Rust or wasm-tools pin at ${tag}`);
     // A release that left the chart alone keeps the chart published before it.
     const chartVersion = await sources.latestPublishedChartVersion(sourceChart.version);
     const publishedChart = await sources.publishedChart(chartVersion);

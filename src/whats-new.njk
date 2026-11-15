@@ -14,7 +14,6 @@ ogType: article
 <p>With {{ whatsNew.tag }}, console records from <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> carry <code>trace_id</code> and <code>span_id</code>, with or without a <code>telemetry</code> block. Search both log files for one ID to follow a message from chat to capability decision.</p>
 </header>
 <p class="release-receipt"><strong>{{ whatsNew.tag }}</strong> · {{ whatsNew.date }} · <a href="{{ whatsNew.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ whatsNew.shortRevision }}</a></p>
-{% if whatsNew.tag != release.tag %}<p class="release-receipt">Latest release: <a href="{{ release.url }}">{{ release.tag }} release notes ↗</a></p>{% endif %}
 
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span><span class="compat-anchor" id="migration" aria-hidden="true"></span><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
 <h2>Two changes, no new configuration</h2>
