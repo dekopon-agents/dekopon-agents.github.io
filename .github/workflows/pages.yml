@@ -8,21 +8,88 @@ on:
   schedule:
     - cron: "17 9 * * *"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Core release to pin (default the latest release)
+        required: false
+  repository_dispatch:
+    types:
+      - core-release
 
 permissions:
   contents: read
 
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  repin:
+    name: Pin the latest core release
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.push.outputs.sha }}
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      PIN_TAG: ${{ github.event.client_payload.tag || inputs.tag }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Derive the pin from the release
+        id: pin
+        run: node scripts/repin.mjs ${PIN_TAG:+--tag "$PIN_TAG"}
+
+      - name: Verify the pin against its publications
+        if: steps.pin.outputs.changed == 'true'
+        run: npm run check:release -- --remote
+
+      - name: Compile and validate site
+        if: steps.pin.outputs.changed == 'true'
+        run: npm test
+
+      - name: Verify pinned source links
+        if: steps.pin.outputs.changed == 'true'
+        run: node scripts/check-pinned-links.mjs
+
+      - name: Commit the pin to main
+        id: push
+        env:
+          TAG: ${{ steps.pin.outputs.tag }}
+          CHANGED: ${{ steps.pin.outputs.changed }}
+        run: |
+          if [ "$CHANGED" = true ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -qm "chore(release): pin core $TAG" -- src/_data/release.json src/_data/providerSdk.json
+            git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; }
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build static site
+    needs: repin
+    if: ${{ !cancelled() && needs.repin.result != 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.repin.outputs.sha || (github.event_name == 'push' && github.ref) || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -35,11 +102,6 @@ jobs:
 
       - name: Audit build dependencies
         run: npm audit --audit-level=high
-
-      - name: Verify release, chart, and SDK publication pins
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: npm run check:release -- --remote
 
       - name: Compile and validate site
         run: npm test
@@ -57,7 +119,7 @@ jobs:
 
   deploy:
     name: Publish site
-    if: github.event_name != 'pull_request'
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.build.result == 'success' }}
     needs: build
     permissions:
       pages: write

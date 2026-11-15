@@ -6,14 +6,14 @@ bodyClass: technical-page
 technicalPage: true
 ogType: article
 ---
-{% set source = release.sourceUrl %}
+{% set source = whatsNew.sourceUrl %}
 <article class="shell field-guide">
 <header class="guide-intro">
-<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ release.url }}">{{ release.tag }}</a> · pre-production</p>
+<p class="guide-baseline"><a href="/how-it-works/">How it works</a> · <a href="{{ whatsNew.url }}">{{ whatsNew.tag }}</a> · pre-production</p>
 <h1>Both log files carry the trace ID</h1>
-<p>With {{ release.tag }}, console records from <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> carry <code>trace_id</code> and <code>span_id</code>, with or without a <code>telemetry</code> block. Search both log files for one ID to follow a message from chat to capability decision.</p>
+<p>With {{ whatsNew.tag }}, console records from <code>dekopon-gatewayd</code> and <code>dekopon-brokerd</code> carry <code>trace_id</code> and <code>span_id</code>, with or without a <code>telemetry</code> block. Search both log files for one ID to follow a message from chat to capability decision.</p>
 </header>
-<p class="release-receipt"><strong>{{ release.tag }}</strong> · {{ release.date }} · <a href="{{ release.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ release.shortRevision }}</a></p>
+<p class="release-receipt"><strong>{{ whatsNew.tag }}</strong> · {{ whatsNew.date }} · <a href="{{ whatsNew.url }}">Release notes ↗</a> · <a href="{{ source }}">{{ whatsNew.shortRevision }}</a></p>
 
 <section id="changes"><span class="compat-anchor" id="release-summary-title" aria-hidden="true"></span><span class="compat-anchor" id="migration" aria-hidden="true"></span><span class="compat-anchor" id="release-details-title" aria-hidden="true"></span><span class="compat-anchor" id="release-path-title" aria-hidden="true"></span>
 <h2>Two changes, no new configuration</h2>
@@ -31,7 +31,7 @@ ogType: article
 </section>
 
 <section id="install"><span class="compat-anchor" id="get-latest" aria-hidden="true"></span><span class="compat-anchor" id="release-install-title" aria-hidden="true"></span>
-<h2>Chart {{ release.chart.publishedVersion }} deploys application {{ release.chart.publishedAppVersion }}</h2>
+<h2>Chart {{ whatsNew.chart.publishedVersion }} deploys application {{ whatsNew.chart.publishedAppVersion }}</h2>
 <p>The release archives and the image carry both daemons and <code>dekopon-console</code>. Upgrade the two daemons together, from one release.</p>
 <p><a class="button button-primary" href="/deploy/">Install options →</a> <a href="{{ source }}/CHANGELOG.md">Full changelog ↗</a></p>
 </section>
