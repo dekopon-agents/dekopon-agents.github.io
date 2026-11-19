@@ -51,7 +51,7 @@ test("the exception ends once a patched release narrows the advisory range", () 
 });
 
 test("an audit with no vulnerability data fails instead of passing", () => {
-    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }, { ...report(), vulnerabilities: { x: { severity: "bogus", via: [] } } }, { ...report(), vulnerabilities: { x: { severity: "high", via: [{ url: "u", range: "*" }] } } }, { ...report(), metadata: { vulnerabilities: { high: 1 } }, vulnerabilities: {} }, report({ fdir: { severity: "moderate", via: [{ severity: "high", url: "https://github.com/advisories/GHSA-x", range: "*" }] } }), report({ fdir: { severity: "high", via: ["picomatch", "ghost"] } })];
+    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }, { ...report(), vulnerabilities: { x: { severity: "bogus", via: [] } } }, { ...report(), vulnerabilities: { x: { severity: "high", via: [{ url: "u", range: "*" }] } } }, { ...report(), metadata: { vulnerabilities: { high: 1 } }, vulnerabilities: {} }, report({ fdir: { severity: "moderate", via: [{ severity: "high", url: "https://github.com/advisories/GHSA-x", range: "*" }] } }), report({ fdir: { severity: "high", via: ["picomatch", "ghost"] } }), report({ fdir: { severity: "high", via: ["picomatch", "constructor"] } }), report({ fdir: { severity: "high", via: ["picomatch", "__proto__"] } })];
     for (const bad of errors) {
         const quiet = console.error;
         console.error = () => {};

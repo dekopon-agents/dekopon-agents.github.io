@@ -18,7 +18,7 @@ function wellFormed(report) {
     const via = (v) => typeof v === "string" || (severities.includes(v?.severity) && typeof v.url === "string" && typeof v.range === "string");
     if (!entries.every((v) => severities.includes(v?.severity) && Array.isArray(v.via) && v.via.every(via))) return false;
     const rank = (level) => severities.indexOf(level);
-    const consistent = entries.every((v) => v.via.every((x) => typeof x === "string" ? x in vulns : rank(v.severity) >= rank(x.severity)));
+    const consistent = entries.every((v) => v.via.every((x) => typeof x === "string" ? Object.hasOwn(vulns, x) : rank(v.severity) >= rank(x.severity)));
     if (!consistent) return false;
     return severities.every((level) => (counts[level] ?? 0) === entries.filter((v) => v.severity === level).length);
 }
