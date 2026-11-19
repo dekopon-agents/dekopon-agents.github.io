@@ -1,0 +1,5 @@
+{
+    "id": "GHSA-fc5q-39xc-vjpf",
+    "expires": "2026-12-19",
+    "reason": "picomatch ReDoS, no patched release exists (affected range is *). Build-only dev dependency: it matches only this site's own globs, and nothing it does ships to visitors."
+}

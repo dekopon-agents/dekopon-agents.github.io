@@ -80,6 +80,19 @@ jobs:
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Retire the audit exception once picomatch has a patched release
+        run: |
+          node scripts/audit-build-deps.mjs --retire
+          if git diff --quiet && [ -z "$(git ls-files --deleted)" ]; then exit 0; fi
+          npm ci
+          npm test
+          node scripts/audit-build-deps.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A package.json package-lock.json scripts
+          git commit -qm "ci: retire the picomatch audit exception"
+          git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; }
+
   build:
     name: Build static site
     needs: repin
@@ -100,9 +113,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      # Excepts only GHSA-fc5q-39xc-vjpf (picomatch ReDoS, no patched release) until 2026-12-19:
-      # build-only dev dependency, matches only this site's own globs, nothing shipped to visitors.
-      # The exception ends on its own once a patched picomatch narrows the advisory range, or at expiry.
+      # scripts/audit-exception.json holds the one dated exception (GHSA-fc5q-39xc-vjpf, until 2026-12-19).
+      # The daily run retires it once a patched picomatch exists; at expiry it fails.
       - name: Audit build dependencies
         run: node scripts/audit-build-deps.mjs
 

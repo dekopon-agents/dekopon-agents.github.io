@@ -51,7 +51,7 @@ Run the same checks used in CI with:
 
 ```console
 npm test
-npm audit --audit-level=high
+node scripts/audit-build-deps.mjs
 npm run check:release -- --remote
 ```
 
@@ -61,7 +61,7 @@ The remote release check verifies GitHub’s latest application release and publ
 
 ### Build dependency policy
 
-Eleventy is pinned to `4.0.0-alpha.10`, an upstream prerelease, because the stable 3.1.6 dependency tree still includes vulnerable `braces` through Chokidar 3. This version uses Chokidar 5 and the maintained `@11ty/nunjucks` fork. The exact lockfile, generated-HTML checks, and watch regression test guard the upgrade. No audit exceptions or forced downgrades are used. Reassess the prerelease pin when a fixed stable release is available; run the full checks and audit after any dependency update.
+Eleventy is pinned to `4.0.0-alpha.10`, an upstream prerelease, because the stable 3.1.6 dependency tree still includes vulnerable `braces` through Chokidar 3. This version uses Chokidar 5 and the maintained `@11ty/nunjucks` fork. The exact lockfile, generated-HTML checks, and watch regression test guard the upgrade. The audit is `scripts/audit-build-deps.mjs`: high and critical advisories fail the build, except the one dated exception in `scripts/audit-exception.json` (GHSA-fc5q-39xc-vjpf, a picomatch ReDoS with no patched release, build-time only, until 2026-12-19). It fails after that date, and the daily run removes the exception and runs `npm audit fix` once a patched release exists. No other exceptions or forced downgrades are used. Reassess the prerelease pin when a fixed stable release is available; run the full checks and audit after any dependency update.
 
 ## Generated output
 
