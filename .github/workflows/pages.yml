@@ -100,8 +100,11 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      # Excepts only GHSA-fc5q-39xc-vjpf (picomatch ReDoS, no patched release) until 2026-12-19:
+      # build-only dev dependency, matches only this site's own globs, nothing shipped to visitors.
+      # The exception ends on its own once a patched picomatch narrows the advisory range, or at expiry.
       - name: Audit build dependencies
-        run: npm audit --audit-level=high
+        run: node scripts/audit-build-deps.mjs
 
       - name: Compile and validate site
         run: npm test
