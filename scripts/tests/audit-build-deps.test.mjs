@@ -38,7 +38,7 @@ test("any other high advisory still fails while the exception is live", () => {
 
 test("a package reaching the excepted advisory and another advisory fails", () => {
     const other = { severity: "critical", url: "https://github.com/advisories/GHSA-aaaa-bbbb-cccc", range: "<2.0.0" };
-    const failures = auditFailures(report({ fdir: { severity: "high", via: ["picomatch", other] } }), "2026-11-20", rule);
+    const failures = auditFailures(report({ fdir: { severity: "critical", via: ["picomatch", other] } }), "2026-11-20", rule);
     assert.ok(failures.some((f) => f.name === "fdir" && f.advisories.includes("GHSA-aaaa-bbbb-cccc")));
 });
 
@@ -51,7 +51,7 @@ test("the exception ends once a patched release narrows the advisory range", () 
 });
 
 test("an audit with no vulnerability data fails instead of passing", () => {
-    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }, { ...report(), vulnerabilities: { x: { severity: "bogus", via: [] } } }, { ...report(), vulnerabilities: { x: { severity: "high", via: [{ url: "u", range: "*" }] } } }, { ...report(), metadata: { vulnerabilities: { high: 1 } }, vulnerabilities: {} }];
+    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }, { ...report(), vulnerabilities: { x: { severity: "bogus", via: [] } } }, { ...report(), vulnerabilities: { x: { severity: "high", via: [{ url: "u", range: "*" }] } } }, { ...report(), metadata: { vulnerabilities: { high: 1 } }, vulnerabilities: {} }, report({ fdir: { severity: "moderate", via: [{ severity: "high", url: "https://github.com/advisories/GHSA-x", range: "*" }] } }), report({ fdir: { severity: "high", via: ["picomatch", "ghost"] } })];
     for (const bad of errors) {
         const quiet = console.error;
         console.error = () => {};
