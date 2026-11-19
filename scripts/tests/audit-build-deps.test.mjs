@@ -5,6 +5,7 @@ import { auditFailures, exceptionEnded, main, retire } from "../audit-build-deps
 const rule = { id: "GHSA-fc5q-39xc-vjpf", expires: "2026-12-19", reason: "test" };
 const picomatch = { severity: "high", url: "https://github.com/advisories/GHSA-fc5q-39xc-vjpf", range: "*" };
 const report = (extra = {}) => ({
+    auditReportVersion: 2,
     metadata: { vulnerabilities: { high: 4 } },
     vulnerabilities: {
         picomatch: { severity: "high", via: [picomatch] },
@@ -49,7 +50,7 @@ test("the exception ends once a patched release narrows the advisory range", () 
 });
 
 test("an audit with no vulnerability data fails instead of passing", () => {
-    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }];
+    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }];
     for (const bad of errors) {
         const quiet = console.error;
         console.error = () => {};

@@ -8,10 +8,12 @@ const failing = new Set(["high", "critical"]);
 const advisoryId = (via) => (via.url ?? "").split("/").pop();
 
 function checked(report) {
-    if (report.error || typeof report.vulnerabilities !== "object" || report.vulnerabilities === null || !report.metadata?.vulnerabilities) {
-        throw new Error(`npm audit returned no vulnerability data: ${JSON.stringify(report.error ?? "missing vulnerabilities or metadata")}`);
-    }
-    return report.vulnerabilities;
+    const vulns = report?.vulnerabilities;
+    const valid = !report?.error && report?.auditReportVersion === 2 && report.metadata?.vulnerabilities
+        && typeof vulns === "object" && vulns !== null && !Array.isArray(vulns)
+        && Object.values(vulns).every((v) => typeof v?.severity === "string" && Array.isArray(v.via));
+    if (!valid) throw new Error(`npm audit returned no usable report: ${JSON.stringify(report?.error ?? "unsupported or malformed")}`);
+    return vulns;
 }
 
 const roots = (vulns, name, seen = new Set()) => {

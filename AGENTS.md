@@ -369,7 +369,7 @@ Before publishing copy changes, run:
 
 ```console
 npm test
-npm audit --audit-level=high
+node scripts/audit-build-deps.mjs
 npm run check:release -- --remote
 ```
 
