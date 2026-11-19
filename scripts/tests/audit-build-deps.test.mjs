@@ -4,18 +4,19 @@ import { auditFailures, exceptionEnded, main, retire } from "../audit-build-deps
 
 const rule = { id: "GHSA-fc5q-39xc-vjpf", expires: "2026-12-19", reason: "test" };
 const picomatch = { severity: "high", url: "https://github.com/advisories/GHSA-fc5q-39xc-vjpf", range: "*" };
-const report = (extra = {}) => ({
-    auditReportVersion: 2,
-    metadata: { vulnerabilities: { high: 4 } },
-    vulnerabilities: {
+const report = (extra = {}) => {
+    const vulnerabilities = {
         picomatch: { severity: "high", via: [picomatch] },
         fdir: { severity: "high", via: ["picomatch"] },
         "@11ty/eleventy": { severity: "high", via: ["tinyglobby"] },
         tinyglobby: { severity: "high", via: ["fdir", "picomatch"] },
         minimatch: { severity: "moderate", via: [{ severity: "moderate", url: "https://github.com/advisories/GHSA-g3hv-75wg-m249", range: "*" }] },
         ...extra
-    }
-});
+    };
+    const counts = {};
+    for (const v of Object.values(vulnerabilities)) counts[v.severity] = (counts[v.severity] ?? 0) + 1;
+    return { auditReportVersion: 2, metadata: { vulnerabilities: counts }, vulnerabilities };
+};
 
 test("the dated picomatch advisory and the packages flagged only through it pass before the expiry", () => {
     assert.deepEqual(auditFailures(report(), "2026-12-19", rule), []);
@@ -50,7 +51,7 @@ test("the exception ends once a patched release narrows the advisory range", () 
 });
 
 test("an audit with no vulnerability data fails instead of passing", () => {
-    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }];
+    const errors = [{ error: { code: "ENOAUDIT" } }, {}, { vulnerabilities: {} }, { ...report(), vulnerabilities: [] }, { ...report(), auditReportVersion: 3 }, { ...report(), vulnerabilities: { x: { severity: "high" } } }, { ...report(), vulnerabilities: { x: { severity: "bogus", via: [] } } }, { ...report(), vulnerabilities: { x: { severity: "high", via: [{ url: "u", range: "*" }] } } }, { ...report(), metadata: { vulnerabilities: { high: 1 } }, vulnerabilities: {} }];
     for (const bad of errors) {
         const quiet = console.error;
         console.error = () => {};

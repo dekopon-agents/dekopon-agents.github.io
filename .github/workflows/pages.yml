@@ -96,7 +96,10 @@ jobs:
           git add -A package.json package-lock.json scripts
           git commit -qm "ci: retire the picomatch audit exception" -m "Changelog: Changed: Retire the build audit exception for GHSA-fc5q-39xc-vjpf now that picomatch is patched."
           git push -f origin retire-audit-exception
-          gh api "repos/$GITHUB_REPOSITORY/pulls" -f base=main -f head=retire-audit-exception -f title="ci: retire the picomatch audit exception" -f body="A patched picomatch exists; this updates it and deletes scripts/audit-exception.json." || true
+          open=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&head=${GITHUB_REPOSITORY_OWNER}:retire-audit-exception" --jq length)
+          if [ "$open" = 0 ]; then
+            gh api "repos/$GITHUB_REPOSITORY/pulls" -f base=main -f head=retire-audit-exception -f title="ci: retire the picomatch audit exception" -f body="A patched picomatch exists; this updates it and deletes scripts/audit-exception.json."
+          fi
 
   build:
     name: Build static site

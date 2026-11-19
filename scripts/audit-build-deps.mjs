@@ -7,13 +7,22 @@ const failing = new Set(["high", "critical"]);
 
 const advisoryId = (via) => (via.url ?? "").split("/").pop();
 
-function checked(report) {
+const severities = ["info", "low", "moderate", "high", "critical"];
+
+function wellFormed(report) {
     const vulns = report?.vulnerabilities;
-    const valid = !report?.error && report?.auditReportVersion === 2 && report.metadata?.vulnerabilities
-        && typeof vulns === "object" && vulns !== null && !Array.isArray(vulns)
-        && Object.values(vulns).every((v) => typeof v?.severity === "string" && Array.isArray(v.via));
-    if (!valid) throw new Error(`npm audit returned no usable report: ${JSON.stringify(report?.error ?? "unsupported or malformed")}`);
-    return vulns;
+    const counts = report?.metadata?.vulnerabilities;
+    if (report?.error || report?.auditReportVersion !== 2 || !counts) return false;
+    if (typeof vulns !== "object" || vulns === null || Array.isArray(vulns)) return false;
+    const entries = Object.values(vulns);
+    const via = (v) => typeof v === "string" || (severities.includes(v?.severity) && typeof v.url === "string" && typeof v.range === "string");
+    if (!entries.every((v) => severities.includes(v?.severity) && Array.isArray(v.via) && v.via.every(via))) return false;
+    return severities.every((level) => (counts[level] ?? 0) === entries.filter((v) => v.severity === level).length);
+}
+
+function checked(report) {
+    if (!wellFormed(report)) throw new Error(`npm audit returned no usable report: ${JSON.stringify(report?.error ?? "unsupported or malformed")}`);
+    return report.vulnerabilities;
 }
 
 const roots = (vulns, name, seen = new Set()) => {
